@@ -2,6 +2,8 @@
 
 Vue 3 共享组件与工具，提供登录、布局、主题、通知和文件上传。直接导出源码。
 
+[在线示例](https://auto-novel.github.io/web-kit/)：浏览组件效果与主题。
+
 ## 接入
 
 依赖 Vue 3.5+、Vue Router 5.2+、Tailwind CSS 4.3+ 和 `@vicons/material`。
@@ -48,21 +50,4 @@ Vite 配置的插件列表加入 `themeBootstrapPlugin()`，避免首次加载�
 
 ```ts
 import { themeBootstrapPlugin } from '@novelia/web-kit/vite';
-```
-
-## 接口与示例
-
-- [包入口](./src/index.ts)：公开组件、函数和类型。
-- [配置与菜单类型](./src/types.ts)：`createWebKit` 配置和布局菜单。
-- [Playground](./playground/)：组件和主题示例。
-- [测试](./tests/)：关键行为约定。
-
-## 开发
-
-在仓库根目录执行：
-
-```sh
-pnpm dev:web-kit
-pnpm --filter @novelia/web-kit test
-pnpm --filter @novelia/web-kit build
 ```
