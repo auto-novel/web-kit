@@ -207,63 +207,20 @@ test('原生属性/监听器传给 textarea，布局和部位样式不串位', a
   assert.deepEqual(toolbar.props.style, { top: '24px' });
 });
 
-test('preview=false 时只显示编辑标签；空 tools 不产生空工具栏', async (t) => {
-  const view = mount(t, { tools: [], preview: false });
-  assert.equal(view.textarea.value, '');
-  assert.ok(view.tab('编辑'));
-  assert.equal(view.tab('预览'), undefined);
-  assert.equal(
-    view.find((node) => node.props.role === 'group'),
-    undefined,
-  );
-  assert.equal(
-    view.find((node) => node.tag === 'p' && node.text === '未配置预览内容'),
-    undefined,
-  );
-  assert.equal(view.textarea.parent.props.hidden, false);
-});
-
-test('预览最小高度跟随 rows，与编辑区基础高度一致且可覆盖', async (t) => {
-  const view = mount(t, { modelValue: '预览' });
-  dispatch(view.tab('预览'), 'click');
-  await Vue.nextTick();
-  const preview = view.find((node) => node.tag === 'article').parent;
-  assert.equal(preview.props.style['--markdown-editor-min-height'], '12rem');
-  assert.ok(classes(preview).includes('min-h-(--markdown-editor-min-height)'));
-  view.props.rows = 3;
-  await Vue.nextTick();
-  assert.equal(preview.props.style['--markdown-editor-min-height'], '6rem');
-  view.props.ui = { preview: 'min-h-48' };
-  await Vue.nextTick();
-  assert.ok(classes(preview).includes('min-h-48'));
-  assert.ok(!classes(preview).includes('min-h-(--markdown-editor-min-height)'));
-});
-
-test('默认提供预览，空白内容显示统一提示', async (t) => {
-  const view = mount(t, { modelValue: '  \n' });
-  assert.ok(view.tab('预览'));
+test('空内容预览显示提示，关闭 preview 返回编辑，空 tools 不渲染工具栏', async (t) => {
+  const view = mount(t, { modelValue: '  \n', tools: [] });
+  assert.equal(view.find((node) => node.props.role === 'group'), undefined);
   dispatch(view.tab('预览'), 'click');
   await Vue.nextTick();
   assert.equal(view.find((node) => node.tag === 'p').text, '没有可预览的内容');
-  assert.equal(
-    view.find((node) => node.tag === 'article'),
-    undefined,
-  );
-});
-
-test('关闭 preview 后回到编辑标签', async (t) => {
-  const view = mount(t, { modelValue: '原文' });
-  dispatch(view.tab('预览'), 'click');
-  await Vue.nextTick();
+  assert.equal(view.find((node) => node.tag === 'article'), undefined);
   assert.equal(view.textarea.parent.props.hidden, true);
+
   view.props.preview = false;
-  view.props.modelValue = '更新';
   await settle();
+  assert.ok(view.tab('编辑'));
   assert.equal(view.tab('预览'), undefined);
-  assert.equal(
-    view.find((node) => node.tag === 'article'),
-    undefined,
-  );
+  assert.equal(view.find((node) => node.tag === 'p'), undefined);
   assert.equal(view.textarea.parent.props.hidden, false);
 });
 

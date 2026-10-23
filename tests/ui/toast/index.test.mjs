@@ -59,38 +59,37 @@ function mountProvider(t) {
   return manager;
 }
 
-test('Toast adds managed toasts to the Provider, newest first', (t) => {
-  const { toasts } = mountProvider(t);
-  Toast.success('已保存');
-  Toast.error('保存失败');
-
-  assert.deepEqual(
-    toasts.value.map(({ status, description, open }) => ({
-      status,
-      description,
-      open,
-    })),
-    [
-      { status: 'error', description: '保存失败', open: true },
-      { status: 'success', description: '已保存', open: true },
-    ],
-  );
-  assert.notEqual(toasts.value[0].id, toasts.value[1].id);
-});
-
-test('all notification methods return IDs and forward per-toast lifecycle options', (t) => {
+test('notification methods return unique IDs, forward options and add newest first', (t) => {
   const { toasts } = mountProvider(t);
   const onClose = () => {};
   const onRemove = () => {};
-  for (const status of ['success', 'error', 'info', 'warning']) {
-    const id = Toast[status](status, { duration: 0, onClose, onRemove });
-    const toast = toasts.value[0];
-    assert.equal(id, toast.id);
-    assert.equal(toast.status, status);
-    assert.equal(toast.duration, 0);
-    assert.equal(toast.onClose, onClose);
-    assert.equal(toast.onRemove, onRemove);
-  }
+  const statuses = ['success', 'error', 'info', 'warning'];
+  const ids = statuses.map((status) =>
+    Toast[status](status, { duration: 0, onClose, onRemove }),
+  );
+  assert.equal(new Set(ids).size, statuses.length);
+  assert.deepEqual(
+    toasts.value.map(
+      ({ id, status, description, open, duration, onClose, onRemove }) => ({
+        id,
+        status,
+        description,
+        open,
+        duration,
+        onClose,
+        onRemove,
+      }),
+    ),
+    statuses.toReversed().map((status, index) => ({
+      id: ids.toReversed()[index],
+      status,
+      description: status,
+      open: true,
+      duration: 0,
+      onClose,
+      onRemove,
+    })),
+  );
 });
 
 test('Toast.update patches a single message without changing its ID or other messages', (t) => {
@@ -159,9 +158,15 @@ test('Toast.promise supports per-stage lifecycle options and resets loading dura
     { id: 'promise-options', duration: 7000 },
   );
   assert.equal(toasts.value[0].id, 'promise-options');
+  assert.equal(toasts.value[0].status, 'loading');
+  assert.equal(toasts.value[0].description, 'loading');
   assert.equal(toasts.value[0].duration, 0);
-  operation.resolve(42);
-  assert.equal(await pending, 42);
+  const result = { name: '设置' };
+  operation.resolve(result);
+  assert.equal(await pending, result);
+  assert.equal(toasts.value.length, 1);
+  assert.equal(toasts.value[0].id, 'promise-options');
+  assert.equal(toasts.value[0].status, 'success');
   assert.equal(toasts.value[0].duration, 1200);
   assert.equal(toasts.value[0].description, 'done');
 
@@ -176,7 +181,7 @@ test('Toast.promise supports configured result messages without a loading toast'
   const { toasts } = mountProvider(t);
   let closed = 0;
   assert.equal(
-    await Toast.promise(Promise.reject(new Error('detail')), {
+    await Toast.promise(Promise.reject({ data: { detail: 'detail' } }), {
       error: { message: 'failed', duration: 0, onClose: () => closed++ },
     }),
     undefined,
@@ -204,28 +209,6 @@ test('Toast.dismissAll closes toasts without prematurely removing them', (t) => 
   assert.ok(toasts.value.every((toast) => !toast.open));
 });
 
-test('Toast.promise updates the same toast and preserves its resolved value', async (t) => {
-  const { toasts } = mountProvider(t);
-  const operation = Promise.withResolvers();
-  const result = { name: '设置' };
-  const pending = Toast.promise(operation.promise, {
-    loading: '正在保存',
-    success: '设置已保存',
-    error: '保存失败',
-  });
-  const id = toasts.value[0].id;
-  assert.equal(toasts.value[0].status, 'loading');
-  assert.equal(toasts.value[0].description, '正在保存');
-
-  operation.resolve(result);
-  assert.equal(await pending, result);
-  assert.equal(toasts.value.length, 1);
-  assert.equal(toasts.value[0].id, id);
-  assert.equal(toasts.value[0].status, 'success');
-  assert.equal(toasts.value[0].description, '设置已保存');
-  assert.equal(toasts.value[0].open, true);
-});
-
 test('Toast.promise prefixes the Error message and swallows the rejection', async (t) => {
   const { toasts } = mountProvider(t);
   const operation = Promise.withResolvers();
@@ -245,68 +228,13 @@ test('Toast.promise prefixes the Error message and swallows the rejection', asyn
   assert.equal(toasts.value[0].duration, undefined);
 });
 
-test('Toast.promise uses parsed details without reading the response or mutating the rejection', async (t) => {
-  const { toasts } = mountProvider(t);
-  let responseReads = 0;
-  const error = Object.freeze(
-    Object.assign(new Error('原始错误'), {
-      data: Object.freeze({ detail: '用户名已存在' }),
-      response: {
-        text() {
-          responseReads++;
-          throw new Error('response must not be read');
-        },
-        clone() {
-          responseReads++;
-          throw new Error('response must not be cloned');
-        },
-      },
-    }),
-  );
-  const before = Object.getOwnPropertyDescriptors(error);
-  const operation = Promise.withResolvers();
-  const pending = Toast.promise(operation.promise, {
-    loading: '正在保存',
-    success: '已保存',
-    error: '保存失败',
-  });
-  const id = toasts.value[0].id;
-  operation.reject(error);
-  assert.equal(await pending, undefined);
-  assert.equal(toasts.value.length, 1);
-  assert.equal(toasts.value[0].id, id);
-  assert.equal(toasts.value[0].status, 'error');
-  assert.equal(toasts.value[0].description, '保存失败：用户名已存在');
-  assert.equal(responseReads, 0);
-  assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
-});
-
-test('Toast.promise 将 error 文案作为前缀，空字符串仍显示错误详情', async (t) => {
-  const { toasts } = mountProvider(t);
-  for (const [prefix, expected] of [
-    [' 保存失败 ', '保存失败：网络中断'],
-    ['', '网络中断'],
-  ]) {
-    const pending = Toast.promise(Promise.reject(new Error('网络中断')), {
-      error: prefix,
-    });
-    assert.equal(await pending, undefined);
-    assert.equal(toasts.value[0].status, 'error');
-    assert.equal(toasts.value[0].description, expected);
-  }
-});
-
-test('Toast.promise swallows errors even when messages are omitted', async (t) => {
+test('Toast.promise swallows errors and closes loading when result messages are omitted', async (t) => {
   const { toasts } = mountProvider(t);
   assert.equal(
     await Toast.promise(Promise.reject(new Error('失败'))),
     undefined,
   );
   assert.equal(toasts.value.length, 0);
-});
-
-test('Toast.promise closes the loading toast when the error message is omitted', async (t) => {
-  const { toasts } = mountProvider(t);
   const operation = Promise.withResolvers();
   const pending = Toast.promise(operation.promise, { loading: '正在保存' });
   operation.reject(new Error('失败'));

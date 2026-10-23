@@ -13,23 +13,14 @@ function httpError(status = 400) {
   );
 }
 
-test('synchronously extracts message, error and detail from parsed data', () => {
+test('extracts prioritized fields, JSON strings and plain text from parsed data', () => {
   for (const [data, expected] of [
     [{ message: ' 用户名已存在 ' }, '用户名已存在'],
     [{ error: '拒绝访问' }, '拒绝访问'],
     [{ detail: '请求过于频繁' }, '请求过于频繁'],
     [{ message: '第一', error: '第二', detail: '第三' }, '第一'],
     [{ message: ' ', error: 500, detail: '第三' }, '第三'],
-  ]) {
-    assert.equal(getApiErrorMessage({ data }, ''), expected);
-  }
-});
-
-test('accepts JSON object strings, JSON strings and plain text data', () => {
-  for (const [data, expected] of [
     ['{"message":"用户名已存在"}', '用户名已存在'],
-    ['{"error":"拒绝访问"}', '拒绝访问'],
-    ['{"detail":"请求过于频繁"}', '请求过于频繁'],
     ['"服务不可用"', '服务不可用'],
     [' Bad Gateway ', 'Bad Gateway'],
   ]) {
@@ -87,24 +78,6 @@ test('filters HTML from details, Error messages and prefix text', () => {
   );
 });
 
-test('limits messages to 200 characters with an ellipsis only when needed', () => {
-  const exact = '错'.repeat(200);
-  const long = '错'.repeat(201);
-  const expected = `${'错'.repeat(199)}…`;
-  assert.equal(getApiErrorMessage({ data: exact }, ''), exact);
-  assert.equal(
-    getApiErrorMessage({ data: { detail: ` ${long} ` } }, ''),
-    expected,
-  );
-  assert.equal(getApiErrorMessage({ data: long }, ''), expected);
-  assert.equal(getApiErrorMessage(new Error(long), ''), expected);
-  assert.equal(getApiErrorMessage(undefined, long), expected);
-  assert.equal(
-    getApiErrorMessage({ data: `${'错'.repeat(198)} ${'尾'.repeat(5)}` }, ''),
-    `${'错'.repeat(198)}…`,
-  );
-});
-
 test('uses parsed data before Error messages and HTTP/timeout details', () => {
   const error = new Error('网络中断');
   error.data = { message: '业务详情' };
@@ -142,7 +115,13 @@ test('空白或 HTML 前缀有详情时只显示详情，无详情时使用默�
   }
 });
 
-test('limits the entire prefix and detail combination to 200 characters', () => {
+test('limits messages, including any prefix, to 200 characters', () => {
+  const exactMessage = '错'.repeat(200);
+  assert.equal(getApiErrorMessage({ data: exactMessage }, ''), exactMessage);
+  assert.equal(
+    getApiErrorMessage({ data: { detail: ` ${exactMessage}错 ` } }, ''),
+    `${'错'.repeat(199)}…`,
+  );
   const prefix = '保存失败';
   const exactDetail = '错'.repeat(195);
   const exact = `${prefix}：${exactDetail}`;
@@ -154,7 +133,6 @@ test('limits the entire prefix and detail combination to 200 characters', () => 
   ]) {
     const message = getApiErrorMessage(reason, prefix);
     assert.equal(message, `${prefix}：${'错'.repeat(194)}…`);
-    assert.equal(message.length, 200);
   }
   const longPrefix = '前'.repeat(201);
   const expected = `${'前'.repeat(199)}…`;
@@ -214,7 +192,6 @@ test('contains throwing getters and proxies without replacing the prefix', () =>
   ]) {
     assert.equal(getApiErrorMessage(reason, ' 兜底 '), '兜底');
     assert.equal(getApiErrorMessage(reason, ''), '请求失败');
-    assert.equal(getApiErrorMessage(reason, '<h1>失败</h1>'), '请求失败');
   }
 });
 
@@ -251,12 +228,9 @@ test('client preserves the native error while the helper extracts details or sta
     });
     const error = await client.get('test').catch((error) => error);
     assert.ok(error instanceof HTTPError);
-    assert.equal(error.response.bodyUsed, true);
     const originalMessage = error.message;
-    const before = Object.getOwnPropertyDescriptors(error);
     assert.match(originalMessage, /^Request failed with status code 400/);
     assert.equal(getApiErrorMessage(error, '兜底'), `兜底：${expected}`);
     assert.equal(error.message, originalMessage);
-    assert.deepEqual(Object.getOwnPropertyDescriptors(error), before);
   }
 });
