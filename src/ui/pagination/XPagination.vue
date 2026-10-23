@@ -1,14 +1,3 @@
-<script lang="ts">
-const INTERACTIVE_SELECTOR =
-  'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="combobox"], [role="slider"], [role="spinbutton"], [role="tablist"], [role="menu"], [role="listbox"], [role="dialog"], [role="alertdialog"]';
-const MODAL_SELECTOR =
-  'dialog[open], [role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [aria-modal="true"]:not([hidden]):not([data-state="closed"])';
-
-function isElement(node: unknown): node is Element {
-  return typeof Element !== 'undefined' && node instanceof Element;
-}
-</script>
-
 <script setup lang="ts">
 import {
   PaginationList,
@@ -17,8 +6,13 @@ import {
   PaginationPrev,
   PaginationRoot,
 } from 'reka-ui';
-import { onKeyDown } from '@vueuse/core';
-import { onActivated, onDeactivated, onMounted, ref, watch } from 'vue';
+import {
+  nextTick,
+  ref,
+  useTemplateRef,
+  watch,
+  type ComponentPublicInstance,
+} from 'vue';
 
 import XButton from '../button/XButton.vue';
 import { mergeClasses } from '../classes';
@@ -33,71 +27,81 @@ const emit = defineEmits<{
   'update:page': [page: number];
 }>();
 
+const root = useTemplateRef<ComponentPublicInstance>('root');
 const openJumpIndex = ref<number | null>(null);
-const active = ref(false);
-onMounted(() => {
-  active.value = true;
-});
-onActivated(() => {
-  active.value = true;
-});
-onDeactivated(() => {
-  active.value = false;
-});
+let pendingKeyboardPage: number | null = null;
 
 const keyboardEnabled = () =>
-  active.value && props.keyboard && openJumpIndex.value === null;
-onKeyDown(
-  ['ArrowLeft', 'ArrowRight'],
-  (event) => {
-    if (
-      !keyboardEnabled() ||
-      event.defaultPrevented ||
-      event.isComposing ||
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.shiftKey
-    )
-      return;
+  props.keyboard === true && openJumpIndex.value === null;
 
-    const document = (event.currentTarget as Window | null)?.document;
-    if (
-      event
-        .composedPath()
-        .some(
-          (node) =>
-            isElement(node) &&
-            (node.closest(INTERACTIVE_SELECTOR) ||
-              (node as HTMLElement).isContentEditable),
-        ) ||
-      document?.querySelector(MODAL_SELECTOR)
-    )
-      return;
+function rootElement() {
+  return (root.value?.$el ?? null) as HTMLElement | null;
+}
 
-    const { page, totalPages } = props;
-    const nextPage = page + (event.key === 'ArrowLeft' ? -1 : 1);
-    if (
-      !Number.isInteger(page) ||
-      !Number.isInteger(totalPages) ||
-      page < 1 ||
-      page > totalPages ||
-      nextPage < 1 ||
-      nextPage > totalPages
-    )
-      return;
+function handleKeydown(event: KeyboardEvent) {
+  if (
+    (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') ||
+    event.repeat ||
+    !keyboardEnabled() ||
+    event.defaultPrevented ||
+    event.isComposing ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.shiftKey
+  )
+    return;
 
-    event.preventDefault();
-    emit('update:page', nextPage);
-  },
-  {
-    // 忽略长按产生的重复事件，每次按下只翻一页。
-    dedupe: true,
-    // VueUse 自动清理；停用、关闭快捷键或打开跳页弹窗时移除监听。
-    target: () =>
-      keyboardEnabled() && typeof window !== 'undefined' ? window : undefined,
-  },
-);
+  const { page, totalPages } = props;
+  if (
+    !Number.isInteger(page) ||
+    !Number.isInteger(totalPages) ||
+    page < 1 ||
+    page > totalPages
+  )
+    return;
+
+  // 只有分页获得焦点时才接管方向键；边界页也阻止滚动，保持行为一致。
+  event.preventDefault();
+
+  const element = rootElement();
+  const rtl =
+    element !== null &&
+    element.ownerDocument.defaultView?.getComputedStyle(element).direction ===
+      'rtl';
+  const nextPage =
+    page + (event.key === 'ArrowRight' ? 1 : -1) * (rtl ? -1 : 1);
+  if (nextPage < 1 || nextPage > totalPages) return;
+
+  pendingKeyboardPage = nextPage;
+  emit('update:page', nextPage);
+  void nextTick(() => {
+    // 父组件没有接受翻页时，避免影响之后无关的页码变化。
+    if (pendingKeyboardPage !== null) pendingKeyboardPage = null;
+  });
+}
+
+function restoreKeyboardFocus(page: number) {
+  if (pendingKeyboardPage !== page) return;
+  pendingKeyboardPage = null;
+
+  const element = rootElement();
+  if (!element) return;
+  const active = element.ownerDocument.activeElement;
+  if (active && element.contains(active) && !active.matches(':disabled'))
+    return;
+
+  const current = element.querySelector<HTMLElement>(
+    '[data-type="page"][aria-current="page"]',
+  );
+  if (current && current.getClientRects().length > 0) {
+    current.focus();
+    return;
+  }
+  element.querySelector<HTMLElement>('[data-pagination-summary]')?.focus();
+}
+
+watch(() => props.page, restoreKeyboardFocus, { flush: 'post' });
 
 function setJumpOpen(open: boolean, index: number) {
   if (open) openJumpIndex.value = index;
@@ -111,6 +115,7 @@ watch([() => props.page, () => props.totalPages], () => {
 
 <template>
   <PaginationRoot
+    ref="root"
     aria-label="分页"
     v-bind="{ ...$attrs, class: undefined }"
     :page="page"
@@ -125,6 +130,7 @@ watch([() => props.page, () => props.totalPages], () => {
         $attrs.class,
       )
     "
+    @keydown="handleKeydown"
     @update:page="$emit('update:page', $event)"
   >
     <PaginationPrev as-child>
@@ -155,6 +161,7 @@ watch([() => props.page, () => props.totalPages], () => {
         color="neutral"
         variant="ghost"
         size="sm"
+        data-pagination-summary
         :class="mergeClasses('text-xs text-muted sm:hidden', ui.summary)"
         :disabled="totalPages < 1"
         :aria-label="`当前第 ${page} 页，共 ${totalPages} 页，跳转到指定页`"

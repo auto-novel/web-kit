@@ -19,6 +19,6 @@ export interface XPaginationProps {
   ui?: XPaginationUi;
   page: number;
   totalPages: number;
-  /** 全局左右键翻页，默认关闭；同页仅启用一个分页条。 */
+  /** 左右方向键翻页，默认关闭；仅当焦点在分页内时生效。 */
   keyboard?: boolean;
 }
