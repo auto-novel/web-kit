@@ -1,4 +1,17 @@
 export { createWebKit } from './create';
+export { createForumApi } from './forum';
+export type {
+  Comment,
+  CommentListParams,
+  CommentPage,
+  CommentType,
+  CommentStatus,
+  CommentStatusName,
+  CreateCommentRequest,
+  ForumApi,
+  ForumApiOptions,
+  UpdateCommentRequest,
+} from './forum';
 export { mergeClasses } from './ui/classes';
 export type { XClassValue, XUi } from './ui/classes';
 export { copyToClipboard } from './utils/clipboard';
