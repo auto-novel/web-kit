@@ -45,6 +45,7 @@
     "vue-router": "^5.2.0"
   },
   "dependencies": {
+    "@internationalized/date": "^3.12.4",
     "@mdit/plugin-container": "^2.0.2",
     "@mdit/plugin-spoiler": "^2.1.2",
     "@vueuse/core": "^14.4.0",

@@ -62,6 +62,25 @@ export { default as XDialog } from './ui/dialog/XDialog.vue';
 export { default as XPagination } from './ui/pagination/XPagination.vue';
 export { default as XSelect } from './ui/select/XSelect.vue';
 export { default as XInput } from './ui/input/XInput.vue';
+export { default as XTextarea } from './ui/textarea/XTextarea.vue';
+export { default as XNumberInput } from './ui/number-input/XNumberInput.vue';
+export { default as XDateRangePicker } from './ui/date-range-picker/XDateRangePicker.vue';
+export type {
+  XTextareaProps,
+  XTextareaUi,
+  XTextareaSize,
+  XTextareaAutosize,
+} from './ui/textarea/types';
+export type {
+  XNumberInputProps,
+  XNumberInputUi,
+  XNumberInputSize,
+} from './ui/number-input/types';
+export type {
+  XDateRange,
+  XDateRangePickerProps,
+  XDateRangePickerUi,
+} from './ui/date-range-picker/types';
 export { default as XAutoComplete } from './ui/auto-complete/XAutoComplete.vue';
 export type {
   XAutoCompleteOption,

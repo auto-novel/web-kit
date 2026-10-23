@@ -7,6 +7,9 @@ settings:
 importers:
   .:
     dependencies:
+      '@internationalized/date':
+        specifier: ^3.12.4
+        version: 3.12.4
       '@mdit/plugin-container':
         specifier: ^2.0.2
         version: 2.0.2(markdown-it@15.0.3)

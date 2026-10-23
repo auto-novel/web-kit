@@ -12,23 +12,26 @@
 
 ## 主要节点与公开分区
 
-| 组件                                                                                                  | `class` / `style` 落点         | `ui` 分区                                                                                      |
-| ----------------------------------------------------------------------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------- |
-| XButton、XAspectRatio、XSeparator、XTabs 及其子组件、XDropdownMenuItem、XDropdownMenuSeparator、XTime | 自身根节点                     | 无；使用 `class`                                                                               |
-| XSwitch                                                                                               | root                           | root、thumb                                                                                    |
-| XSlider                                                                                               | root                           | root、track、range、thumb、tooltip、markTick、markLabel                                        |
-| XScrollArea                                                                                           | root                           | root、viewport、scrollbar、thumb、corner                                                       |
-| XDialog                                                                                               | Portal 内的 content            | content、overlay、header、title、description、body、footer、close、icon                        |
-| XConfirmDialog                                                                                        | Portal 内的 content            | content、overlay、title、description、actions、cancel、confirm                                 |
-| XDrawer                                                                                               | Portal 内的 content            | content、overlay、header、title、description、actions                                          |
-| XSelect                                                                                               | trigger                        | trigger、value、icon、content、viewport、item、indicator、scrollbar、thumb                     |
-| XDropdownMenu                                                                                         | Portal 内的 content            | content                                                                                        |
-| XTooltip                                                                                              | Portal 内的 content            | content                                                                                        |
-| XDropZone                                                                                             | 全屏 overlay                   | overlay、content、icon、description                                                            |
-| XAsyncContent                                                                                         | 默认 display: contents 的 root | root、loading、spinner、error、empty、icon、title、description、retry                          |
-| XPagination                                                                                           | 导航 root                      | root、list、prev、next、item、ellipsis、summary、jumpContent、jumpLabel、jumpInput、jumpButton |
+| 组件                                                                                                  | `class` / `style` 落点                        | `ui` 分区                                                                                      |
+| ----------------------------------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| XButton、XAspectRatio、XSeparator、XTabs 及其子组件、XDropdownMenuItem、XDropdownMenuSeparator、XTime | 自身根节点                                    | 无；使用 `class`                                                                               |
+| XInput / XNumberInput                                                                                 | 外层 root；其他原生属性及事件落 input         | XInput 沿用现有分区；XNumberInput：root、input                                                 |
+| XTextarea                                                                                             | 外层 root；其他原生属性及事件落 textarea      | root、textarea、count                                                                          |
+| XDateRangePicker                                                                                      | class/style 落 root；其他属性及事件落 trigger | root、trigger、clear、content、header、navigation、day                                         |
+| XSwitch                                                                                               | root                                          | root、thumb                                                                                    |
+| XSlider                                                                                               | root                                          | root、track、range、thumb、tooltip、markTick、markLabel                                        |
+| XScrollArea                                                                                           | root                                          | root、viewport、scrollbar、thumb、corner                                                       |
+| XDialog                                                                                               | Portal 内的 content                           | content、overlay、header、title、description、body、footer、close、icon                        |
+| XConfirmDialog                                                                                        | Portal 内的 content                           | content、overlay、title、description、actions、cancel、confirm                                 |
+| XDrawer                                                                                               | Portal 内的 content                           | content、overlay、header、title、description、actions                                          |
+| XSelect                                                                                               | trigger                                       | trigger、value、icon、content、viewport、item、indicator、scrollbar、thumb                     |
+| XDropdownMenu                                                                                         | Portal 内的 content                           | content                                                                                        |
+| XTooltip                                                                                              | Portal 内的 content                           | content                                                                                        |
+| XDropZone                                                                                             | 全屏 overlay                                  | overlay、content、icon、description                                                            |
+| XAsyncContent                                                                                         | 默认 display: contents 的 root                | root、loading、spinner、error、empty、icon、title、description、retry                          |
+| XPagination                                                                                           | 导航 root                                     | root、list、prev、next、item、ellipsis、summary、jumpContent、jumpLabel、jumpInput、jumpButton |
 
-XSlider 保留既有的属性分流：`class/style/id` 作用于 root，其余透传属性（包括 ARIA）作用于 thumb。XDropdownMenu 与 XTooltip 的 trigger 由插槽提供，触发器样式直接写在插槽元素上。
+XSlider 保留既有的属性分流：`class/style/id` 作用于 root，其余透传属性（包括 ARIA）作用于 thumb。XDropdownMenu 与 XTooltip 的 trigger 由插槽提供，触发器样式直接写在插槽元素上。XNumberInput 的 `name` 由根节点管理，用于提交数值而不是格式化后的显示文本。
 
 ## 示例
 
