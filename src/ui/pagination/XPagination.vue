@@ -138,7 +138,7 @@ watch([() => props.page, () => props.totalPages], () => {
         color="neutral"
         variant="ghost"
         size="sm"
-        :class="mergeClasses(ui.prev)"
+        :class="mergeClasses('text-ink hover:text-primary', ui.prev)"
       >
         上一页
       </XButton>
@@ -186,7 +186,7 @@ watch([() => props.page, () => props.totalPages], () => {
             size="icon-sm"
             :class="
               mergeClasses(
-                'text-xs font-medium data-selected:bg-primary data-selected:text-on-primary data-selected:hover:bg-primary-hover data-selected:hover:text-on-primary',
+                'text-xs font-medium text-ink hover:text-primary data-selected:bg-primary-soft data-selected:text-primary-text data-selected:hover:bg-primary-soft-hover data-selected:hover:text-primary',
                 ui.item,
               )
             "
@@ -227,7 +227,7 @@ watch([() => props.page, () => props.totalPages], () => {
         color="neutral"
         variant="ghost"
         size="sm"
-        :class="mergeClasses(ui.next)"
+        :class="mergeClasses('text-ink hover:text-primary', ui.next)"
       >
         下一页
       </XButton>
