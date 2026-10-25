@@ -20,7 +20,6 @@ function onChange() {
 
 <template>
   <ComponentPage
-    title="开关 · XSwitch"
     description="用布尔 v-model 控制开关，支持禁用、必选标记和表单字段。"
     :code="code"
   >

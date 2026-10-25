@@ -23,7 +23,6 @@ const code = `<XAutoComplete
 
 <template>
   <ComponentPage
-    title="自动补全 · XAutoComplete"
     description="字符串输入与候选建议，可自由输入，支持键盘导航和中文输入。"
     :code="code"
   >

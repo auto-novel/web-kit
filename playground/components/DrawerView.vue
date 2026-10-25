@@ -11,6 +11,7 @@ import {
 } from '@novelia/web-kit';
 import { computed, ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
+import CodeBlock from './CodeBlock.vue';
 
 type DrawerSide = 'left' | 'right' | 'top' | 'bottom';
 
@@ -168,7 +169,6 @@ const props = [
 
 <template>
   <ComponentPage
-    title="抽屉 · XDrawer"
     description="从屏幕边缘滑入的模态面板，适合表单、筛选条件和辅助导航。支持四个方向、受控展开状态和自定义内容。"
   >
     <section aria-labelledby="drawer-directions">
@@ -556,21 +556,13 @@ const props = [
     <section aria-labelledby="drawer-code" class="border-t border-divider pt-6">
       <h2 id="drawer-code" class="mb-4 font-medium">Vue 用法</h2>
       <h3 class="mb-2 text-sm font-medium">trigger 插槽与自定义内容</h3>
-      <pre
-        class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
-      ><code>{{ triggerCode }}</code></pre>
+      <CodeBlock :code="triggerCode" />
       <h3 class="mb-2 mt-6 text-sm font-medium">外部控制，不传 trigger</h3>
-      <pre
-        class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
-      ><code>{{ externalCode }}</code></pre>
+      <CodeBlock :code="externalCode" />
       <h3 class="mb-2 mt-6 text-sm font-medium">默认标题栏与 action 操作区</h3>
-      <pre
-        class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
-      ><code>{{ headerCode }}</code></pre>
+      <CodeBlock :code="headerCode" />
       <h3 class="mb-2 mt-6 text-sm font-medium">header 自定义标题栏</h3>
-      <pre
-        class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
-      ><code>{{ customHeaderCode }}</code></pre>
+      <CodeBlock :code="customHeaderCode" />
     </section>
   </ComponentPage>
 </template>

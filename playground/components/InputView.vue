@@ -21,7 +21,6 @@ const code = `<XInput
 
 <template>
   <ComponentPage
-    title="输入框 · XInput"
     description="轻量单行输入框：字符串绑定、清空、前后缀及原生表单属性透传。"
     :code="code"
   >

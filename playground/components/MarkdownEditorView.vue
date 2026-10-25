@@ -26,7 +26,6 @@ const markdown = createMarkdown().disable(['image']);
 
 <template>
   <ComponentPage
-    title="Markdown 编辑器 · XMarkdownEditor"
     description="内置安全预览，支持自定义解析器与工具栏扩展。"
     :code="code"
   >

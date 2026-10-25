@@ -16,7 +16,6 @@ const code = `<XNumberInput
 
 <template>
   <ComponentPage
-    title="数字输入 · XNumberInput"
     description="数字或 null 模型，支持上下限、步长和原生数字输入交互。"
     :code="code"
   >

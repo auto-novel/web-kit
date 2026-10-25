@@ -34,7 +34,6 @@ const code = `<XSelect v-model="selected" :options="options" aria-label="选择�
 
 <template>
   <ComponentPage
-    title="选择器 · XSelect"
     description="用字符串 v-model 绑定选中值，支持键盘选择、禁用状态和长列表滚动。"
     :code="code"
   >

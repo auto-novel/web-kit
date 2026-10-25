@@ -16,7 +16,6 @@ const code = `<XDateRangePicker
 
 <template>
   <ComponentPage
-    title="日期区间 · XDateRangePicker"
     description="选择完整日期区间，绑定无时区 ISO 日期；支持范围约束和清空。"
     :code="code"
   >

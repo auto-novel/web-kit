@@ -46,7 +46,6 @@ function onChange(value: number) {
 
 <template>
   <ComponentPage
-    title="滑块 · XSlider"
     description="用数字 v-model 绑定数值，支持横向与竖向、反向、刻度吸附、数值气泡、尺寸与色调。"
     :code="code"
   >

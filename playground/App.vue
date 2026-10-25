@@ -19,29 +19,16 @@ import { componentPages } from './componentPages';
 
 const route = useRoute();
 
-const inputComponentSlugs = new Set([
-  'auto-complete',
-  'date-range-picker',
-  'drop-zone',
-  'input',
-  'markdown-editor',
-  'number-input',
-  'select',
-  'slider',
-  'switch',
-  'textarea',
-]);
-
 const componentNavigationGroups: WebKitMenuOption[] = [
-  { key: 'input-components', label: '输入组件', input: true },
-  { key: 'style-components', label: '样式组件', input: false },
-].map(({ key, label, input }) => ({
+  { key: 'input-components', label: '输入组件', category: 'input' },
+  { key: 'style-components', label: '样式组件', category: 'style' },
+].map(({ key, label, category }) => ({
   key,
   type: 'group',
   label,
   icon: WidgetsOutlined,
   children: componentPages
-    .filter(({ slug }) => inputComponentSlugs.has(slug) === input)
+    .filter((page) => page.category === category)
     .map(({ name, label, to }) => ({ key: name, label, to })),
 }));
 

@@ -75,7 +75,6 @@ const code = `const open = ref(false);
 
 <template>
   <ComponentPage
-    title="下拉菜单 · XDropdownMenu"
     description="通过自定义触发器打开操作菜单，支持受控开关、定位、禁用项及键盘焦点管理。"
     :code="code"
   >

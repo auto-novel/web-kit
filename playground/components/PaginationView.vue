@@ -26,7 +26,6 @@ const listRegion = useTemplateRef<HTMLElement>('listRegion');
 
 <template>
   <ComponentPage
-    title="分页 · XPagination"
     description="通过 v-model:page 控制页码，支持跳页面板、响应式外观和可选的左右方向键。"
     :code="code"
   >

@@ -1,8 +1,21 @@
-// Keep routes, sidebar entries and overview cards in sync.
+import type { Component } from 'vue';
+
+interface ComponentPageDefinition {
+  englishName: string;
+  slug: string;
+  category: 'input' | 'style';
+  title: string;
+  label: string;
+  description: string;
+  component: () => Promise<{ default: Component }>;
+}
+
+// Keep routes, page titles, sidebar entries and overview cards in sync.
 const pages = [
   {
     englishName: 'AutoComplete',
     slug: 'auto-complete',
+    category: 'input',
     title: '自动补全 · XAutoComplete',
     label: '自动补全 Auto Complete',
     description: '自由输入、候选过滤、键盘选择与动态候选。',
@@ -11,6 +24,7 @@ const pages = [
   {
     englishName: 'Button',
     slug: 'button',
+    category: 'style',
     title: '按钮 · XButton',
     label: '按钮 Button',
     description: '语义色、外观组合、紧凑尺寸与禁用和加载状态。',
@@ -19,6 +33,7 @@ const pages = [
   {
     englishName: 'ConfirmDialog',
     slug: 'confirm-dialog',
+    category: 'style',
     title: '确认框 · XConfirmDialog',
     label: '确认框 Confirm Dialog',
     description: '危险操作确认与下拉菜单组合使用。',
@@ -27,6 +42,7 @@ const pages = [
   {
     englishName: 'AspectRatio',
     slug: 'aspect-ratio',
+    category: 'style',
     title: '宽高比 · XAspectRatio',
     label: '宽高比 Aspect Ratio',
     description: '16:9 与默认正方形布局、自适应插槽内容。',
@@ -35,6 +51,7 @@ const pages = [
   {
     englishName: 'AsyncContent',
     slug: 'async-content',
+    category: 'style',
     title: '异步内容 · XAsyncContent',
     label: '异步内容 Async Content',
     description: '加载、错误重试、空状态和正常内容。',
@@ -43,6 +60,7 @@ const pages = [
   {
     englishName: 'Dialog',
     slug: 'dialog',
+    category: 'style',
     title: '对话框 · XDialog',
     label: '对话框 Dialog',
     description: '基础用法、全屏布局、关闭控制与焦点管理。',
@@ -51,6 +69,7 @@ const pages = [
   {
     englishName: 'Drawer',
     slug: 'drawer',
+    category: 'style',
     title: '抽屉 · XDrawer',
     label: '抽屉 Drawer',
     description: '四方向、尺寸控制、受控开关与拖动关闭。',
@@ -59,6 +78,7 @@ const pages = [
   {
     englishName: 'DropdownMenu',
     slug: 'dropdown-menu',
+    category: 'style',
     title: '下拉菜单 · XDropdownMenu',
     label: '下拉菜单 Dropdown Menu',
     description: '自定义触发器、受控开关、定位与菜单项状态。',
@@ -67,6 +87,7 @@ const pages = [
   {
     englishName: 'DropZone',
     slug: 'drop-zone',
+    category: 'input',
     title: '文件拖放 · XDropZone',
     label: '文件拖放 Drop Zone',
     description: '系统文件拖入时显示全屏遮罩，由调用方处理原始文件。',
@@ -75,6 +96,7 @@ const pages = [
   {
     englishName: 'Input',
     slug: 'input',
+    category: 'input',
     title: '输入框 · XInput',
     label: '输入框 Input',
     description: '字符串绑定、尺寸、清空、前后缀与表单属性透传。',
@@ -83,6 +105,7 @@ const pages = [
   {
     englishName: 'NumberInput',
     slug: 'number-input',
+    category: 'input',
     title: '数字输入 · XNumberInput',
     label: '数字输入 Number Input',
     description: '数字或 null 绑定、范围约束、步长与键盘操作。',
@@ -91,6 +114,7 @@ const pages = [
   {
     englishName: 'Textarea',
     slug: 'textarea',
+    category: 'input',
     title: '多行输入 · XTextarea',
     label: '多行输入 Textarea',
     description: '字符串绑定、自适应高度、字数统计与原生属性透传。',
@@ -99,6 +123,7 @@ const pages = [
   {
     englishName: 'DateRangePicker',
     slug: 'date-range-picker',
+    category: 'input',
     title: '日期区间 · XDateRangePicker',
     label: '日期区间 Date Range Picker',
     description: '选择完整日期区间、范围约束、清空与键盘操作。',
@@ -107,6 +132,7 @@ const pages = [
   {
     englishName: 'MarkdownEditor',
     slug: 'markdown-editor',
+    category: 'input',
     title: 'Markdown 编辑器 · XMarkdownEditor',
     label: 'Markdown 编辑器',
     description: '选区格式、链接粘贴、自适应高度与预览和工具栏插槽。',
@@ -115,14 +141,16 @@ const pages = [
   {
     englishName: 'Pagination',
     slug: 'pagination',
+    category: 'style',
     title: '分页 · XPagination',
     label: '分页 Pagination',
-    description: '受控页码、跳页与全局键盘翻页。',
+    description: '受控页码、跳页与可限定作用区域的键盘翻页。',
     component: () => import('./components/PaginationView.vue'),
   },
   {
     englishName: 'ScrollArea',
     slug: 'scroll-area',
+    category: 'style',
     title: '滚动区域 · XScrollArea',
     label: '滚动区域 Scroll Area',
     description: '纵向、横向、双向滚动及滚动条显示模式。',
@@ -131,6 +159,7 @@ const pages = [
   {
     englishName: 'Select',
     slug: 'select',
+    category: 'input',
     title: '选择器 · XSelect',
     label: '选择器 Select',
     description: '值绑定、禁用状态、键盘操作与长列表。',
@@ -139,6 +168,7 @@ const pages = [
   {
     englishName: 'Separator',
     slug: 'separator',
+    category: 'style',
     title: '分隔线 · XSeparator',
     label: '分隔线 Separator',
     description: '水平与垂直布局、装饰性与语义化分隔。',
@@ -147,6 +177,7 @@ const pages = [
   {
     englishName: 'Slider',
     slug: 'slider',
+    category: 'input',
     title: '滑块 · XSlider',
     label: '滑块 Slider',
     description: '数字绑定、禁用状态、小数步长与 commit 事件。',
@@ -155,6 +186,7 @@ const pages = [
   {
     englishName: 'Switch',
     slug: 'switch',
+    category: 'input',
     title: '开关 · XSwitch',
     label: '开关 Switch',
     description: '布尔状态绑定、禁用状态与模型更新事件。',
@@ -163,6 +195,7 @@ const pages = [
   {
     englishName: 'Tabs',
     slug: 'tabs',
+    category: 'style',
     title: '标签页 · XTabs',
     label: '标签页 Tabs',
     description: '状态绑定、纵向布局、手动激活与面板状态保留。',
@@ -171,12 +204,13 @@ const pages = [
   {
     englishName: 'Toast',
     slug: 'toast',
+    category: 'style',
     title: '通知 · Toast',
     label: '通知 Toast',
     description: '通知类型、进出场动画、生命周期与 Promise 状态更新。',
     component: () => import('./components/ToastView.vue'),
   },
-];
+] satisfies ComponentPageDefinition[];
 
 export const componentPages = pages
   .sort((a, b) => a.englishName.localeCompare(b.englishName, 'en'))

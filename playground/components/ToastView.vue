@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { Toast, XButton, type ToastId } from '@novelia/web-kit';
+import {
+  Toast,
+  XButton,
+  type ToastId,
+  type ToastOptions,
+} from '@novelia/web-kit';
 import { onBeforeUnmount, ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
@@ -12,9 +17,17 @@ let logKey = 0;
 let sequence = 0;
 let finishOperation: ((fail: boolean) => void) | undefined;
 
-function track(id: ToastId) {
+function track(options: ToastOptions = {}): ToastOptions & { id: ToastId } {
+  const id = options.id ?? `playground-toast-${Date.now()}-${++sequence}`;
   ownedIds.add(id);
-  return id;
+  return {
+    ...options,
+    id,
+    onRemove: () => {
+      ownedIds.delete(id);
+      options.onRemove?.();
+    },
+  };
 }
 
 function log(message: string) {
@@ -35,15 +48,15 @@ function showEditable() {
     log('同 ID 更新 · 保持常驻');
     return;
   }
-  const id = track(
-    Toast.info('常驻通知：尝试更新、关闭或向上拖动。', {
+  const id = Toast.info(
+    '常驻通知：尝试更新、关闭或向上拖动。',
+    track({
       duration: 0,
       onClose: () => {
         if (editableId.value === id) editableId.value = undefined;
         log('onClose · 已关闭，开始退场');
       },
       onRemove: () => {
-        ownedIds.delete(id);
         log('onRemove · 退场结束，移出列表');
       },
     }),
@@ -74,7 +87,6 @@ function startOperation() {
     };
   });
   const id = `playground-promise-${Date.now()}-${++sequence}`;
-  track(id);
   void Toast.promise(
     operation,
     {
@@ -82,7 +94,7 @@ function startOperation() {
       success: { message: '设置已保存', duration: 2000 },
       error: { message: '保存失败', duration: 6000 },
     },
-    { id },
+    track({ id }),
   ).then((value) => {
     pending.value = false;
     result.value =
@@ -93,9 +105,9 @@ function startOperation() {
 }
 
 function showStack() {
-  track(Toast.info('第一条：开始同步', { duration: 6000 }));
-  track(Toast.warning('第二条：有待检查的配置', { duration: 6000 }));
-  track(Toast.success('第三条：最新通知显示在最上方', { duration: 6000 }));
+  Toast.info('第一条：开始同步', track({ duration: 6000 }));
+  Toast.warning('第二条：有待检查的配置', track({ duration: 6000 }));
+  Toast.success('第三条：最新通知显示在最上方', track({ duration: 6000 }));
 }
 
 onBeforeUnmount(() => {
@@ -165,7 +177,6 @@ const result = await Toast.promise(saveSettings(), {
 
 <template>
   <ComponentPage
-    title="通知 · Toast"
     description="用于操作反馈和异步任务状态。通知显示在顶部居中，支持进出场动画、上滑关闭、单条更新与 Promise 状态切换。"
     :code="code"
   >
@@ -175,26 +186,26 @@ const result = await Toast.promise(saveSettings(), {
         默认 4 秒后关闭。每次点击创建新通知，可连续点击观察堆叠与进出场动画。
       </p>
       <div class="flex flex-wrap gap-3">
-        <XButton @click="track(Toast.success('操作成功，设置已保存'))">
+        <XButton @click="Toast.success('操作成功，设置已保存', track())">
           成功
         </XButton>
         <XButton
           color="danger"
-          @click="track(Toast.error('操作失败，请稍后重试'))"
+          @click="Toast.error('操作失败，请稍后重试', track())"
         >
           错误
         </XButton>
         <XButton
           color="neutral"
           variant="outline"
-          @click="track(Toast.info('有新的内容可供查看'))"
+          @click="Toast.info('有新的内容可供查看', track())"
         >
           信息
         </XButton>
         <XButton
           color="neutral"
           variant="outline"
-          @click="track(Toast.warning('继续操作前请检查配置'))"
+          @click="Toast.warning('继续操作前请检查配置', track())"
         >
           警告
         </XButton>
@@ -214,7 +225,7 @@ const result = await Toast.promise(saveSettings(), {
           color="neutral"
           variant="outline"
           @click="
-            track(Toast.info('这条通知将在 1 秒后关闭', { duration: 1000 }))
+            Toast.info('这条通知将在 1 秒后关闭', track({ duration: 1000 }))
           "
         >
           短时 · 1 秒
@@ -223,10 +234,9 @@ const result = await Toast.promise(saveSettings(), {
           color="neutral"
           variant="outline"
           @click="
-            track(
-              Toast.warning('这条通知停留 8 秒，可悬停检查计时暂停', {
-                duration: 8000,
-              }),
+            Toast.warning(
+              '这条通知停留 8 秒，可悬停检查计时暂停',
+              track({ duration: 8000 }),
             )
           "
         >
@@ -236,7 +246,7 @@ const result = await Toast.promise(saveSettings(), {
           color="neutral"
           variant="outline"
           @click="
-            track(Toast.success('导入完成\n成功：24 条\n跳过：2 条重复记录'))
+            Toast.success('导入完成\n成功：24 条\n跳过：2 条重复记录', track())
           "
         >
           多行内容
@@ -245,12 +255,10 @@ const result = await Toast.promise(saveSettings(), {
           color="neutral"
           variant="outline"
           @click="
-            track(
-              Toast.info(
-                '长文本自动换行：这是一条用于检查窄屏布局和最大宽度的通知。连续标识符：' +
-                  'long_identifier_'.repeat(12),
-                { duration: 8000 },
-              ),
+            Toast.info(
+              '长文本自动换行：这是一条用于检查窄屏布局和最大宽度的通知。连续标识符：' +
+                'long_identifier_'.repeat(12),
+              track({ duration: 8000 }),
             )
           "
         >

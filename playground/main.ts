@@ -31,10 +31,11 @@ const router = createRouter({
       name: 'components',
       component: () => import('./ComponentsView.vue'),
     },
-    ...componentPages.map(({ to, name, component }) => ({
+    ...componentPages.map(({ to, name, title, component }) => ({
       path: to,
       name,
       component,
+      meta: { title },
     })),
     // Preserve bookmarks to the former combined demo page.
     {

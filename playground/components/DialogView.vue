@@ -25,7 +25,6 @@ const code = `<XDialog v-model:open="open" title="编辑资料" description="填
 
 <template>
   <ComponentPage
-    title="对话框 · XDialog"
     description="默认可见的标题与描述、独立滚动正文及固定页脚，也可自行安排滚动或全屏布局。"
     :code="code"
   >

@@ -33,7 +33,6 @@ const code = `<XDropdownMenu align="end">
 
 <template>
   <ComponentPage
-    title="确认框 · XConfirmDialog"
     description="组合 XDropdownMenu、XDropdownMenuItem 和 XConfirmDialog，展示菜单对齐、禁用项和危险操作确认。"
     :code="code"
   >

@@ -17,7 +17,6 @@ const code = `<XAspectRatio :ratio="16 / 9">
 
 <template>
   <ComponentPage
-    title="宽高比 · XAspectRatio"
     description="为默认插槽内容保留固定宽高比，随容器宽度自适应。"
     :code="code"
   >

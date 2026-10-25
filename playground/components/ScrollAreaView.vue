@@ -27,7 +27,6 @@ const code = `<XScrollArea class="h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }
 
 <template>
   <ComponentPage
-    title="滚动区域 · XScrollArea"
     description="在受限尺寸内滚动内容，支持纵向、横向、双向滚动与不同的滚动条显示模式。"
     :code="code"
   >

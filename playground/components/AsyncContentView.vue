@@ -43,7 +43,6 @@ const code = `<XAsyncContent
 
 <template>
   <ComponentPage
-    title="异步内容 · XAsyncContent"
     description="统一展示加载、错误、空状态与正常内容；不负责请求数据，状态由调用方提供。"
     :code="code"
   >

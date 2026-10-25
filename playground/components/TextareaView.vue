@@ -17,7 +17,6 @@ const code = `<XTextarea
 
 <template>
   <ComponentPage
-    title="多行输入 · XTextarea"
     description="字符串绑定、自适应高度、字数统计与原生属性透传。"
     :code="code"
   >

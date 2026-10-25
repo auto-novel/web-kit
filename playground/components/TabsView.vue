@@ -38,7 +38,6 @@ const code = `const tab = ref('overview');
 
 <template>
   <ComponentPage
-    title="标签页 · XTabs"
     description="组合标签列表、触发器和内容面板，支持受控状态、纵向键盘导航与保留面板挂载。"
     :code="code"
   >

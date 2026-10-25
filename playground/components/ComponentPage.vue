@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
+import CodeBlock from './CodeBlock.vue';
 
-defineProps<{ title: string; description: string; code?: string }>();
+defineProps<{ description: string; code?: string }>();
+
+const route = useRoute();
 </script>
 
 <template>
@@ -13,15 +16,13 @@ defineProps<{ title: string; description: string; code?: string }>();
       >
         ← 组件总览
       </RouterLink>
-      <h1 class="mb-2 text-lg font-medium">{{ title }}</h1>
+      <h1 class="mb-2 text-lg font-medium">{{ route.meta.title }}</h1>
       <p class="text-sm leading-6 text-muted">{{ description }}</p>
     </header>
     <slot />
     <section v-if="code" class="border-t border-divider pt-6">
       <h2 class="mb-3 font-medium">基本用法</h2>
-      <pre
-        class="overflow-x-auto rounded-sm border border-border bg-surface p-4 text-xs leading-6 text-ink"
-      ><code>{{ code }}</code></pre>
+      <CodeBlock :code="code" />
     </section>
   </div>
 </template>

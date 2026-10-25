@@ -20,7 +20,6 @@ function handleDrop(files: File[]) {
 
 <template>
   <ComponentPage
-    title="文件拖放 · XDropZone"
     description="从系统拖入文件时显示全屏遮罩，只交出原始文件，不绑定上传行为。"
     :code="code"
   >

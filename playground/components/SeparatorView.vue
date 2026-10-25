@@ -21,7 +21,6 @@ const code = `<!-- 默认水平、装饰性分隔线 -->
 
 <template>
   <ComponentPage
-    title="分隔线 · XSeparator"
     description="用水平或垂直分隔线划分内容，可选择纯视觉装饰或向辅助技术暴露分隔语义。"
     :code="code"
   >

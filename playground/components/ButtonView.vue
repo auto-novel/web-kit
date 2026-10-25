@@ -24,7 +24,6 @@ const code = `<XButton>主要操作</XButton>
 
 <template>
   <ComponentPage
-    title="按钮 · XButton"
     description="语义色与外观独立组合，支持紧凑尺寸、禁用和加载状态。"
     :code="code"
   >
