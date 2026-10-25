@@ -15,6 +15,10 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./ui": "./src/ui/index.ts",
+    "./utils": "./src/utils/index.ts",
+    "./shell": "./src/shell/index.ts",
+    "./forum": "./src/forum/index.ts",
     "./package.json": "./package.json",
     "./styles.css": "./src/styles.css",
     "./vite": {

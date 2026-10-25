@@ -1,0 +1,85 @@
+@layer base {
+  :root {
+    /* 语义浅底统一派生；覆盖语义色时自动跟随。 */
+    --web-kit-state-color: #000000;
+    --web-kit-soft-opacity: 10%;
+    --web-kit-neutral-soft-opacity: 5%;
+    color-scheme: light;
+    color: var(--color-ink);
+    background: var(--color-body);
+    font-family: var(--font-sans);
+  }
+
+  :root[data-theme='dark'] {
+    --web-kit-state-color: #ffffff;
+    --web-kit-soft-opacity: 15%;
+    --web-kit-neutral-soft-opacity: 8%;
+    color-scheme: dark;
+    --color-paper: #101014;
+    --color-surface: #18181c;
+    --color-embedded: rgb(255 255 255 / 6%);
+    --color-body: #101014;
+    --color-popover: #48484e;
+    --color-modal: #2c2c32;
+    --color-success: #63e2b7;
+    --color-info: #93c5fd;
+    --color-error: #e88080;
+    --color-on-success: #0b0b0d;
+    --color-on-info: #0b0b0d;
+    --color-on-error: #0b0b0d;
+    --color-warning: #f2c97d;
+    --color-on-warning: #0b0b0d;
+    --shadow-floating:
+      0 3px 6px -4px rgb(0 0 0 / 24%), 0 6px 12px rgb(0 0 0 / 16%),
+      0 9px 18px 8px rgb(0 0 0 / 10%);
+    --color-ink: #f2f2f5;
+    --color-muted: #a3a3aa;
+    --color-border: #3b3b40;
+    --color-divider: rgb(255 255 255 / 14%);
+    --color-hover: rgb(255 255 255 / 9%);
+    --color-primary: #63e2b7;
+    --color-on-primary: #0b0b0d;
+  }
+
+  :root.theme-transition,
+  :root.theme-transition *,
+  :root.theme-transition *::before,
+  :root.theme-transition *::after {
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill,
+      stroke, box-shadow !important;
+    transition-duration: 200ms !important;
+    transition-timing-function: ease !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root.theme-transition,
+    :root.theme-transition *,
+    :root.theme-transition *::before,
+    :root.theme-transition *::after {
+      transition-duration: 0ms !important;
+    }
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    margin: 0;
+    background: var(--color-body);
+    /* Match Naive UI's global typography without changing rem-based sizing.
+       Keep native font synthesis so CJK fonts without bold faces can be bold. */
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Keep anchors and scrollIntoView targets clear of the sticky header. */
+  :root:has(.web-kit-layout) {
+    scroll-padding-top: 50px;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

@@ -1,22 +1,19 @@
-const knownRoleLabels = {
+export const roleLabels = Object.freeze({
   admin: '管理员',
   trusted: '可信用户',
   member: '普通用户',
   restricted: '受限用户',
   banned: '已封禁',
-} as const;
+} as const);
 
-export type UserRole = keyof typeof knownRoleLabels;
+export type UserRole = keyof typeof roleLabels;
 
-export const roleLabels: Readonly<Record<UserRole, string>> &
-  Readonly<Record<string, string>> = knownRoleLabels;
-
-export const roles = Object.keys(knownRoleLabels);
+export const roles = Object.freeze(Object.keys(roleLabels) as UserRole[]);
 
 export function isKnownRole(role: unknown): role is UserRole {
   return (
     typeof role === 'string' &&
-    Object.prototype.hasOwnProperty.call(knownRoleLabels, role)
+    Object.prototype.hasOwnProperty.call(roleLabels, role)
   );
 }
 

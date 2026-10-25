@@ -10,9 +10,9 @@ import {
 import {
   WebKitApp,
   WebKitLayout,
-  XButton,
   type WebKitMenuOption,
-} from '@novelia/web-kit';
+} from '@novelia/web-kit/shell';
+import { XButton } from '@novelia/web-kit/ui';
 import { RouterLink, useRoute } from 'vue-router';
 
 import { componentPages } from './componentPages';
