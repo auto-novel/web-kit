@@ -94,6 +94,15 @@ const pages = [
     component: () => import('./components/DropZoneView.vue'),
   },
   {
+    englishName: 'FilePicker',
+    slug: 'file-picker',
+    category: 'input',
+    title: '文件选择 · XFilePicker',
+    label: '文件选择 File Picker',
+    description: '单选、多选、文件类型提示、自定义触发器与禁用状态。',
+    component: () => import('./components/FilePickerView.vue'),
+  },
+  {
     englishName: 'Input',
     slug: 'input',
     category: 'input',

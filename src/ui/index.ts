@@ -8,6 +8,8 @@ export { default as XButton } from './button/XButton.vue';
 export { default as XConfirmDialog } from './dialog/XConfirmDialog.vue';
 export { default as XDrawer } from './drawer/XDrawer.vue';
 export { default as XDropZone } from './drop-zone/XDropZone.vue';
+export { default as XFilePicker } from './file-picker/XFilePicker.vue';
+export type { XFilePickerProps } from './file-picker/types';
 export { default as XDialog } from './dialog/XDialog.vue';
 export { default as XPagination } from './pagination/XPagination.vue';
 export { default as XSelect } from './select/XSelect.vue';
