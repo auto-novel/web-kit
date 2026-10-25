@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 
 import vue from '@vitejs/plugin-vue';
+import { JSDOM } from 'jsdom';
 import { createServer } from 'vite';
 import { h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
@@ -155,7 +156,6 @@ test('Pagination maps navigation and page regions without leaking ui to the DOM'
         prev: 'pager-prev px-10',
         next: 'pager-next px-12',
         item: 'pager-item text-base',
-        summary: 'pager-summary text-lg',
       },
     }),
   );
@@ -170,7 +170,41 @@ test('Pagination maps navigation and page regions without leaking ui to the DOM'
   assert.match(region('pager-next'), /px-12/);
   assert.match(region('pager-item'), /text-base/);
   assert.doesNotMatch(region('pager-item'), /text-xs/);
-  assert.match(region('pager-summary'), /text-lg/);
+});
+
+test('Pagination shares page buttons across screen sizes and uses accessible mobile arrows', async () => {
+  const Pagination = await component('pagination/XPagination');
+  for (const page of [1, 10, 20]) {
+    const html = await renderToString(
+      h(Pagination, { page, totalPages: 20, ui: { list: 'pager-list' } }),
+    );
+    const document = new JSDOM(html).window.document;
+    const list = document.querySelector('.pager-list');
+    assert.ok(list.classList.contains('flex'));
+    assert.ok(!list.classList.contains('hidden'));
+    assert.ok(!list.classList.contains('sm:flex'));
+    assert.equal(
+      list.querySelector('[aria-current="page"]').textContent.trim(),
+      String(page),
+    );
+    assert.ok(list.querySelector('[aria-label="跳转到指定页"]'));
+    assert.equal(document.querySelector('[data-pagination-summary]'), null);
+
+    for (const [label, disabled] of [
+      ['上一页', page === 1],
+      ['下一页', page === 20],
+    ]) {
+      const button = document.querySelector(`button[aria-label="${label}"]`);
+      assert.equal(button.disabled, disabled);
+      const icon = button.querySelector('svg');
+      assert.equal(icon.getAttribute('aria-hidden'), 'true');
+      assert.ok(icon.classList.contains('sm:hidden'));
+      const text = button.querySelector('span');
+      assert.equal(text.textContent, label);
+      assert.ok(text.classList.contains('hidden'));
+      assert.ok(text.classList.contains('sm:inline'));
+    }
+  }
 });
 
 test('DropdownMenu preserves custom trigger and disabled accessibility state', async () => {

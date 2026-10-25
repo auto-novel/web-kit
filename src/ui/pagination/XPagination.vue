@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ChevronLeftOutlined, ChevronRightOutlined } from '@vicons/material';
 import {
   PaginationList,
   PaginationListItem,
@@ -119,7 +120,6 @@ function restoreKeyboardFocus(page: number) {
     current.focus();
     return;
   }
-  element.querySelector<HTMLElement>('[data-pagination-summary]')?.focus();
 }
 
 watch(() => props.page, restoreKeyboardFocus, { flush: 'post' });
@@ -159,41 +159,25 @@ watch([() => props.page, () => props.totalPages], () => {
         color="neutral"
         variant="ghost"
         size="sm"
-        :class="mergeClasses('text-ink hover:text-primary', ui.prev)"
+        aria-label="上一页"
+        :class="
+          mergeClasses(
+            'w-8 px-0 text-ink hover:text-primary sm:w-auto sm:px-3',
+            ui.prev,
+          )
+        "
       >
-        上一页
+        <ChevronLeftOutlined
+          class="size-5 sm:hidden rtl:rotate-180"
+          aria-hidden="true"
+        />
+        <span class="hidden sm:inline">上一页</span>
       </XButton>
     </PaginationPrev>
 
-    <PageJump
-      :open="openJumpIndex === -1"
-      :page="page"
-      :total-pages="totalPages"
-      :ui="{
-        content: mergeClasses('sm:hidden', ui.jumpContent),
-        label: ui.jumpLabel,
-        input: ui.jumpInput,
-        button: ui.jumpButton,
-      }"
-      @update:open="setJumpOpen($event, -1)"
-      @change="$emit('update:page', $event)"
-    >
-      <XButton
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        data-pagination-summary
-        :class="mergeClasses('text-xs text-muted sm:hidden', ui.summary)"
-        :disabled="totalPages < 1"
-        :aria-label="`当前第 ${page} 页，共 ${totalPages} 页，跳转到指定页`"
-        title="跳转到指定页"
-      >
-        {{ page }} / {{ totalPages }}
-      </XButton>
-    </PageJump>
     <PaginationList
       v-slot="{ items }"
-      :class="mergeClasses('hidden items-center gap-1 sm:flex', ui.list)"
+      :class="mergeClasses('flex items-center gap-1', ui.list)"
     >
       <template v-for="(item, index) in items" :key="index">
         <PaginationListItem
@@ -248,9 +232,19 @@ watch([() => props.page, () => props.totalPages], () => {
         color="neutral"
         variant="ghost"
         size="sm"
-        :class="mergeClasses('text-ink hover:text-primary', ui.next)"
+        aria-label="下一页"
+        :class="
+          mergeClasses(
+            'w-8 px-0 text-ink hover:text-primary sm:w-auto sm:px-3',
+            ui.next,
+          )
+        "
       >
-        下一页
+        <ChevronRightOutlined
+          class="size-5 sm:hidden rtl:rotate-180"
+          aria-hidden="true"
+        />
+        <span class="hidden sm:inline">下一页</span>
       </XButton>
     </PaginationNext>
   </PaginationRoot>
