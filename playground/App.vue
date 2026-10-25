@@ -19,23 +19,42 @@ import { componentPages } from './componentPages';
 
 const route = useRoute();
 
+const inputComponentSlugs = new Set([
+  'auto-complete',
+  'date-range-picker',
+  'drop-zone',
+  'input',
+  'markdown-editor',
+  'number-input',
+  'select',
+  'slider',
+  'switch',
+  'textarea',
+]);
+
+const componentNavigationGroups: WebKitMenuOption[] = [
+  { key: 'input-components', label: '输入组件', input: true },
+  { key: 'style-components', label: '样式组件', input: false },
+].map(({ key, label, input }) => ({
+  key,
+  type: 'group',
+  label,
+  icon: WidgetsOutlined,
+  children: componentPages
+    .filter(({ slug }) => inputComponentSlugs.has(slug) === input)
+    .map(({ name, label, to }) => ({ key: name, label, to })),
+}));
+
 const navigationOptions: WebKitMenuOption[] = [
   { key: 'home', label: '首页', icon: HomeOutlined, to: '/' },
   { key: 'theme', label: '主题测试', icon: PaletteOutlined, to: '/theme' },
   {
-    key: 'component-pages',
-    type: 'group',
-    label: '组件',
+    key: 'components',
+    label: '基础组件总览 Overview',
     icon: WidgetsOutlined,
-    children: [
-      { key: 'components', label: '基础组件总览 Overview', to: '/components' },
-      ...componentPages.map(({ name, label, to }) => ({
-        key: name,
-        label,
-        to,
-      })),
-    ],
+    to: '/components',
   },
+  ...componentNavigationGroups,
   {
     key: 'account',
     type: 'group',
