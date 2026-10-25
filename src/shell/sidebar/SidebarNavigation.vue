@@ -16,7 +16,7 @@ import {
   useRouter,
 } from 'vue-router';
 
-import { externalLinkAttrs } from '../../utils/menu';
+import { externalLinkAttrs } from '../menu/helpers';
 import type { WebKitMenuOption } from '../../types';
 import MenuIcon from '../menu/MenuIcon.vue';
 

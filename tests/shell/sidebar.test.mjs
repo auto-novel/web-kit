@@ -3,7 +3,7 @@ import '../helpers/register-source.mjs';
 import test from 'node:test';
 
 const { useSidebarPreference } =
-  await import('../../src/components/sidebar/preference.ts');
+  await import('../../src/shell/sidebar/preference.ts');
 
 const SIDEBAR_KEY = 'web-kit:sidebar:v1';
 
