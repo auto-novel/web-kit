@@ -19,6 +19,8 @@ export interface XPaginationProps {
   ui?: XPaginationUi;
   page: number;
   totalPages: number;
-  /** 左右方向键翻页，默认关闭；仅当焦点在分页内时生效。 */
+  /** 左右方向键翻页，默认关闭；默认仅在分页内生效。 */
   keyboard?: boolean;
+  /** 扩展键盘作用域，例如可聚焦的列表容器；仍跳过输入框及方向键控件。 */
+  keyboardScope?: HTMLElement | null;
 }

@@ -8,6 +8,8 @@ import {
 } from 'reka-ui';
 import {
   nextTick,
+  onActivated,
+  onDeactivated,
   ref,
   useTemplateRef,
   watch,
@@ -16,6 +18,7 @@ import {
 
 import XButton from '../button/XButton.vue';
 import { mergeClasses } from '../classes';
+import { hasPaginationOverlay, ignoresPaginationKeyboard } from './keyboard';
 import PageJump from './PageJump.vue';
 import type { XPaginationProps } from './types';
 
@@ -31,8 +34,22 @@ const root = useTemplateRef<ComponentPublicInstance>('root');
 const openJumpIndex = ref<number | null>(null);
 let pendingKeyboardPage: number | null = null;
 
+const active = ref(true);
+onActivated(() => (active.value = true));
+onDeactivated(() => (active.value = false));
+
 const keyboardEnabled = () =>
-  props.keyboard === true && openJumpIndex.value === null;
+  active.value && props.keyboard === true && openJumpIndex.value === null;
+
+watch(
+  () => (keyboardEnabled() ? props.keyboardScope : null),
+  (scope, _, onCleanup) => {
+    if (!scope) return;
+    scope.addEventListener('keydown', handleKeydown);
+    onCleanup(() => scope.removeEventListener('keydown', handleKeydown));
+  },
+  { flush: 'post', immediate: true },
+);
 
 function rootElement() {
   return (root.value?.$el ?? null) as HTMLElement | null;
@@ -48,8 +65,16 @@ function handleKeydown(event: KeyboardEvent) {
     event.altKey ||
     event.ctrlKey ||
     event.metaKey ||
-    event.shiftKey
+    event.shiftKey ||
+    ignoresPaginationKeyboard(event)
   )
+    return;
+
+  const element = rootElement();
+  if (!element) return;
+  const document = element.ownerDocument;
+  const selection = document.getSelection();
+  if ((selection && !selection.isCollapsed) || hasPaginationOverlay(document))
     return;
 
   const { page, totalPages } = props;
@@ -61,19 +86,15 @@ function handleKeydown(event: KeyboardEvent) {
   )
     return;
 
-  // 只有分页获得焦点时才接管方向键；边界页也阻止滚动，保持行为一致。
-  event.preventDefault();
-
-  const element = rootElement();
   const rtl =
-    element !== null &&
-    element.ownerDocument.defaultView?.getComputedStyle(element).direction ===
-      'rtl';
+    document.defaultView?.getComputedStyle(element).direction === 'rtl';
   const nextPage =
     page + (event.key === 'ArrowRight' ? 1 : -1) * (rtl ? -1 : 1);
   if (nextPage < 1 || nextPage > totalPages) return;
 
-  pendingKeyboardPage = nextPage;
+  event.preventDefault();
+  // 列表内翻页不抢焦点；仅分页自身触发时恢复可能失效的按钮焦点。
+  if (event.composedPath().includes(element)) pendingKeyboardPage = nextPage;
   emit('update:page', nextPage);
   void nextTick(() => {
     // 父组件没有接受翻页时，避免影响之后无关的页码变化。
