@@ -10,36 +10,56 @@ const ignoredTarget = [
   '[role="slider"]',
   '[role="spinbutton"]',
   '[role="tablist"]',
-  '[role="menu"]',
   '[role="menubar"]',
-  '[role="listbox"]',
   '[role="tree"]',
   '[role="treegrid"]',
   '[role="grid"]',
   '[role="radiogroup"]',
   '[role="toolbar"]',
-  '[role="dialog"]',
-  '[role="alertdialog"]',
 ].join(',');
 
-export function ignoresPaginationKeyboard(event: KeyboardEvent) {
-  return event.composedPath().some((target) => {
-    const element = target as Element;
-    return (
-      typeof element.matches === 'function' && element.matches(ignoredTarget)
-    );
+const overlaySelector =
+  '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [data-reka-popper-content-wrapper]';
+
+function isElement(node: unknown): node is Element {
+  return !!node && typeof (node as Element).matches === 'function';
+}
+
+/**
+ * 只检查事件 target 到分页作用域边界之间的控件，
+ * 避免分页自身位于 dialog/toolbar 等容器时被祖先误伤。
+ */
+export function paginationKeyBoundary(
+  event: KeyboardEvent,
+  root: Element | null,
+) {
+  if (root && event.composedPath().includes(root)) return root;
+  return isElement(event.currentTarget) ? event.currentTarget : null;
+}
+
+export function ignoresPaginationKeyboard(
+  event: KeyboardEvent,
+  boundary: Element | null,
+) {
+  const path = event.composedPath();
+  const end = boundary ? path.indexOf(boundary) : -1;
+  return (end < 0 ? path : path.slice(0, end)).some((target) => {
+    return isElement(target) && target.matches(ignoredTarget);
   });
 }
 
-export function hasPaginationOverlay(document: Document) {
-  return Array.from(
-    document.querySelectorAll(
-      '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [data-reka-popper-content-wrapper]',
-    ),
-  ).some((element) => {
-    if (element.closest('[hidden], [inert], [data-state="closed"]'))
-      return false;
-    const style = document.defaultView?.getComputedStyle(element);
-    return style?.display !== 'none' && style?.visibility !== 'hidden';
-  });
+/** 位于分页作用域内的浮层属于自身交互，不应阻断翻页。 */
+export function hasPaginationOverlay(
+  document: Document,
+  boundary: Element | null,
+) {
+  return Array.from(document.querySelectorAll(overlaySelector)).some(
+    (element) => {
+      if (boundary && element.contains(boundary)) return false;
+      if (element.closest('[hidden], [inert], [data-state="closed"]'))
+        return false;
+      const style = document.defaultView?.getComputedStyle(element);
+      return style?.display !== 'none' && style?.visibility !== 'hidden';
+    },
+  );
 }

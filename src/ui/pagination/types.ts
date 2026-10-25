@@ -7,7 +7,6 @@ export type XPaginationUi = XUi<
   | 'next'
   | 'item'
   | 'ellipsis'
-  | 'summary'
   | 'jumpContent'
   | 'jumpLabel'
   | 'jumpInput'
@@ -19,8 +18,10 @@ export interface XPaginationProps {
   ui?: XPaginationUi;
   page: number;
   totalPages: number;
-  /** 左右方向键翻页，默认关闭；默认仅在分页内生效。 */
-  keyboard?: boolean;
-  /** 扩展键盘作用域，例如可聚焦的列表容器；仍跳过输入框及方向键控件。 */
-  keyboardScope?: HTMLElement | null;
+  /**
+   * 左右方向键翻页，默认关闭。
+   * `true` 仅在分页内部生效；传入元素时扩展到该容器；传 `'window'` 时在页面级生效。
+   * 输入框、可编辑区域、方向键控件、浮层和文本选择会保留原有操作。
+   */
+  keyboard?: boolean | 'window' | HTMLElement | null;
 }

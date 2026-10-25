@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronLeftOutlined, ChevronRightOutlined } from '@vicons/material';
+import { useEventListener } from '@vueuse/core';
 import {
   PaginationList,
   PaginationListItem,
@@ -8,18 +9,23 @@ import {
   PaginationRoot,
 } from 'reka-ui';
 import {
+  computed,
   nextTick,
   onActivated,
   onDeactivated,
   ref,
+  useAttrs,
   useTemplateRef,
   watch,
-  type ComponentPublicInstance,
 } from 'vue';
 
 import XButton from '../button/XButton.vue';
 import { mergeClasses } from '../classes';
-import { hasPaginationOverlay, ignoresPaginationKeyboard } from './keyboard';
+import {
+  hasPaginationOverlay,
+  ignoresPaginationKeyboard,
+  paginationKeyBoundary,
+} from './keyboard';
 import PageJump from './PageJump.vue';
 import type { XPaginationProps } from './types';
 
@@ -31,51 +37,95 @@ const emit = defineEmits<{
   'update:page': [page: number];
 }>();
 
-const root = useTemplateRef<ComponentPublicInstance>('root');
-const openJumpIndex = ref<number | null>(null);
-let pendingKeyboardPage: number | null = null;
+const root = useTemplateRef<{ $el: HTMLElement }>('root');
+const attrs = useAttrs();
 
 const active = ref(true);
+let pendingKeyboardPage: number | null = null;
+
 onActivated(() => (active.value = true));
-onDeactivated(() => (active.value = false));
+onDeactivated(() => {
+  active.value = false;
+  pendingKeyboardPage = null;
+});
 
-const keyboardEnabled = () =>
-  active.value && props.keyboard === true && openJumpIndex.value === null;
+const keyboardTarget = computed<EventTarget | null>(() => {
+  if (!active.value) return null;
+  const keyboard = props.keyboard;
+  if (keyboard === 'window')
+    return rootElement()?.ownerDocument.defaultView ?? null;
+  if (keyboard && typeof keyboard === 'object') return keyboard;
+  return keyboard === true ? rootElement() : null;
+});
 
-watch(
-  () => (keyboardEnabled() ? props.keyboardScope : null),
-  (scope, _, onCleanup) => {
-    if (!scope) return;
-    scope.addEventListener('keydown', handleKeydown);
-    onCleanup(() => scope.removeEventListener('keydown', handleKeydown));
-  },
-  { flush: 'post', immediate: true },
-);
+useEventListener<KeyboardEvent>(keyboardTarget, 'keydown', handleKeydown);
+
+// Reka 根组件的内部 props 与已移除的旧键盘入口不作为透传属性。
+const reservedAttrs = new Set([
+  'as',
+  'aschild',
+  'defaultpage',
+  'disabled',
+  'itemsperpage',
+  'keyboardglobal',
+  'keyboardscope',
+  'siblingcount',
+  'showedges',
+  'total',
+]);
+function rootAttrs() {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(attrs)) {
+    if (
+      key !== 'class' &&
+      !reservedAttrs.has(key.replace(/-/g, '').toLowerCase())
+    )
+      result[key] = value;
+  }
+  return result;
+}
+
+const navButtonClass = 'w-8 px-0 text-ink hover:text-primary sm:w-auto sm:px-3';
+const pageItemClass =
+  'text-xs font-medium text-ink hover:text-primary data-selected:bg-primary-soft data-selected:text-primary-text data-selected:hover:bg-primary-soft-hover data-selected:hover:text-primary';
+
+type PaginationItem = { type: 'page'; value: number } | { type: 'ellipsis' };
+
+function itemKey(item: PaginationItem, index: number) {
+  return item.type === 'page' ? `page-${item.value}` : `ellipsis-${index}`;
+}
 
 function rootElement() {
-  return (root.value?.$el ?? null) as HTMLElement | null;
+  return root.value?.$el ?? null;
 }
 
 function handleKeydown(event: KeyboardEvent) {
   if (
     (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') ||
     event.repeat ||
-    !keyboardEnabled() ||
+    !active.value ||
+    !props.keyboard ||
     event.defaultPrevented ||
     event.isComposing ||
     event.altKey ||
     event.ctrlKey ||
     event.metaKey ||
-    event.shiftKey ||
-    ignoresPaginationKeyboard(event)
+    event.shiftKey
   )
     return;
 
   const element = rootElement();
   if (!element) return;
+
+  const boundary = paginationKeyBoundary(event, element);
+  if (ignoresPaginationKeyboard(event, boundary)) return;
+
   const document = element.ownerDocument;
   const selection = document.getSelection();
-  if ((selection && !selection.isCollapsed) || hasPaginationOverlay(document))
+  if (
+    (selection && !selection.isCollapsed) ||
+    hasPaginationOverlay(document, boundary)
+  )
     return;
 
   const { page, totalPages } = props;
@@ -103,42 +153,32 @@ function handleKeydown(event: KeyboardEvent) {
   });
 }
 
-function restoreKeyboardFocus(page: number) {
-  if (pendingKeyboardPage !== page) return;
-  pendingKeyboardPage = null;
+watch(
+  () => props.page,
+  (page) => {
+    if (pendingKeyboardPage !== page) return;
+    pendingKeyboardPage = null;
 
-  const element = rootElement();
-  if (!element) return;
-  const active = element.ownerDocument.activeElement;
-  if (active && element.contains(active) && !active.matches(':disabled'))
-    return;
+    const element = rootElement();
+    if (!element) return;
+    const focused = element.ownerDocument.activeElement;
+    if (focused && element.contains(focused) && !focused.matches(':disabled'))
+      return;
 
-  const current = element.querySelector<HTMLElement>(
-    '[data-type="page"][aria-current="page"]',
-  );
-  if (current && current.getClientRects().length > 0) {
-    current.focus();
-    return;
-  }
-}
-
-watch(() => props.page, restoreKeyboardFocus, { flush: 'post' });
-
-function setJumpOpen(open: boolean, index: number) {
-  if (open) openJumpIndex.value = index;
-  else if (openJumpIndex.value === index) openJumpIndex.value = null;
-}
-
-watch([() => props.page, () => props.totalPages], () => {
-  openJumpIndex.value = null;
-});
+    const current = element.querySelector<HTMLElement>(
+      '[data-type="page"][aria-current="page"]',
+    );
+    if (current && current.getClientRects().length > 0) current.focus();
+  },
+  { flush: 'post' },
+);
 </script>
 
 <template>
   <PaginationRoot
     ref="root"
     aria-label="分页"
-    v-bind="{ ...$attrs, class: undefined }"
+    v-bind="rootAttrs()"
     :page="page"
     :total="totalPages"
     :items-per-page="1"
@@ -148,10 +188,9 @@ watch([() => props.page, () => props.totalPages], () => {
       mergeClasses(
         'flex items-center justify-between border-t border-divider px-4 py-3 text-sm sm:px-6',
         ui.root,
-        $attrs.class,
+        attrs.class,
       )
     "
-    @keydown="handleKeydown"
     @update:page="$emit('update:page', $event)"
   >
     <PaginationPrev as-child>
@@ -160,12 +199,7 @@ watch([() => props.page, () => props.totalPages], () => {
         variant="ghost"
         size="sm"
         aria-label="上一页"
-        :class="
-          mergeClasses(
-            'w-8 px-0 text-ink hover:text-primary sm:w-auto sm:px-3',
-            ui.prev,
-          )
-        "
+        :class="mergeClasses(navButtonClass, ui.prev)"
       >
         <ChevronLeftOutlined
           class="size-5 sm:hidden rtl:rotate-180"
@@ -179,7 +213,7 @@ watch([() => props.page, () => props.totalPages], () => {
       v-slot="{ items }"
       :class="mergeClasses('flex items-center gap-1', ui.list)"
     >
-      <template v-for="(item, index) in items" :key="index">
+      <template v-for="(item, index) in items" :key="itemKey(item, index)">
         <PaginationListItem
           v-if="item.type === 'page'"
           :value="item.value"
@@ -189,19 +223,13 @@ watch([() => props.page, () => props.totalPages], () => {
             color="neutral"
             variant="ghost"
             size="icon-sm"
-            :class="
-              mergeClasses(
-                'text-xs font-medium text-ink hover:text-primary data-selected:bg-primary-soft data-selected:text-primary-text data-selected:hover:bg-primary-soft-hover data-selected:hover:text-primary',
-                ui.item,
-              )
-            "
+            :class="mergeClasses(pageItemClass, ui.item)"
           >
             {{ item.value }}
           </XButton>
         </PaginationListItem>
         <PageJump
           v-else
-          :open="openJumpIndex === index"
           :page="page"
           :total-pages="totalPages"
           :ui="{
@@ -210,7 +238,6 @@ watch([() => props.page, () => props.totalPages], () => {
             input: ui.jumpInput,
             button: ui.jumpButton,
           }"
-          @update:open="setJumpOpen($event, index)"
           @change="$emit('update:page', $event)"
         >
           <XButton
@@ -233,12 +260,7 @@ watch([() => props.page, () => props.totalPages], () => {
         variant="ghost"
         size="sm"
         aria-label="下一页"
-        :class="
-          mergeClasses(
-            'w-8 px-0 text-ink hover:text-primary sm:w-auto sm:px-3',
-            ui.next,
-          )
-        "
+        :class="mergeClasses(navButtonClass, ui.next)"
       >
         <ChevronRightOutlined
           class="size-5 sm:hidden rtl:rotate-180"

@@ -13,7 +13,6 @@ import { useOverlayLayer } from '../overlayLayer';
 
 const props = withDefaults(
   defineProps<{
-    open: boolean;
     page: number;
     totalPages: number;
     ui?: XUi<'content' | 'label' | 'input' | 'button'>;
@@ -22,35 +21,40 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  'update:open': [open: boolean];
   change: [page: number];
 }>();
 
-const { contentStyle } = useOverlayLayer(() => props.open);
+const open = ref(false);
 const jumpPage = ref<number | string>(props.page);
-const canJump = computed(() => {
-  const target = Number(jumpPage.value);
-  return (
-    Number.isInteger(target) &&
-    target >= 1 &&
-    target <= props.totalPages &&
-    target !== props.page
-  );
+const { contentStyle } = useOverlayLayer(open);
+
+const targetPage = computed(() => Number(jumpPage.value));
+const canJump = computed(
+  () =>
+    Number.isInteger(targetPage.value) &&
+    targetPage.value >= 1 &&
+    targetPage.value <= props.totalPages &&
+    targetPage.value !== props.page,
+);
+
+watch(open, (isOpen) => {
+  if (isOpen) jumpPage.value = props.page;
 });
 
-watch([() => props.open, () => props.page, () => props.totalPages], () => {
+watch([() => props.page, () => props.totalPages], () => {
+  open.value = false;
   jumpPage.value = props.page;
 });
 
 function jumpToPage() {
   if (!canJump.value) return;
-  emit('change', Number(jumpPage.value));
-  emit('update:open', false);
+  emit('change', targetPage.value);
+  open.value = false;
 }
 </script>
 
 <template>
-  <PopoverRoot :open="open" @update:open="$emit('update:open', $event)">
+  <PopoverRoot :open="open" @update:open="open = $event">
     <PopoverTrigger as-child>
       <slot />
     </PopoverTrigger>
@@ -80,7 +84,6 @@ function jumpToPage() {
             min="1"
             :max="totalPages"
             step="1"
-            :disabled="totalPages < 1"
             aria-label="跳转页码"
             :class="
               mergeClasses(

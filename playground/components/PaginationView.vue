@@ -15,12 +15,7 @@ const listRegion = useTemplateRef<HTMLElement>('listRegion');
 
 <div ref="listRegion" tabindex="0" aria-label="列表">
   <!-- 列表、搜索框等内容 -->
-  <XPagination
-    v-model:page="page"
-    :total-pages="20"
-    :keyboard-scope="listRegion"
-    keyboard
-  />
+  <XPagination v-model:page="page" :total-pages="20" :keyboard="listRegion" />
 </div>`;
 </script>
 
@@ -35,7 +30,7 @@ const listRegion = useTemplateRef<HTMLElement>('listRegion');
     >
       <h2 id="test-pagination" class="mb-2 font-medium">分页 · XPagination</h2>
       <p class="mb-4 text-sm text-muted">
-        检查上一页、下一页和页码切换；焦点在分页内时可用左右方向键翻页。桌面端点击省略号，移动端点击中间页数，可跳转到指定页，支持回车确认。
+        检查上一页、下一页和页码切换；焦点在分页内时可用左右方向键翻页。点击省略号打开跳转到指定页的面板，支持回车确认。
       </p>
       <XPagination v-model:page="page" :total-pages="20" keyboard />
       <p class="mt-3 text-xs text-muted">当前页：{{ page }} / 20</p>
@@ -82,8 +77,7 @@ const listRegion = useTemplateRef<HTMLElement>('listRegion');
         <XPagination
           v-model:page="scopedPage"
           :total-pages="5"
-          :keyboard-scope="listRegion"
-          keyboard
+          :keyboard="listRegion"
         />
       </div>
     </section>
@@ -91,10 +85,10 @@ const listRegion = useTemplateRef<HTMLElement>('listRegion');
       <h2 class="mb-3 font-medium">接口与交互</h2>
       <p class="text-sm leading-6 text-muted">
         页码从 1 开始。totalPages 表示总页数，不是记录数。keyboard
-        默认关闭；默认仅分页内生效，传入 keyboardScope
-        后扩展到指定容器。输入框、可编辑区域、方向键控件、浮层和文本选择会保留原有操作；自定义控件可添加
+        默认关闭：true 仅分页内生效，传入容器元素扩展到该容器，传 'window'
+        则在页面级生效。输入框、可编辑区域、方向键控件、浮层和文本选择会保留原有操作；自定义控件可添加
         data-pagination-keyboard-ignore 排除。容器需自行设置 tabindex
-        以支持聚焦，组件不会抢占列表焦点。桌面点击省略号、移动端点击中间页数打开跳页面板。
+        以支持聚焦，组件不会抢占列表焦点。点击省略号打开跳页面板。
       </p>
     </section>
   </ComponentPage>

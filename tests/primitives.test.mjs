@@ -207,6 +207,27 @@ test('Pagination shares page buttons across screen sizes and uses accessible mob
   }
 });
 
+test('Pagination keeps Reka internals out of root attrs', async () => {
+  const Pagination = await component('pagination/XPagination');
+  const html = await renderToString(
+    h(Pagination, {
+      page: 2,
+      totalPages: 5,
+      as: 'div',
+      'items-per-page': 2,
+      disabled: true,
+      ui: { root: 'pager-root', list: 'pager-list' },
+    }),
+  );
+  const document = new JSDOM(html).window.document;
+  assert.equal(document.querySelector('.pager-root').tagName, 'NAV');
+  assert.equal(
+    document.querySelectorAll('.pager-list [data-type="page"]').length,
+    5,
+  );
+  assert.equal(document.querySelector('[aria-current="page"]').disabled, false);
+});
+
 test('DropdownMenu preserves custom trigger and disabled accessibility state', async () => {
   const DropdownMenu = await component('dropdown-menu/XDropdownMenu');
   const html = await renderToString(
