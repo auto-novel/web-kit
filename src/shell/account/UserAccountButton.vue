@@ -27,6 +27,7 @@ defineProps<{ options: WebKitMenuOption[] }>();
 
 const { logout: signOut, whoami } = useWebKit();
 const { attention, options: kitOptions, session } = useWebKitInternals();
+const accountTrigger = ref<HTMLButtonElement>();
 const menuOpen = ref(false);
 const loginOpen = ref(false);
 const strikesEnabled = computed(() => kitOptions.strikes.enabled);
@@ -56,6 +57,13 @@ async function logout() {
   }
 }
 
+function restoreAccountFocus(event: Event) {
+  // Reka's default restoration uses focus() without preventScroll. In Chrome
+  // this can move the document when the trigger is inside a sticky header.
+  event.preventDefault();
+  accountTrigger.value?.focus({ preventScroll: true });
+}
+
 function toggleAdminMode() {
   if (whoami.value.isAdmin) session.toggleAdminMode();
 }
@@ -66,6 +74,7 @@ function toggleAdminMode() {
     <DropdownMenuRoot v-if="whoami.isSignedIn" v-model:open="menuOpen">
       <DropdownMenuTrigger as-child>
         <button
+          ref="accountTrigger"
           type="button"
           class="account-trigger"
           :aria-label="accountLabel"
@@ -102,6 +111,7 @@ function toggleAdminMode() {
           align="end"
           :side-offset="8"
           :collision-padding="8"
+          @close-auto-focus="restoreAccountFocus"
         >
           <AccountMenuPanel class="pt-0">
             <DropdownMenuLabel class="p-0">
