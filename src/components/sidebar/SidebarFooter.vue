@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { AdminPanelSettingsOutlined, CommitOutlined } from '@vicons/material';
 import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { useWebKit } from '../../context';
 import XTooltip from '../../ui/tooltip/XTooltip.vue';
@@ -14,6 +15,8 @@ const props = defineProps<{
 }>();
 
 const { whoami } = useWebKit();
+const route = useRoute();
+const isAdminPage = computed(() => /^\/admin(?:\/|$)/.test(route.path));
 
 const commitUrl = computed(() =>
   props.commitSha && props.commitSha !== 'unknown'
@@ -58,14 +61,14 @@ const commitUrl = computed(() =>
         <XTooltip v-if="whoami.isAdmin" side="top">
           <template #trigger>
             <a
-              href="/admin/"
+              :href="isAdminPage ? '/' : '/admin/'"
               class="grid w-8 place-items-center rounded-sm hover:bg-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-primary"
-              aria-label="管理后台"
+              :aria-label="isAdminPage ? '返回主页' : '管理后台'"
             >
               <AdminPanelSettingsOutlined class="size-4" aria-hidden="true" />
             </a>
           </template>
-          管理后台
+          {{ isAdminPage ? '返回主页' : '管理后台' }}
         </XTooltip>
       </div>
     </template>
