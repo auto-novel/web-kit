@@ -18,4 +18,8 @@ export interface XButtonProps {
   disabled?: boolean;
   /** 显示加载指示器，并禁用点击和表单提交。 */
   loading?: boolean;
+  /** 自动管理点击处理期间的加载状态，默认关闭。 */
+  loadingAuto?: boolean;
+  onClick?:
+    ((event: MouseEvent) => unknown) | Array<(event: MouseEvent) => unknown>;
 }

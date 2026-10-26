@@ -19,7 +19,14 @@ const code = `<XButton>主要操作</XButton>
 <XButton color="danger" variant="soft">删除</XButton>
 <XButton color="warning" variant="soft" size="tiny">紧凑按钮</XButton>
 <XButton disabled>禁用</XButton>
-<XButton loading>加载中</XButton>`;
+<XButton loading>加载中</XButton>
+<!-- save 返回 Promise，自动加载并阻止重复点击 -->
+<XButton loading-auto @click="save">异步保存</XButton>`;
+
+async function save() {
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  Toast.success('保存成功');
+}
 </script>
 
 <template>
@@ -131,8 +138,10 @@ const code = `<XButton>主要操作</XButton>
     <section aria-labelledby="button-states">
       <h2 id="button-states" class="mb-2 font-medium">禁用与加载</h2>
       <p class="mb-4 text-sm leading-6 text-muted">
-        两种状态均禁止点击；加载时保留按钮文字，并展示加载指示器。
+        两种状态均禁止点击；加载时保留按钮文字，并展示加载指示器。 设置
+        loading-auto 后，等待 click 返回的 Promise 期间自动加载并阻止重复点击。
       </p>
+      <XButton class="mb-4" loading-auto @click="save">异步保存</XButton>
       <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div
           v-for="color in colors"
