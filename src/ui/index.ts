@@ -1,6 +1,7 @@
 export { mergeClasses } from './classes';
 export type { XClassValue, XUi } from './classes';
-export { default as XAsyncContent } from './async-content/XAsyncContent.vue';
+export { default as XError } from './error/XError.vue';
+export type { XErrorProps, XErrorUi } from './error/types';
 export { default as XSkeleton } from './skeleton/XSkeleton.vue';
 export { default as XEmpty } from './empty/XEmpty.vue';
 export type { XEmptyProps, XEmptyUi } from './empty/types';
@@ -119,10 +120,6 @@ export type {
 } from './dialog/types';
 export type { XPaginationProps, XPaginationUi } from './pagination/types';
 export type { XTimePreset, XTimeProps, XTimeValue } from './time/time';
-export type {
-  XAsyncContentProps,
-  XAsyncContentUi,
-} from './async-content/types';
 export type {
   XButtonColor,
   XButtonProps,

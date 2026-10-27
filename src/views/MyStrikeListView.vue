@@ -5,7 +5,10 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../context';
-import XAsyncContent from '../ui/async-content/XAsyncContent.vue';
+import XButton from '../ui/button/XButton.vue';
+import XEmpty from '../ui/empty/XEmpty.vue';
+import XError from '../ui/error/XError.vue';
+import XSkeleton from '../ui/skeleton/XSkeleton.vue';
 import XPagination from '../ui/pagination/XPagination.vue';
 import XTime from '../ui/time/XTime.vue';
 import { getApiErrorMessage } from '../ui/toast/apiError';
@@ -96,79 +99,71 @@ onBeforeUnmount(() => requestId++);
       </section>
 
       <section v-else aria-live="polite">
-        <XAsyncContent
-          :loading="loading"
-          :error="error"
-          :empty="!strikes.length"
-          error-title="处罚记录加载失败"
-          empty-title="暂无处罚记录"
-          empty-description="你的账号目前没有处罚记录。"
-          @retry="loadStrikes"
-        >
-          <template #loading>
-            <div class="divide-y divide-divider" aria-label="正在加载处罚记录">
-              <div v-for="index in 4" :key="index" class="py-5">
-                <div class="flex items-center justify-between gap-4">
-                  <div class="h-5 w-1/3 animate-pulse rounded-sm bg-border" />
-                  <div class="h-5 w-16 animate-pulse rounded-full bg-divider" />
-                </div>
-                <div
-                  class="mt-3 h-4 w-full animate-pulse rounded-sm bg-divider"
-                />
-                <div
-                  class="mt-2 h-4 w-2/3 animate-pulse rounded-sm bg-divider"
-                />
-              </div>
+        <div v-if="loading" class="divide-y divide-divider" role="status">
+          <span class="sr-only">正在加载处罚记录…</span>
+          <div v-for="index in 4" :key="index" class="py-5">
+            <div class="flex items-center justify-between gap-4">
+              <XSkeleton class="h-5 w-1/3 bg-border" />
+              <XSkeleton class="h-5 w-16 rounded-full" />
             </div>
-          </template>
-
-          <div class="divide-y divide-divider">
-            <article v-for="strike in strikes" :key="strike.id" class="py-5">
-              <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <h2 class="text-base font-semibold text-ink">
-                    {{ strike.reason }}
-                  </h2>
-                  <p class="mt-1 text-xs text-muted">
-                    <XTime :time="strike.createdAt" />
-                    <span aria-hidden="true">·</span>
-                    记录 #{{ strike.id }}
-                  </p>
-                </div>
-
-                <div
-                  class="flex flex-none items-center gap-2 text-xs font-medium"
-                >
-                  <span
-                    class="rounded-full px-2.5 py-1"
-                    :class="
-                      strike.revokedAt
-                        ? 'bg-paper text-muted'
-                        : 'bg-error-soft text-error-text'
-                    "
-                  >
-                    {{ strike.revokedAt ? '已撤销' : '生效中' }}
-                  </span>
-                  <span class="rounded-full bg-paper px-2.5 py-1 text-ink">
-                    {{ strike.point }} 分
-                  </span>
-                </div>
-              </div>
-
-              <div class="mt-4 rounded-md bg-paper px-4 py-3">
-                <p class="text-xs font-medium text-muted">处罚依据</p>
-                <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-ink">
-                  {{ strike.evidence || '未提供' }}
+            <XSkeleton class="mt-3 h-4 w-full" />
+            <XSkeleton class="mt-2 h-4 w-2/3" />
+          </div>
+        </div>
+        <XError v-else-if="error" title="处罚记录加载失败" :description="error">
+          <XButton @click="loadStrikes">再试一次</XButton>
+        </XError>
+        <XEmpty
+          v-else-if="!strikes.length"
+          title="暂无处罚记录"
+          description="你的账号目前没有处罚记录。"
+        />
+        <div v-else class="divide-y divide-divider">
+          <article v-for="strike in strikes" :key="strike.id" class="py-5">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 class="text-base font-semibold text-ink">
+                  {{ strike.reason }}
+                </h2>
+                <p class="mt-1 text-xs text-muted">
+                  <XTime :time="strike.createdAt" />
+                  <span aria-hidden="true">·</span>
+                  记录 #{{ strike.id }}
                 </p>
               </div>
 
-              <p v-if="strike.revokedAt" class="mt-3 text-xs text-muted">
-                撤销于
-                <XTime :time="strike.revokedAt" />
+              <div
+                class="flex flex-none items-center gap-2 text-xs font-medium"
+              >
+                <span
+                  class="rounded-full px-2.5 py-1"
+                  :class="
+                    strike.revokedAt
+                      ? 'bg-paper text-muted'
+                      : 'bg-error-soft text-error-text'
+                  "
+                >
+                  {{ strike.revokedAt ? '已撤销' : '生效中' }}
+                </span>
+                <span class="rounded-full bg-paper px-2.5 py-1 text-ink">
+                  {{ strike.point }} 分
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-md bg-paper px-4 py-3">
+              <p class="text-xs font-medium text-muted">处罚依据</p>
+              <p class="mt-1 whitespace-pre-wrap text-sm leading-6 text-ink">
+                {{ strike.evidence || '未提供' }}
               </p>
-            </article>
-          </div>
-        </XAsyncContent>
+            </div>
+
+            <p v-if="strike.revokedAt" class="mt-3 text-xs text-muted">
+              撤销于
+              <XTime :time="strike.revokedAt" />
+            </p>
+          </article>
+        </div>
 
         <XPagination
           v-if="!loading && !error && totalPages > 1"

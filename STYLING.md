@@ -28,7 +28,8 @@
 | XDropdownMenu                                                                                         | Portal 内的 content                           | content                                                                               |
 | XTooltip                                                                                              | Portal 内的 content                           | content                                                                               |
 | XDropZone                                                                                             | 全屏 overlay                                  | overlay、content、icon、description                                                   |
-| XAsyncContent                                                                                         | 默认 display: contents 的 root                | root、loading、spinner、error、empty、icon、title、description、retry                 |
+| XError / XEmpty                                                                                       | 自身 root                                     | root、icon、title、description                                                        |
+| XSkeleton                                                                                             | 自身根节点                                    | 无；使用 `class`                                                                      |
 | XPagination                                                                                           | 导航 root                                     | root、list、prev、next、item、ellipsis、jumpContent、jumpLabel、jumpInput、jumpButton |
 
 XSlider 保留既有的属性分流：`class/style/id` 作用于 root，其余透传属性（包括 ARIA）作用于 thumb。XDropdownMenu 与 XTooltip 的 trigger 由插槽提供，触发器样式直接写在插槽元素上。XNumberInput 的 `name` 由根节点管理，用于提交数值而不是格式化后的显示文本。
