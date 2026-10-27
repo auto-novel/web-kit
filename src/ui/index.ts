@@ -5,7 +5,6 @@ export type { XErrorProps, XErrorUi } from './error/types';
 export { default as XSkeleton } from './skeleton/XSkeleton.vue';
 export { default as XEmpty } from './empty/XEmpty.vue';
 export type { XEmptyProps, XEmptyUi } from './empty/types';
-export { default as XAspectRatio } from './aspect-ratio/XAspectRatio.vue';
 export { default as XSlider } from './slider/XSlider.vue';
 export { default as XSwitch } from './switch/XSwitch.vue';
 export { default as XButton } from './button/XButton.vue';
@@ -100,7 +99,6 @@ export type {
   ToastStatus,
   ToastUpdateOptions,
 } from './toast';
-export type { XAspectRatioProps } from './aspect-ratio/types';
 export type {
   XSliderMarks,
   XSliderOrientation,

@@ -40,15 +40,6 @@ const pages = [
     component: () => import('./components/ConfirmDialogView.vue'),
   },
   {
-    englishName: 'AspectRatio',
-    slug: 'aspect-ratio',
-    category: 'style',
-    title: '宽高比 · XAspectRatio',
-    label: '宽高比 Aspect Ratio',
-    description: '16:9 与默认正方形布局、自适应插槽内容。',
-    component: () => import('./components/AspectRatioView.vue'),
-  },
-  {
     englishName: 'Error',
     slug: 'error',
     category: 'style',

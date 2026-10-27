@@ -14,7 +14,7 @@
 
 | 组件                                                                                                  | `class` / `style` 落点                        | `ui` 分区                                                                             |
 | ----------------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------- |
-| XButton、XAspectRatio、XSeparator、XTabs 及其子组件、XDropdownMenuItem、XDropdownMenuSeparator、XTime | 自身根节点                                    | 无；使用 `class`                                                                      |
+| XButton、XSeparator、XTabs 及其子组件、XDropdownMenuItem、XDropdownMenuSeparator、XTime | 自身根节点                                    | 无；使用 `class`                                                                      |
 | XInput / XNumberInput                                                                                 | 外层 root；其他原生属性及事件落 input         | XInput 沿用现有分区；XNumberInput：root、input                                        |
 | XTextarea                                                                                             | 外层 root；其他原生属性及事件落 textarea      | root、textarea、count                                                                 |
 | XDateRangePicker                                                                                      | class/style 落 root；其他属性及事件落 trigger | root、trigger、clear、content、header、navigation、day                                |
