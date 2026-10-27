@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Inventory2Outlined } from '@vicons/material';
 import { computed } from 'vue';
 
 import XButton from '../button/XButton.vue';
 import { mergeClasses } from '../classes';
+import XEmpty from '../empty/XEmpty.vue';
 import type { XAsyncContentProps } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -31,14 +31,12 @@ const layout = computed(() =>
         minHeight: 'min-h-52',
         padding: 'p-6',
         heading: 'mt-3 text-sm font-medium text-ink',
-        description: 'mt-1 text-xs text-muted',
         retry: 'mt-4',
       }
     : {
         minHeight: props.size === 'large' ? 'min-h-96' : 'min-h-80',
         padding: 'p-8',
         heading: 'mt-4 text-lg font-semibold text-ink',
-        description: 'mt-2 text-sm text-muted',
         retry: 'mt-5',
       },
 );
@@ -113,40 +111,17 @@ const layout = computed(() =>
       </div>
     </slot>
     <slot v-else-if="empty" name="empty">
-      <div
-        :class="
-          mergeClasses(
-            'grid place-items-center text-center',
-            layout.minHeight,
-            layout.padding,
-            ui.empty,
-          )
-        "
-      >
-        <div>
-          <div
-            :class="
-              mergeClasses(
-                'mx-auto grid size-12 place-items-center rounded-full bg-paper text-muted',
-                ui.icon,
-              )
-            "
-            aria-hidden="true"
-          >
-            <Inventory2Outlined class="size-6" />
-          </div>
-
-          <h2 :class="mergeClasses(layout.heading, ui.title)">
-            {{ emptyTitle }}
-          </h2>
-          <p
-            v-if="emptyDescription"
-            :class="mergeClasses(layout.description, ui.description)"
-          >
-            {{ emptyDescription }}
-          </p>
-        </div>
-      </div>
+      <XEmpty
+        :title="emptyTitle"
+        :description="emptyDescription"
+        :size="size"
+        :ui="{
+          root: ui.empty,
+          icon: ui.icon,
+          title: ui.title,
+          description: ui.description,
+        }"
+      />
     </slot>
     <slot v-else />
   </div>

@@ -1,6 +1,9 @@
 export { mergeClasses } from './classes';
 export type { XClassValue, XUi } from './classes';
 export { default as XAsyncContent } from './async-content/XAsyncContent.vue';
+export { default as XSkeleton } from './skeleton/XSkeleton.vue';
+export { default as XEmpty } from './empty/XEmpty.vue';
+export type { XEmptyProps, XEmptyUi } from './empty/types';
 export { default as XAspectRatio } from './aspect-ratio/XAspectRatio.vue';
 export { default as XSlider } from './slider/XSlider.vue';
 export { default as XSwitch } from './switch/XSwitch.vue';
