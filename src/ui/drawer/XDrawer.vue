@@ -82,6 +82,7 @@ const returnFocus = useReturnFocus(() => props.open);
             class: undefined,
             ...(description ? {} : { 'aria-describedby': undefined }),
           }"
+          data-reka-swipe-ignore=""
           :final-focus="returnFocus ?? true"
           :class="
             mergeClasses(
