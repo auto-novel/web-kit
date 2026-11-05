@@ -180,13 +180,14 @@ test('Toast.promise supports per-stage lifecycle options and resets loading dura
 test('Toast.promise supports configured result messages without a loading toast', async (t) => {
   const { toasts } = mountProvider(t);
   let closed = 0;
-  assert.equal(
-    await Toast.promise(Promise.reject({ data: { detail: 'detail' } }), {
+  const reason = { data: { detail: 'detail' } };
+  await assert.rejects(
+    Toast.promise(Promise.reject(reason), {
       error: { message: 'failed', duration: 0, onClose: () => closed++ },
     }),
-    undefined,
+    (error) => error === reason,
   );
-  assert.equal(toasts.value[0].description, 'failed：detail');
+  assert.equal(toasts.value[0].description, 'failed');
   assert.equal(toasts.value[0].duration, 0);
   Toast.dismiss(toasts.value[0].id);
   assert.equal(closed, 1);
@@ -209,7 +210,7 @@ test('Toast.dismissAll closes toasts without prematurely removing them', (t) => 
   assert.ok(toasts.value.every((toast) => !toast.open));
 });
 
-test('Toast.promise prefixes the Error message and swallows the rejection', async (t) => {
+test('Toast.promise displays the literal error message and preserves the rejection', async (t) => {
   const { toasts } = mountProvider(t);
   const operation = Promise.withResolvers();
   const error = new Error('网络不可用');
@@ -220,27 +221,170 @@ test('Toast.promise prefixes the Error message and swallows the rejection', asyn
   });
   const id = toasts.value[0].id;
   operation.reject(error);
-  assert.equal(await pending, undefined);
+  await assert.rejects(pending, (reason) => {
+    assert.equal(reason, error);
+    // 通知先于调用方的 catch 更新完成。
+    assert.equal(toasts.value[0].status, 'error');
+    return true;
+  });
   assert.equal(toasts.value.length, 1);
   assert.equal(toasts.value[0].id, id);
   assert.equal(toasts.value[0].status, 'error');
-  assert.equal(toasts.value[0].description, '保存失败：网络不可用');
+  assert.equal(toasts.value[0].description, '保存失败');
   assert.equal(toasts.value[0].duration, undefined);
 });
 
-test('Toast.promise swallows errors and closes loading when result messages are omitted', async (t) => {
+test('Toast.promise calls only the matching message callback once with the original value', async (t) => {
   const { toasts } = mountProvider(t);
-  assert.equal(
-    await Toast.promise(Promise.reject(new Error('失败'))),
-    undefined,
+  const value = { name: '设置' };
+  const success = t.mock.fn((result) => ({
+    message: `已保存 ${result.name}`,
+    duration: 1200,
+  }));
+  const error = t.mock.fn((reason) => `自定义失败：${String(reason)}`);
+  const operation = Promise.withResolvers();
+  const pending = Toast.promise(operation.promise, {
+    loading: '正在保存',
+    success,
+    error,
+  });
+  const id = toasts.value[0].id;
+  assert.equal(success.mock.callCount(), 0);
+  assert.equal(error.mock.callCount(), 0);
+  operation.resolve(value);
+  assert.equal(await pending, value);
+  assert.equal(success.mock.callCount(), 1);
+  assert.equal(success.mock.calls[0].arguments[0], value);
+  assert.equal(error.mock.callCount(), 0);
+  assert.equal(toasts.value[0].id, id);
+  assert.equal(toasts.value[0].description, '已保存 设置');
+  assert.equal(toasts.value[0].duration, 1200);
+
+  for (const reason of [{ data: { detail: '不应自动追加' } }, undefined]) {
+    await assert.rejects(
+      Toast.promise(Promise.reject(reason), { success, error }),
+      (caught) => caught === reason,
+    );
+    assert.equal(error.mock.calls.at(-1).arguments[0], reason);
+    assert.equal(toasts.value[0].description, `自定义失败：${String(reason)}`);
+  }
+  assert.equal(error.mock.callCount(), 2);
+  assert.equal(success.mock.callCount(), 1);
+});
+
+test('Toast.promise callbacks support strings, stage options and void success', async (t) => {
+  const { toasts } = mountProvider(t);
+  await Toast.promise(Promise.resolve(), {
+    success: (value) => {
+      assert.equal(value, undefined);
+      return '已完成';
+    },
+  });
+  assert.equal(toasts.value[0].description, '已完成');
+  const reason = new Error('原始失败');
+  let closed = 0;
+  await assert.rejects(
+    Toast.promise(Promise.reject(reason), {
+      loading: { message: 'loading', duration: 0 },
+      error: () => ({
+        message: '完整错误文案',
+        duration: 1500,
+        onClose: () => closed++,
+      }),
+    }),
+    (caught) => caught === reason,
   );
+  assert.equal(toasts.value[0].description, '完整错误文案');
+  assert.equal(toasts.value[0].duration, 1500);
+  Toast.dismiss(toasts.value[0].id);
+  assert.equal(closed, 1);
+});
+
+test('throwing message callbacks cannot replace success values or rejection reasons', async (t) => {
+  mountProvider(t);
+  const callbackError = new Error('文案生成失败');
+  const reports = t.mock.method(console, 'error', () => {});
+  const fail = () => {
+    throw callbackError;
+  };
+  const value = { saved: true };
+  const reason = new Error('原始失败');
+  assert.equal(
+    await Toast.promise(Promise.resolve(value), { success: fail }),
+    value,
+  );
+  await assert.rejects(
+    Toast.promise(Promise.reject(reason), { error: fail }),
+    (caught) => caught === reason,
+  );
+  assert.equal(reports.mock.callCount(), 2);
+  assert.ok(
+    reports.mock.calls.every((call) => call.arguments[1] === callbackError),
+  );
+});
+
+test('Toast.promise rejects even without error messages and closes loading', async (t) => {
+  const { toasts } = mountProvider(t);
+  // 失败原因不限于 Error，undefined 也必须保留为 rejection。
+  for (const reason of [new Error('失败'), '失败', null, undefined]) {
+    await assert.rejects(
+      Toast.promise(Promise.reject(reason)),
+      (error) => error === reason,
+    );
+  }
   assert.equal(toasts.value.length, 0);
   const operation = Promise.withResolvers();
   const pending = Toast.promise(operation.promise, { loading: '正在保存' });
-  operation.reject(new Error('失败'));
-  assert.equal(await pending, undefined);
+  const reason = new Error('失败');
+  operation.reject(reason);
+  await assert.rejects(pending, (error) => error === reason);
   assert.equal(toasts.value.length, 1);
   assert.equal(toasts.value[0].open, false);
+});
+
+test('Toast.promise preserves void success and skips success work on failure while running finally', async () => {
+  assert.equal(await Toast.promise(Promise.resolve()), undefined);
+  const reason = new Error('失败');
+  let succeeded = false;
+  let cleanedUp = false;
+  const pending = Toast.promise(Promise.reject(reason))
+    .then(() => {
+      succeeded = true;
+    })
+    .finally(() => {
+      cleanedUp = true;
+    });
+  await assert.rejects(pending, (error) => error === reason);
+  assert.equal(succeeded, false);
+  assert.equal(cleanedUp, true);
+});
+
+test('Toast.promise notification failures never replace the operation result', async (t) => {
+  mountProvider(t);
+  const notificationError = new Error('通知故障');
+  const reports = t.mock.method(console, 'error', () => {});
+  const fail = () => {
+    throw notificationError;
+  };
+  const reason = new Error('请求失败');
+  const value = { saved: true };
+  for (const method of ['add', 'update', 'close']) {
+    const mock = t.mock.method(toastManager, method, fail);
+    const messages =
+      method === 'close'
+        ? { loading: 'loading' }
+        : { loading: 'loading', success: 'done', error: 'failed' };
+    assert.equal(await Toast.promise(Promise.resolve(value), messages), value);
+    await assert.rejects(
+      Toast.promise(Promise.reject(reason), messages),
+      (error) => error === reason,
+    );
+    mock.mock.restore();
+  }
+  assert.ok(reports.mock.callCount() >= 6);
+  for (const call of reports.mock.calls) {
+    assert.equal(call.arguments[1], notificationError);
+  }
 });
 
 test('a late Promise result does not reopen a dismissed toast', async (t) => {

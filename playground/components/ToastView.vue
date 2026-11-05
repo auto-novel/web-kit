@@ -2,6 +2,7 @@
 import {
   Toast,
   XButton,
+  getApiErrorMessage,
   type ToastId,
   type ToastOptions,
 } from '@novelia/web-kit';
@@ -91,17 +92,24 @@ function startOperation() {
     operation,
     {
       loading: '正在保存…可点击页面按钮模拟结果',
-      success: { message: '设置已保存', duration: 2000 },
-      error: { message: '保存失败', duration: 6000 },
+      success: (value) => ({ message: value, duration: 2000 }),
+      error: (reason) => ({
+        message: getApiErrorMessage(reason, '保存失败'),
+        duration: 6000,
+      }),
     },
     track({ id }),
-  ).then((value) => {
-    pending.value = false;
-    result.value =
-      value === undefined
-        ? '返回 undefined（拒绝已被处理）'
-        : `返回值：${value}`;
-  });
+  )
+    .then((value) => {
+      result.value = `返回值：${value}`;
+    })
+    .catch((reason: unknown) => {
+      // 通知已展示失败；在事件边界显式消费 rejection。
+      result.value = `调用方捕获失败：${reason instanceof Error ? reason.message : String(reason)}`;
+    })
+    .finally(() => {
+      pending.value = false;
+    });
 }
 
 function showStack() {
@@ -133,7 +141,7 @@ const api = [
   {
     name: 'promise(promise, messages?, options?)',
     description:
-      '同一条消息从 loading 更新为结果。成功返回原值，失败返回 undefined，不再向外抛出拒绝。',
+      '同一条消息从 loading 更新为结果。成功透传原值，失败仍 reject 原始原因；调用方负责 catch，并在 finally 中清理状态。',
   },
 ];
 const options = [
@@ -159,7 +167,7 @@ const options = [
     description: '退场结束、消息从列表移除时触发。',
   },
 ];
-const code = `import { Toast } from '@novelia/web-kit';
+const code = `import { Toast, getApiErrorMessage } from '@novelia/web-kit';
 
 Toast.success('保存成功');
 Toast.warning('请检查配置', { duration: 8000 });
@@ -168,11 +176,19 @@ const id = Toast.info('等待处理', { duration: 0 });
 Toast.update(id, { message: '处理完成', status: 'success', duration: 3000 });
 Toast.dismiss(id);
 
-const result = await Toast.promise(saveSettings(), {
-  loading: '正在保存…',
-  success: { message: '已保存', duration: 2000 },
-  error: { message: '保存失败', duration: 6000 },
-});`;
+try {
+  const result = await Toast.promise(saveSettings(), {
+    loading: '正在保存…',
+    success: '已保存', // 字符串按原文展示。
+    // 回调接收原始错误，按需显式使用 API 错误格式化。
+    error: reason => getApiErrorMessage(reason, '保存失败'),
+  });
+  // 仅成功时执行后续操作。
+} catch {
+  // Toast 已提示失败；在这里保留编辑状态，允许重试。
+} finally {
+  // 无论成功或失败，都在这里解除 loading、释放资源。
+}`;
 </script>
 
 <template>
@@ -365,8 +381,9 @@ const result = await Toast.promise(saveSettings(), {
       </div>
       <p class="mt-3 text-sm text-muted" role="status">{{ result }}</p>
       <p class="mt-2 text-xs leading-6 text-muted">
-        成功通知停留 2 秒，错误通知停留 6 秒。error
-        文案作为前缀，与提取到的错误详情组合；省略某个结果阶段的消息时，会直接关闭
+        成功通知停留 2 秒，错误通知停留 6 秒。字符串按原文展示；success / error
+        回调分别接收成功值与原始错误，同步返回完整文案或阶段选项。本例显式调用
+        getApiErrorMessage 提取错误详情；省略某个结果阶段的消息时，会直接关闭
         loading 通知。
       </p>
     </section>
@@ -427,7 +444,8 @@ const result = await Toast.promise(saveSettings(), {
         Toast.update 的选项不含 id，额外支持 message 和 status；status 可为
         loading、success、error、info、warning。Promise 的 loading / success /
         error 可传字符串或包含 message、duration、onClose、onRemove
-        的对象，阶段选项覆盖公共选项。
+        的对象，阶段选项覆盖公共选项。success / error
+        也支持同步回调，返回相同的字符串或对象；不会自动追加错误详情。
       </p>
     </section>
   </ComponentPage>

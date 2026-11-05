@@ -1,5 +1,4 @@
 import { createToastManager } from 'reka-ui';
-import { getApiErrorMessage } from './apiError.ts';
 
 export type ToastId = string;
 export type ToastStatus = 'loading' | 'success' | 'error' | 'info' | 'warning';
@@ -24,10 +23,12 @@ export interface ToastMessage extends Omit<ToastOptions, 'id'> {
   message: string;
 }
 
-export interface ToastPromiseMessages {
+export interface ToastPromiseMessages<Value = unknown> {
   loading?: string | ToastMessage;
-  success?: string | ToastMessage;
-  error?: string | ToastMessage;
+  /** 完整文案，或根据成功值同步生成文案及阶段选项。 */
+  success?: string | ToastMessage | ((value: Value) => string | ToastMessage);
+  /** 完整文案，或根据原始失败原因同步生成文案；不会隐式提取 API 错误详情。 */
+  error?: string | ToastMessage | ((reason: unknown) => string | ToastMessage);
 }
 
 export const toastManager = createToastManager();
@@ -44,30 +45,43 @@ function resolveMessage(message: string | ToastMessage): ToastMessage {
   return typeof message === 'string' ? { message } : message;
 }
 
+/** 通知只是副作用，不能覆盖原始操作的成功值或失败原因。 */
+function notifyPromise(action: () => void): void {
+  try {
+    action();
+  } catch (error) {
+    try {
+      console.error('[Toast.promise] 通知更新失败', error);
+    } catch {
+      // 即使错误报告失败，也必须保留原始 Promise 的结果。
+    }
+  }
+}
+
 export const Toast = {
+  /** 展示操作进度，成功透传原值，失败透传原始 rejection；调用方负责处理失败。 */
   promise<Value>(
     promise: Promise<Value>,
-    messages: ToastPromiseMessages = {},
+    messages: ToastPromiseMessages<Value> = {},
     options: ToastOptions = {},
-  ): Promise<Value | undefined> {
+  ): Promise<Value> {
     let id: ToastId | undefined;
-    if (messages.loading !== undefined) {
-      const { message, ...lifecycle } = resolveMessage(messages.loading);
-      id = add('loading', message, { ...options, ...lifecycle });
-    }
+    notifyPromise(() => {
+      if (messages.loading !== undefined) {
+        const { message, ...lifecycle } = resolveMessage(messages.loading);
+        id = add('loading', message, { ...options, ...lifecycle });
+      }
+    });
 
     function settle(
       status: 'success' | 'error',
       message?: string | ToastMessage,
-      reason?: unknown,
     ) {
       if (message === undefined) {
         if (id !== undefined) toastManager.close(id);
         return;
       }
-      const { message: text, ...lifecycle } = resolveMessage(message);
-      const description =
-        status === 'error' ? getApiErrorMessage(reason, text) : text;
+      const { message: description, ...lifecycle } = resolveMessage(message);
       // duration 要显式带上：即使调用方没有传，也要覆盖 loading 阶段可能写入的常驻时长。
       const settledOptions = {
         ...options,
@@ -84,12 +98,26 @@ export const Toast = {
 
     return promise.then(
       (value) => {
-        settle('success', messages.success);
+        notifyPromise(() =>
+          settle(
+            'success',
+            typeof messages.success === 'function'
+              ? messages.success(value)
+              : messages.success,
+          ),
+        );
         return value;
       },
       (reason: unknown) => {
-        settle('error', messages.error, reason);
-        return undefined;
+        notifyPromise(() =>
+          settle(
+            'error',
+            typeof messages.error === 'function'
+              ? messages.error(reason)
+              : messages.error,
+          ),
+        );
+        throw reason;
       },
     );
   },
