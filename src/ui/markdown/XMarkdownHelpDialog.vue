@@ -56,7 +56,7 @@ const features: MarkdownFeature[] = [
     v-model:open="open"
     title="Markdown 语法帮助"
     description="以下是编辑器支持的基本语法，特殊标记的功能不能用于评论。"
-    class="w-[42rem]"
+    class="w-2xl"
     :ui="{
       header:
         'border-b border-divider px-5 py-4 pr-14 sm:px-6 sm:py-4 sm:pr-14',

@@ -70,7 +70,7 @@ async function login() {
     title="登录"
     close-label="关闭登录窗口"
     :closable="!submitting"
-    class="w-[min(420px,calc(100%-2rem))]"
+    class="w-md"
   >
     <form class="login-form flex flex-col gap-4" @submit.prevent="login">
       <XInput

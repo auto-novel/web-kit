@@ -15,7 +15,7 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
 
 <template>
   <div class="grid min-w-0 gap-1">
-    <div class="flex min-w-0 items-baseline gap-[5px] leading-4">
+    <div class="flex min-w-0 items-baseline gap-1 leading-4">
       <AccessTimeOutlined
         class="sidebar-build-info-icon size-4 flex-none self-center"
         aria-hidden="true"
@@ -27,7 +27,7 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
         preset="datetime-numeric"
       />
     </div>
-    <div class="flex min-w-0 items-baseline gap-[5px] leading-4">
+    <div class="flex min-w-0 items-baseline gap-1 leading-4">
       <CommitOutlined
         class="sidebar-build-info-icon size-4 flex-none self-center"
         aria-hidden="true"
@@ -41,11 +41,11 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
         target="_blank"
         rel="noopener noreferrer"
       >
-        <code class="block text-[11px] leading-[inherit]">
+        <code class="block text-xs">
           {{ shortCommit }}
         </code>
       </a>
-      <code v-else class="block text-[11px] leading-[inherit]">
+      <code v-else class="block text-xs">
         {{ shortCommit }}
       </code>
     </div>

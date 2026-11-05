@@ -39,7 +39,7 @@ export const sliderVariants = tv({
         range: 'h-full',
         tooltip: 'bottom-full left-1/2 mb-2 -translate-x-1/2',
         markTick: 'top-1/2 mt-0.5 h-1 w-px -translate-x-1/2',
-        markLabel: 'top-[30px] -translate-x-1/2',
+        markLabel: 'top-8 -translate-x-1/2',
       },
       vertical: {
         root: 'h-32 w-5 justify-center',

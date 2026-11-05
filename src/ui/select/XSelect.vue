@@ -76,6 +76,7 @@ const { contentStyle } = useOverlayLayer(open);
           )
         "
       >
+        <!-- "auto" keeps the custom scrollbar visible whenever the list overflows. -->
         <ScrollAreaRoot type="auto" class="overflow-hidden">
           <SelectViewport as-child>
             <ScrollAreaViewport
@@ -106,12 +107,23 @@ const { contentStyle } = useOverlayLayer(open);
               </SelectItem>
             </ScrollAreaViewport>
           </SelectViewport>
+          <!-- Reka overlays the scrollbar; do not reserve a gutter. -->
           <ScrollAreaScrollbar
             orientation="vertical"
-            :class="mergeClasses('x-select-scrollbar', ui.scrollbar)"
+            :class="
+              mergeClasses(
+                'flex w-2 touch-none rounded-full bg-hover p-px select-none',
+                ui.scrollbar,
+              )
+            "
           >
             <ScrollAreaThumb
-              :class="mergeClasses('x-select-scrollbar-thumb', ui.thumb)"
+              :class="
+                mergeClasses(
+                  'relative min-h-6 flex-1 rounded-full bg-muted hover:bg-ink',
+                  ui.thumb,
+                )
+              "
             />
           </ScrollAreaScrollbar>
         </ScrollAreaRoot>

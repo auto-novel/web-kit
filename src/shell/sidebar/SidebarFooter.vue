@@ -27,7 +27,7 @@ const commitUrl = computed(() =>
 
 <template>
   <footer
-    class="sidebar-footer mt-auto flex flex-none flex-col gap-1 overflow-hidden text-[12px] leading-[1.4] whitespace-nowrap text-muted"
+    class="sidebar-footer mt-auto flex flex-none flex-col gap-1 overflow-hidden text-xs leading-4 whitespace-nowrap text-muted"
     :class="{
       'sidebar-footer--collapsed h-14 items-center justify-center border-t border-divider':
         collapsed,
@@ -38,7 +38,7 @@ const commitUrl = computed(() =>
       <template #trigger>
         <component
           :is="commitUrl ? 'a' : 'button'"
-          class="flex cursor-pointer items-center justify-center rounded-[3px] p-2 text-ink hover:bg-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+          class="flex cursor-pointer items-center justify-center rounded-sm p-2 text-ink hover:bg-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
           :href="commitUrl"
           :type="commitUrl ? undefined : 'button'"
           :target="commitUrl ? '_blank' : undefined"

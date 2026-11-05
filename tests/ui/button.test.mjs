@@ -52,7 +52,7 @@ test('Button forwards color and soft appearance without leaking them to DOM attr
     'text-[color:var(--button-text)]',
     'bg-[var(--button-soft)]',
     '[--button-soft:var(--color-warning-soft)]',
-    'h-[22px]',
+    'h-6',
   ]) {
     assert.ok(classes.includes(name), name);
   }

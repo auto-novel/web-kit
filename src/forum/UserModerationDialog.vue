@@ -160,7 +160,7 @@ async function submit() {
     :open="open"
     :title="title"
     :closable="!submitting"
-    class="w-[28rem]"
+    class="w-md"
     @update:open="updateOpen"
   >
     <form class="space-y-4" @submit.prevent="submit">
@@ -232,7 +232,7 @@ async function submit() {
       <div v-if="isStrike">
         <p class="text-sm font-medium text-ink">处罚依据</p>
         <p
-          class="mt-1.5 max-h-28 overflow-y-auto whitespace-pre-wrap break-all rounded-sm bg-paper px-3 py-2 text-xs leading-5 text-muted"
+          class="mt-1.5 max-h-28 overflow-y-auto whitespace-pre-wrap wrap-anywhere rounded-sm bg-paper px-3 py-2 text-xs leading-5 text-muted"
         >
           {{ evidence }}
         </p>

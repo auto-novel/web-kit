@@ -189,7 +189,7 @@ function handleKeydown(event: KeyboardEvent) {
 .markdown-content :deep(th),
 .markdown-content :deep(td) {
   border: 1px solid var(--color-border);
-  padding: 0.4rem 0.7rem;
+  padding: 0.5rem 0.75rem;
   text-align: left;
 }
 
@@ -208,7 +208,7 @@ function handleKeydown(event: KeyboardEvent) {
   margin-bottom: 1rem;
   border: 1px solid var(--color-border);
   border-radius: 0.375rem;
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 1rem;
 }
 
 .markdown-content :deep(summary) {

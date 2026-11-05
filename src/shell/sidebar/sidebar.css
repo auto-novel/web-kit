@@ -4,11 +4,11 @@
     display: flex;
     width: 100%;
     min-width: 0;
-    height: 42px;
+    height: 44px;
     align-items: center;
     gap: 8px;
     overflow: hidden;
-    border-radius: 3px;
+    border-radius: 4px;
     padding-inline: var(--web-kit-item-padding, 1.5rem);
     padding-inline-start: calc(
       var(--web-kit-item-padding, 1.5rem) + var(--web-kit-item-indent, 0px)

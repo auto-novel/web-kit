@@ -49,7 +49,7 @@ defineSlots<{
 }>();
 const activeTab = ref('edit');
 const tabClass =
-  'border-r border-border border-b-transparent text-[0.8125rem] font-semibold data-[state=active]:text-ink';
+  'border-r border-border border-b-transparent font-semibold data-[state=active]:text-ink';
 const textarea = useTemplateRef<HTMLTextAreaElement>('textarea');
 const root = useTemplateRef<HTMLElement>('root');
 const sentinel = useTemplateRef<HTMLElement>('sentinel');
@@ -289,7 +289,7 @@ defineExpose({
     :style="$attrs.style"
     :class="
       mergeClasses(
-        'min-w-0 rounded-sm border bg-transparent text-ink',
+        '@container/markdown-editor w-full min-w-0 rounded-sm border bg-transparent text-ink',
         sticky && 'relative',
         invalid ? 'border-error' : 'border-border',
         ui.root,
@@ -344,7 +344,7 @@ defineExpose({
           :aria-hidden="activeTab !== 'edit' || undefined"
           :class="
             mergeClasses(
-              'order-last flex w-full flex-wrap items-center gap-0.5 border-t border-border p-1 sm:order-none sm:ml-auto sm:w-auto sm:border-t-0',
+              'order-last flex w-full flex-wrap items-center gap-0.5 border-t border-border p-1 @md/markdown-editor:order-none @md/markdown-editor:ml-auto @md/markdown-editor:w-auto @md/markdown-editor:border-t-0',
               activeTab !== 'edit' && 'invisible',
               ui.tools,
             )
