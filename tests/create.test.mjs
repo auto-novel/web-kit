@@ -207,7 +207,8 @@ test('public API hides session internals while sharing authentication with built
     if (path.endsWith('/me/strikes')) {
       return Response.json({ total: 0, items: [], latestStrikeId: 0 });
     }
-    if (path.endsWith('/admin/strikes')) return Response.json({ id: 42 });
+    if (path.endsWith('/admin/strikes'))
+      return new Response(null, { status: 204 });
     return Response.json({ strikes: { hasUnread: true } });
   });
   const createWebKit = await freshFactory();
@@ -222,11 +223,15 @@ test('public API hides session internals while sharing authentication with built
     options: internalOptions,
     session,
     loadMyStrikes,
+    banUser,
+    createStrike,
   } = internals;
   assert.equal(internalOptions.auth.url, 'https://web.example/auth/');
   // 内置组件依赖只剩一个内部上下文，形状固定且不可被宿主改写。
   assert.deepEqual(Object.keys(internals).sort(), [
     'attention',
+    'banUser',
+    'createStrike',
     'loadMyStrikes',
     'options',
     'session',
@@ -240,11 +245,11 @@ test('public API hides session internals while sharing authentication with built
   assert.equal(session.logout, context.logout);
   assert.equal('setAccessToken' in session, false);
   assert.equal('session' in context, false);
+  assert.equal('banUser' in kit, false);
+  assert.equal('createStrike' in kit, false);
   assert.deepEqual(Object.keys(context).sort(), [
-    'banUser',
     'checkSignedIn',
     'createClient',
-    'createStrike',
     'logout',
     'theme',
     'whoami',
@@ -255,15 +260,15 @@ test('public API hides session internals while sharing authentication with built
   }, TypeError);
   assert.equal(await context.checkSignedIn(), true);
   await client.get('posts');
-  await context.banUser({ username: 'other', reason: 'test' });
-  assert.deepEqual(
-    await context.createStrike({
+  assert.equal(await banUser({ username: 'other', reason: 'test' }), undefined);
+  assert.equal(
+    await createStrike({
       username: 'other',
       reason: 'test',
       evidence: 'test',
       point: 1,
     }),
-    { id: 42 },
+    undefined,
   );
   const businessRequest = requests.find(
     (request) => new URL(request.url).hostname === 'business.example',

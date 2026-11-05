@@ -1,26 +1,11 @@
 import type { KyInstance } from 'ky';
 
-export interface BanUserRequest {
+interface BanUserRequest {
   username: string;
   reason: string;
 }
 
-export interface CreateStrikeResponse {
-  id: number;
-  username: string | null;
-  operatorUsername?: string;
-  reason: string;
-  evidence: string;
-  point: number;
-  createdAt: string;
-  revokedAt?: string;
-  revokedByUsername?: string;
-  attr: Record<string, unknown>;
-}
-
-export interface CreateStrikeRequest {
-  username: string;
-  reason: string;
+interface CreateStrikeRequest extends BanUserRequest {
   evidence: string;
   point: number;
 }
@@ -57,13 +42,11 @@ export interface AttentionStatus {
 
 export function createAuthApi(client: KyInstance) {
   return {
-    banUser(request: BanUserRequest) {
-      return client.post('admin/user/ban', { json: request }).text();
+    async banUser(request: BanUserRequest) {
+      await client.post('admin/user/ban', { json: request });
     },
-    createStrike(request: CreateStrikeRequest) {
-      return client
-        .post('admin/strikes', { json: request })
-        .json<CreateStrikeResponse>();
+    async createStrike(request: CreateStrikeRequest) {
+      await client.post('admin/strikes', { json: request });
     },
     getMyStrikes(params: MyStrikeListParams) {
       return client

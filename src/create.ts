@@ -133,8 +133,6 @@ export function createWebKit(options: WebKitOptions): WebKit {
     },
     checkSignedIn: session.checkSignedIn,
     logout: session.logout,
-    banUser: authApi.banUser,
-    createStrike: authApi.createStrike,
     whoami: session.whoami,
     theme,
   });
@@ -153,6 +151,8 @@ export function createWebKit(options: WebKitOptions): WebKit {
           attention,
           session,
           loadMyStrikes: authApi.getMyStrikes,
+          banUser: authApi.banUser,
+          createStrike: authApi.createStrike,
         }),
       );
     },

@@ -1,10 +1,5 @@
 import type { Whoami } from './auth/whoami';
 import type { ApiClientOptions } from './api/client';
-import type {
-  BanUserRequest,
-  CreateStrikeRequest,
-  CreateStrikeResponse,
-} from './api/requests';
 import type { App, Component, ComputedRef } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 
@@ -70,10 +65,6 @@ export interface WebKitContext {
   ) => KyInstance;
   readonly checkSignedIn: () => Promise<boolean>;
   readonly logout: () => Promise<string>;
-  readonly banUser: (request: BanUserRequest) => Promise<string>;
-  readonly createStrike: (
-    request: CreateStrikeRequest,
-  ) => Promise<CreateStrikeResponse>;
   readonly whoami: ComputedRef<Whoami>;
   readonly theme: WebTheme;
 }

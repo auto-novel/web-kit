@@ -44,6 +44,7 @@ export type {
 } from './auto-complete/types';
 export {
   XMarkdownContent,
+  XMarkdownHelpDialog,
   XMarkdownEditor,
   XMarkdownEditorToolButton,
   createMarkdown,

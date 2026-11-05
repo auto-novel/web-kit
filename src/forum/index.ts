@@ -1,5 +1,9 @@
 import type { KyInstance } from 'ky';
 
+export { default as UserModerationDialog } from './UserModerationDialog.vue';
+export { default as UserBlacklistDialog } from './UserBlacklistDialog.vue';
+export { default as CommentRulesNotice } from './CommentRulesNotice.vue';
+
 /** Resource types registered with the forum service. */
 export type CommentType = string;
 export type CommentStatus = 0 | 1 | 2;

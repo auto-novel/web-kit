@@ -1,6 +1,6 @@
 import { inject, type DeepReadonly, type InjectionKey } from 'vue';
 
-import type { MyStrikeListParams, MyStrikePage } from './api/requests';
+import type { createAuthApi } from './api/requests';
 import type {
   WebKitContext,
   WebKitOptions,
@@ -19,7 +19,7 @@ export function useWebKit(): WebKitContext {
   return kit;
 }
 
-type LoadMyStrikes = (params: MyStrikeListParams) => Promise<MyStrikePage>;
+type AuthApi = ReturnType<typeof createAuthApi>;
 
 /** 内置组件依赖，不从包入口导出。 */
 interface WebKitInternals {
@@ -30,7 +30,9 @@ interface WebKitInternals {
   >;
   readonly attention: AttentionContext;
   readonly session: ReturnType<typeof createAuthSession>;
-  readonly loadMyStrikes: LoadMyStrikes;
+  readonly loadMyStrikes: AuthApi['getMyStrikes'];
+  readonly banUser: AuthApi['banUser'];
+  readonly createStrike: AuthApi['createStrike'];
 }
 
 export const webKitInternalsKey: InjectionKey<WebKitInternals> =
