@@ -124,12 +124,19 @@ watch(
 
     <div class="flex min-h-0 min-w-0 flex-1 flex-col">
       <header
-        class="sticky top-0 z-30 flex h-[50px] flex-none items-center gap-3 border-b border-divider bg-surface px-2"
+        :class="[
+          'sticky top-0 z-30 flex h-(--web-kit-header-height) flex-none items-center gap-3',
+          'border-b border-divider bg-surface px-2',
+        ]"
       >
         <button
           v-if="isMobile"
           type="button"
-          class="grid size-[2.125rem] flex-none place-items-center rounded-full text-ink transition-[color,background-color] duration-150 ease-[ease] hover:bg-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          :class="[
+            'grid size-9 flex-none place-items-center rounded-full text-ink',
+            'transition-colors hover:bg-hover',
+            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+          ]"
           aria-label="打开导航菜单"
           title="打开导航菜单"
           aria-haspopup="dialog"

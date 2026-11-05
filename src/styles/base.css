@@ -1,5 +1,6 @@
 @layer base {
   :root {
+    --web-kit-header-height: 0px;
     /* 语义浅底统一派生；覆盖语义色时自动跟随。 */
     --web-kit-state-color: #000000;
     --web-kit-soft-opacity: 10%;
@@ -75,7 +76,8 @@
 
   /* Keep anchors and scrollIntoView targets clear of the sticky header. */
   :root:has(.web-kit-layout) {
-    scroll-padding-top: 50px;
+    --web-kit-header-height: 50px;
+    scroll-padding-top: var(--web-kit-header-height);
   }
 
   button,

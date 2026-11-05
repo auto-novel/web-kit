@@ -1,3 +1,6 @@
+export { default as XPage } from './page/XPage.vue';
+export { default as XPageHeader } from './page/XPageHeader.vue';
+export type { XPageHeaderProps } from './page/types';
 export { mergeClasses } from './classes';
 export type { XClassValue, XUi } from './classes';
 export { default as XError } from './error/XError.vue';

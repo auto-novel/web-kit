@@ -157,6 +157,15 @@ const pages = [
     component: () => import('./components/MarkdownEditorView.vue'),
   },
   {
+    englishName: 'Page',
+    slug: 'page',
+    category: 'style',
+    title: '页面 · XPage / XPageHeader',
+    label: '页面 Page',
+    description: '统一内容容器、可选吸顶侧栏，以及页面标题和操作区。',
+    component: () => import('./components/PageView.vue'),
+  },
+  {
     englishName: 'Pagination',
     slug: 'pagination',
     category: 'style',
