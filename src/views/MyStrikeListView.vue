@@ -80,7 +80,7 @@ onBeforeUnmount(() => requestId++);
 </script>
 
 <template>
-  <XPage class="pb-6">
+  <XPage>
     <XPageHeader
       title="处罚记录"
       description="查看你的账号处罚及其撤销状态。"

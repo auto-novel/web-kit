@@ -9,7 +9,7 @@ defineOptions({ inheritAttrs: false });
     v-bind="{ ...$attrs, class: undefined }"
     :class="
       mergeClasses(
-        '@container/x-page mx-auto w-full min-w-0 max-w-5xl px-3 sm:px-8',
+        '@container/x-page mx-auto w-full min-w-0 max-w-5xl px-3 pt-6 pb-6 sm:px-8',
         $attrs.class,
       )
     "

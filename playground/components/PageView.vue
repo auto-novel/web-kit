@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { XPage, XPageHeader, XScrollArea, XSwitch } from '@novelia/web-kit';
 import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
 
 import CodeBlock from './CodeBlock.vue';
 
@@ -44,13 +43,6 @@ const code = `<XPage>
 
 <template>
   <XPage class="pb-12">
-    <RouterLink
-      to="/components"
-      class="mt-6 inline-block text-sm text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-    >
-      ← 组件总览
-    </RouterLink>
-
     <XPageHeader
       title="页面 · XPage / XPageHeader"
       description="统一页面限宽与留白，按实际内容空间显示辅助侧栏。此页本身就是一个 XPage，可滚动页面观察右侧目录。"
@@ -70,9 +62,9 @@ const code = `<XPage>
         </h2>
         <ul class="list-disc space-y-2 pl-5 text-sm leading-7 text-muted">
           <li>
-            页面最大宽度为 1024px（含水平留白），默认左右留白 12px，sm
-            断点（640px）起为 32px。直接将 XPage 作为页面根容器，不要再包一层
-            page-container。
+            页面最大宽度为 1024px（含水平留白），默认上下留白 24px、左右
+            12px，sm 断点（640px）起左右为 32px。直接将 XPage
+            作为页面根容器，不要再包一层 page-container。
           </li>
           <li>
             容器内容宽度达到 @4xl（896px）时显示 320px 右侧栏；空间不足时隐藏。
@@ -103,7 +95,8 @@ const code = `<XPage>
             <dt class="font-medium">XPage</dt>
             <dd class="text-muted">
               无 props。默认插槽放正文；可选 aside 插槽放辅助内容。
-              不提供侧栏宽度、断点、位置、ui 或 variant 配置。
+              页面上下留白与水平留白由 XPage 统一提供，不提供侧栏宽度、断点、
+              位置、ui 或 variant 配置。
             </dd>
           </div>
           <div>
@@ -111,14 +104,17 @@ const code = `<XPage>
             <dd class="text-muted">
               title: string 为必填标题，description?: string 为可选说明。
               actions 插槽放按钮或开关。根节点为 header，标题为 h1；
-              操作区在空间不足时自然换行，无 ui 或 variant 配置。
+              操作区在空间不足时自然换行，默认与正文间隔 24px，无 ui 或 variant
+              配置。
             </dd>
           </div>
           <div>
             <dt class="font-medium">组合约定</dt>
             <dd class="text-muted">
-              XPage 不接管导航、路由、加载状态或标题；XPageHeader
-              不负责内容限宽。 页面内的普通区块标题继续直接使用 h2 / h3。
+              页面上下留白由 XPage 提供，XPageHeader
+              只负责标题区与正文的间距。XPage 不接管导航、路由、加载状态或标题；
+              XPageHeader 不负责内容限宽。页面内的普通区块标题继续直接使用 h2 /
+              h3。
             </dd>
           </div>
         </dl>

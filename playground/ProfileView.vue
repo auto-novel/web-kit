@@ -5,7 +5,7 @@ const { whoami } = useWebKit();
 </script>
 
 <template>
-  <XPage class="pb-6">
+  <XPage>
     <XPageHeader title="个人资料" />
     <div class="flex flex-col gap-4">
       <p class="text-sm">

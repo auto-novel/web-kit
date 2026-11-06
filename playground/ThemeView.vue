@@ -167,7 +167,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
 </script>
 
 <template>
-  <XPage class="pb-6">
+  <XPage>
     <XPageHeader
       title="主题测试"
       description="使用 web-kit 的真实主题变量和 Tailwind 工具类，不另设展示配色。"

@@ -9,7 +9,7 @@ const relativeBase = new Date('2025-06-05T15:07:30+08:00');
 </script>
 
 <template>
-  <XPage class="pb-6">
+  <XPage>
     <XPageHeader
       title="组件总览"
       description="基础组件在此快速预览；复杂组件进入独立页面查看介绍、交互示例和用法。"

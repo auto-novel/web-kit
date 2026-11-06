@@ -5,7 +5,7 @@ const { whoami } = useWebKit();
 </script>
 
 <template>
-  <XPage class="pb-6">
+  <XPage>
     <XPageHeader title="web-kit playground" />
     <div class="flex flex-col gap-6">
       <section class="border-divider border-b pb-6">

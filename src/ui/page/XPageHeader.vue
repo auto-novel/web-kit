@@ -13,18 +13,21 @@ defineProps<XPageHeaderProps>();
     v-bind="{ ...$attrs, class: undefined }"
     :class="
       mergeClasses(
-        'my-6 flex min-w-0 flex-wrap items-center gap-3',
+        'mb-6 flex min-w-0 flex-wrap items-start gap-x-4 gap-y-3',
         $attrs.class,
       )
     "
   >
     <div class="min-w-0 flex-1 basis-64">
       <h1
-        class="m-0 text-3xl leading-relaxed font-medium wrap-break-word text-ink"
+        class="m-0 text-2xl leading-tight font-medium wrap-anywhere text-balance text-ink sm:text-3xl"
       >
         {{ title }}
       </h1>
-      <p v-if="description" class="mt-1 mb-0 wrap-break-word text-muted">
+      <p
+        v-if="description"
+        class="mt-2 mb-0 text-sm wrap-anywhere text-pretty text-muted"
+      >
         {{ description }}
       </p>
     </div>

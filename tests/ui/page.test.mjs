@@ -27,7 +27,7 @@ test('Page renders a single-column div, forwards root attributes and merges clas
     XPage,
     {
       id: 'books',
-      class: ['max-w-3xl', { 'px-5': true }],
+      class: ['max-w-3xl', { 'px-5': true, 'pb-12': true }],
       style: { paddingBottom: '64px' },
       'aria-label': '书架',
     },
@@ -42,6 +42,9 @@ test('Page renders a single-column div, forwards root attributes and merges clas
   assert.ok(!root.classList.contains('max-w-5xl'));
   assert.ok(root.classList.contains('px-5'));
   assert.ok(!root.classList.contains('px-3'));
+  assert.ok(root.classList.contains('pt-6'));
+  assert.ok(root.classList.contains('pb-12'));
+  assert.ok(!root.classList.contains('pb-6'));
   assert.equal(body.querySelector('main, aside'), null);
   assert.ok(root.firstElementChild.classList.contains('flex'));
   assert.ok(
@@ -79,6 +82,8 @@ test('Page adds the optional aside without duplicating body or header content', 
 test('PageHeader renders title, optional description and actions with root attrs and overrides', async () => {
   const minimal = await render(XPageHeader, { title: '设置' });
   assert.equal(minimal.firstElementChild.tagName, 'HEADER');
+  assert.ok(minimal.firstElementChild.classList.contains('mb-6'));
+  assert.ok(!minimal.firstElementChild.classList.contains('mt-6'));
   assert.equal(minimal.querySelector('h1').textContent, '设置');
   assert.equal(minimal.querySelector('p'), null);
   assert.equal(minimal.firstElementChild.children.length, 1);
@@ -96,7 +101,7 @@ test('PageHeader renders title, optional description and actions with root attrs
   const root = body.firstElementChild;
   assert.equal(root.id, 'heading');
   assert.ok(root.classList.contains('my-2'));
-  assert.ok(!root.classList.contains('my-6'));
+  assert.ok(!root.classList.contains('mb-6'));
   assert.equal(root.getAttribute('title'), null);
   assert.equal(root.querySelector('h1').textContent, '<工作区>');
   assert.equal(root.querySelector('p').textContent, '翻译任务');
