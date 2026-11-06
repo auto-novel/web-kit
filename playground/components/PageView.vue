@@ -45,7 +45,7 @@ const code = `<XPage>
   <XPage class="pb-12">
     <XPageHeader
       title="页面 · XPage / XPageHeader"
-      description="统一页面限宽与留白，按实际内容空间显示辅助侧栏。此页本身就是一个 XPage，可滚动页面观察右侧目录。"
+      description="统一页面限宽与留白，可选右侧辅助栏。此页本身就是一个 XPage，可滚动页面观察右侧目录。"
     >
       <template #actions>
         <label class="flex items-center gap-2 text-sm text-muted">
@@ -67,8 +67,7 @@ const code = `<XPage>
             作为页面根容器，不要再包一层 page-container。
           </li>
           <li>
-            容器内容宽度达到 @4xl（896px）时显示 320px 右侧栏；空间不足时隐藏。
-            判定依据是容器而不是窗口，站点导航占用的宽度也会影响结果。
+            提供 aside 插槽时始终显示 320px 右侧栏，不会随容器宽度自动隐藏。
           </li>
           <li>
             正文沿用窗口滚动，不创建整页内部滚动区。右侧栏 sticky
@@ -76,15 +75,16 @@ const code = `<XPage>
           </li>
           <li>
             XPage
-            不控制移动端入口，也不会自动生成抽屉。窄屏下如何访问目录或收藏夹，
-            由业务页面自行提供按钮和交互。
+            不控制移动端入口，也不会自动生成抽屉。侧栏不自动隐藏，窄屏下正文
+            空间会被压缩；需要完整正文宽度时，由业务页面决定是否提供 aside
+            插槽。
           </li>
         </ul>
         <p
           class="mt-4 rounded-sm border border-border bg-surface p-3 text-sm leading-6 text-muted"
         >
-          试试关闭“提供侧栏”：插槽移除后，正文恢复单栏。再调整窗口宽度或折叠站点导航，
-          观察有侧栏时的自动切换。窄屏隐藏侧栏不等于移除了插槽。
+          试试关闭“提供侧栏”：插槽移除后正文恢复单栏；重新打开后侧栏立即出现，
+          调整窗口宽度也不会再自动隐藏。
         </p>
       </section>
 
@@ -94,9 +94,9 @@ const code = `<XPage>
           <div>
             <dt class="font-medium">XPage</dt>
             <dd class="text-muted">
-              无 props。默认插槽放正文；可选 aside 插槽放辅助内容。
-              页面上下留白与水平留白由 XPage 统一提供，不提供侧栏宽度、断点、
-              位置、ui 或 variant 配置。
+              props：ui?: { aside?: XClassValue }。默认插槽放正文；可选 aside
+              插槽放辅助内容。页面留白由 XPage 统一提供，aside 的默认样式可用
+              ui.aside 补充或覆盖；不提供侧栏位置或 variant 配置，侧栏始终显示。
             </dd>
           </div>
           <div>

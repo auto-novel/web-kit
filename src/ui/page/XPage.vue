@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { mergeClasses } from '../classes';
 
+import type { XPageProps } from './types';
+
 defineOptions({ inheritAttrs: false });
+
+withDefaults(defineProps<XPageProps>(), {
+  ui: () => ({}),
+});
 </script>
 
 <template>
@@ -20,12 +26,15 @@ defineOptions({ inheritAttrs: false });
       </div>
       <aside
         v-if="$slots.aside"
-        :class="[
-          'sticky top-(--web-kit-header-height) self-start',
-          'hidden flex-col @4xl/x-page:flex',
-          'h-[calc(100dvh-var(--web-kit-header-height))] w-80 shrink-0',
-          'border-s border-divider ps-5',
-        ]"
+        :class="
+          mergeClasses(
+            'sticky top-(--web-kit-header-height) self-start',
+            'flex flex-col',
+            'h-[calc(100dvh-var(--web-kit-header-height))] w-80 shrink-0',
+            'border-s border-divider ps-5',
+            ui.aside,
+          )
+        "
       >
         <slot name="aside" />
       </aside>

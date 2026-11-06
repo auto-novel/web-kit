@@ -66,7 +66,12 @@ test('Page adds the optional aside without duplicating body or header content', 
     },
   );
   const aside = body.querySelector('aside');
-  assert.ok(aside.classList.contains('@4xl/x-page:flex'));
+  assert.ok(aside.classList.contains('flex'));
+  assert.ok(!aside.classList.contains('hidden'));
+  assert.equal(
+    [...aside.classList].filter((name) => name.startsWith('@4xl/')).length,
+    0,
+  );
   assert.ok(aside.classList.contains('w-80'));
   assert.ok(aside.classList.contains('shrink-0'));
   assert.equal(body.querySelectorAll('h1').length, 1);
@@ -77,6 +82,24 @@ test('Page adds the optional aside without duplicating body or header content', 
   );
   assert.equal(body.querySelector('aside').textContent, '目录');
   assert.equal(body.querySelector('main'), null);
+});
+
+test('Page merges aside ui class after the defaults', async () => {
+  const body = await render(
+    XPage,
+    { ui: { aside: 'custom-aside w-64 ps-2' } },
+    {
+      default: () => Vue.h('p', '正文'),
+      aside: () => Vue.h('nav', '目录'),
+    },
+  );
+  const aside = body.querySelector('aside');
+  assert.ok(aside.classList.contains('custom-aside'));
+  assert.ok(aside.classList.contains('w-64'));
+  assert.ok(!aside.classList.contains('w-80'));
+  assert.ok(aside.classList.contains('ps-2'));
+  assert.ok(!aside.classList.contains('ps-5'));
+  assert.ok(aside.classList.contains('sticky'));
 });
 
 test('PageHeader renders title, optional description and actions with root attrs and overrides', async () => {
