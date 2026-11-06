@@ -42,7 +42,7 @@ const code = `<XPage>
 </script>
 
 <template>
-  <XPage class="pb-12">
+  <XPage>
     <XPageHeader
       title="页面 · XPage / XPageHeader"
       description="统一页面限宽与留白，可选右侧辅助栏。此页本身就是一个 XPage，可滚动页面观察右侧目录。"

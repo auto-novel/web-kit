@@ -48,7 +48,7 @@ test('Page renders a single-column div, forwards root attributes and merges clas
   assert.ok(root.firstElementChild.classList.contains('flex'));
   const content = root.firstElementChild.firstElementChild;
   assert.ok(content.classList.contains('flex-1'));
-  assert.ok(content.classList.contains('pt-6'));
+  assert.ok(content.classList.contains('py-6'));
   assert.equal(body.querySelector('p').textContent, '正文');
 });
 
@@ -64,7 +64,20 @@ test('Page adds the optional aside without duplicating body or header content', 
       aside: () => Vue.h('nav', { 'aria-label': '收藏夹' }, '目录'),
     },
   );
+  const root = body.firstElementChild;
+  const row = root.firstElementChild;
+  const content = row.firstElementChild;
   const aside = body.querySelector('aside');
+  // Vertical spacing belongs only to the body, not the sticky aside's ancestors.
+  for (const element of [root, row]) {
+    assert.ok(![...element.classList].some((name) => /^(p|py|pb)-/.test(name)));
+  }
+  assert.ok(content.classList.contains('py-6'));
+  assert.equal(aside.parentElement, row);
+  assert.ok(aside.classList.contains('sticky'));
+  assert.ok(
+    aside.classList.contains('h-[calc(100dvh-var(--web-kit-header-height))]'),
+  );
   assert.ok(aside.classList.contains('flex'));
   assert.ok(!aside.classList.contains('hidden'));
   assert.equal(

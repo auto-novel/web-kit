@@ -96,15 +96,21 @@ watch(
       </button>
     </XDrawer>
 
-    <div v-if="!isMobile" class="sticky top-0 z-40 h-dvh flex-none self-start">
-      <WebKitSidebar
-        :options="navigationOptions"
-        :expanded="expanded"
-        :selected="selectedNavigationKey"
-        :collapsed="sidebarCollapsed"
-        class="flex-none"
-        @select="selectNavigation"
-      />
+    <!-- Match the header's sticky bounds; the full-height panel overflows below. -->
+    <div
+      v-if="!isMobile"
+      class="sticky top-0 z-40 h-(--web-kit-header-height) flex-none self-start"
+    >
+      <div class="h-dvh">
+        <WebKitSidebar
+          :options="navigationOptions"
+          :expanded="expanded"
+          :selected="selectedNavigationKey"
+          :collapsed="sidebarCollapsed"
+          class="flex-none"
+          @select="selectNavigation"
+        />
+      </div>
       <button
         v-if="viewportMode === 'desktop'"
         type="button"
