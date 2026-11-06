@@ -42,14 +42,13 @@ test('Page renders a single-column div, forwards root attributes and merges clas
   assert.ok(!root.classList.contains('max-w-5xl'));
   assert.ok(root.classList.contains('px-5'));
   assert.ok(!root.classList.contains('px-3'));
-  assert.ok(root.classList.contains('pt-6'));
   assert.ok(root.classList.contains('pb-12'));
   assert.ok(!root.classList.contains('pb-6'));
   assert.equal(body.querySelector('main, aside'), null);
   assert.ok(root.firstElementChild.classList.contains('flex'));
-  assert.ok(
-    root.firstElementChild.firstElementChild.classList.contains('flex-1'),
-  );
+  const content = root.firstElementChild.firstElementChild;
+  assert.ok(content.classList.contains('flex-1'));
+  assert.ok(content.classList.contains('pt-6'));
   assert.equal(body.querySelector('p').textContent, '正文');
 });
 

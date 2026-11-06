@@ -70,8 +70,8 @@ const code = `<XPage>
             提供 aside 插槽时始终显示 320px 右侧栏，不会随容器宽度自动隐藏。
           </li>
           <li>
-            正文沿用窗口滚动，不创建整页内部滚动区。右侧栏 sticky
-            定位，长目录通过插槽中的 XScrollArea 独立滚动。
+            正文沿用窗口滚动，不创建整页内部滚动区。右侧栏从顶栏下方贴顶，sticky
+            定位并延伸到窗口底部，长目录通过插槽中的 XScrollArea 独立滚动。
           </li>
           <li>
             XPage
