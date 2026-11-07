@@ -9,6 +9,8 @@ export interface XScrollAreaProps {
   orientation?: 'vertical' | 'horizontal' | 'both';
   type?: 'auto' | 'always' | 'scroll' | 'hover';
   scrollHideDelay?: number;
+  /** 鼠标拖动滚动：false（默认）关闭，true 开启，'inertia' 附带惯性；data-drag-scroll-ignore 可排除局部内容。 */
+  dragScroll?: boolean | 'inertia';
   /** 分区样式覆盖；外层仍需有确定的尺寸。 */
   ui?: XScrollAreaUi;
 }

@@ -10,15 +10,19 @@ import {
 import { mergeClasses } from '../classes';
 
 import type { XScrollAreaProps } from './types';
+import { useDragScroll } from './useDragScroll';
 
 defineOptions({ inheritAttrs: false });
 
-withDefaults(defineProps<XScrollAreaProps>(), {
+const props = withDefaults(defineProps<XScrollAreaProps>(), {
   orientation: 'vertical',
   type: 'auto',
   scrollHideDelay: 600,
+  dragScroll: false,
   ui: () => ({}),
 });
+
+const { dragging, onPointerDown, onClick, onDragStart } = useDragScroll(props);
 </script>
 
 <template>
@@ -35,6 +39,10 @@ withDefaults(defineProps<XScrollAreaProps>(), {
     "
   >
     <ScrollAreaViewport
+      @pointerdown="onPointerDown"
+      @click.capture="onClick"
+      @dragstart="onDragStart"
+      :style="dragging ? { userSelect: 'none', cursor: 'grabbing' } : undefined"
       :class="
         mergeClasses(
           'size-full rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30',

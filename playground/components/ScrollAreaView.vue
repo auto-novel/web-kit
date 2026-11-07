@@ -9,7 +9,7 @@ const code = `<XScrollArea class="h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }
   <p v-for="row in 20" :key="row">第 {{ row }} 行</p>
 </XScrollArea>
 
-<XScrollArea orientation="horizontal" class="h-32 w-full max-w-lg">
+<XScrollArea drag-scroll="inertia" orientation="horizontal" class="h-32 w-full max-w-lg">
   <div class="w-160 p-4">固定宽度的横向内容</div>
 </XScrollArea>
 
@@ -52,8 +52,11 @@ const code = `<XScrollArea class="h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }
           </XScrollArea>
         </div>
         <div class="min-w-0">
-          <h3 class="mb-2 text-sm text-muted">横向 · horizontal</h3>
+          <h3 class="mb-2 text-sm text-muted">
+            横向 · horizontal（拖动卡片，松手后惯性滚动）
+          </h3>
           <XScrollArea
+            drag-scroll="inertia"
             orientation="horizontal"
             class="h-32 w-full max-w-lg rounded-sm border border-border bg-surface"
           >
@@ -123,6 +126,17 @@ const code = `<XScrollArea class="h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }
           <dd class="text-muted">
             auto（默认）在内容溢出时显示；always 始终显示；scroll
             在滚动时显示；hover 在鼠标悬停时显示。显示模式不改变内容尺寸。
+          </dd>
+        </div>
+        <div>
+          <dt class="font-medium">dragScroll</dt>
+          <dd class="text-muted">
+            false（默认）关闭；true 启用鼠标左键拖动；'inertia'
+            额外启用松手后的惯性。 方向沿用
+            orientation，触摸保持原生滚动；链接、表单等交互元素不触发拖动， 可用
+            data-drag-scroll-ignore
+            排除局部内容。惯性到边界停止，新的指针、滚轮或
+            滚动按键输入会中断惯性；系统偏好减少动态效果时不启用惯性。
           </dd>
         </div>
         <div>
