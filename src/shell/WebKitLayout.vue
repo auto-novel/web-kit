@@ -2,7 +2,6 @@
 import {
   ChevronLeftOutlined,
   ChevronRightOutlined,
-  CloseOutlined,
   MenuOutlined,
 } from '@vicons/material';
 import { computed, nextTick, ref, useId, watch } from 'vue';
@@ -86,14 +85,6 @@ watch(
         panel="modal"
         @select="selectNavigation"
       />
-      <button
-        type="button"
-        class="absolute top-3 right-3 grid size-10 place-items-center rounded-md text-white transition-colors hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-        aria-label="关闭导航菜单"
-        @click="mobileMenuOpen = false"
-      >
-        <CloseOutlined class="size-5" aria-hidden="true" />
-      </button>
     </XDrawer>
 
     <!-- Match the header's sticky bounds; the full-height panel overflows below. -->
