@@ -59,8 +59,12 @@ test('Button appearances consume theme states and preserve neutral overrides', (
     buttonVariants({ color: 'neutral', variant: 'outline' }),
   );
   assert.ok(neutral.has('border-border'));
-  assert.ok(neutral.has('text-muted'));
   assert.ok(!neutral.has('border-[color:var(--button-color)]/50'));
+  for (const variant of ['outline', 'ghost']) {
+    const result = classes(buttonVariants({ color: 'neutral', variant }));
+    assert.ok(result.has('text-[color:var(--button-text)]'));
+    assert.ok(!result.has('text-muted'));
+  }
 });
 
 test('Slider orientation and size jointly determine track dimensions', () => {
