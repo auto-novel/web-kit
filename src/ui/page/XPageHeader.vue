@@ -22,7 +22,7 @@ defineProps<XPageHeaderProps>();
       <h1
         class="m-0 text-2xl leading-tight font-medium wrap-anywhere text-balance text-ink sm:text-3xl"
       >
-        {{ title }}
+        <slot name="title">{{ title }}</slot>
       </h1>
       <p
         v-if="description"

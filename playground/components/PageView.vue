@@ -39,6 +39,26 @@ const code = `<XPage>
     </XScrollArea>
   </template>
 </XPage>`;
+const titleCode = `<XPageHeader :title="favoredTitle">
+  <template #title>
+    <span v-if="isWideScreen" class="block wrap-anywhere">
+      {{ favoredTitle }}
+    </span>
+    <XDrawer v-else v-model:open="showDrawer" title="收藏夹">
+      <template #trigger>
+        <button
+          type="button"
+          class="flex w-full min-w-0 cursor-pointer items-center gap-2 rounded-sm border-0 bg-transparent p-0 text-left [font:inherit] text-inherit focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+          :aria-label="\`切换收藏夹，当前：\${favoredTitle}\`"
+        >
+          <span class="min-w-0 truncate">{{ favoredTitle }}</span>
+          <ExpandMoreOutlined class="size-6 shrink-0" aria-hidden="true" />
+        </button>
+      </template>
+      <BookshelfMenu />
+    </XDrawer>
+  </template>
+</XPageHeader>`;
 </script>
 
 <template>
@@ -102,8 +122,9 @@ const code = `<XPage>
           <div>
             <dt class="font-medium">XPageHeader</dt>
             <dd class="text-muted">
-              title: string 为必填标题，description?: string 为可选说明。
-              actions 插槽放按钮或开关。根节点为 header，标题为 h1；
+              title: string 为必填标题，description?: string 为可选说明。 title
+              插槽可替换标题内容，未提供时显示 title 属性；插槽内部不要再放 h1。
+              actions 插槽放按钮或开关。根节点为 header，标题始终为 h1；
               操作区在空间不足时自然换行，默认与正文间隔 24px，无 ui 或 variant
               配置。
             </dd>
@@ -123,6 +144,21 @@ const code = `<XPage>
       <section aria-labelledby="page-code" class="border-t border-divider pt-6">
         <h2 id="page-code" class="mb-3 text-base font-medium">基本用法</h2>
         <CodeBlock :code="code" />
+      </section>
+
+      <section
+        aria-labelledby="page-title-slot"
+        class="border-t border-divider pt-6"
+      >
+        <h2 id="page-title-slot" class="mb-3 text-base font-medium">
+          自定义标题内容
+        </h2>
+        <p class="mb-4 text-sm leading-7 text-muted">
+          标题插槽沿用统一字号、间距和 h1
+          语义；换行、截断、抽屉与响应式切换由业务控制。
+          例如收藏夹在宽屏展示完整标题，窄屏通过标题按钮打开切换菜单。
+        </p>
+        <CodeBlock :code="titleCode" />
       </section>
 
       <section

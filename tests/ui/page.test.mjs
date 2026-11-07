@@ -114,6 +114,24 @@ test('Page merges aside ui class after the defaults', async () => {
   assert.ok(aside.classList.contains('sticky'));
 });
 
+test('PageHeader title slot replaces the fallback while preserving heading semantics and other slots', async () => {
+  const body = await render(
+    XPageHeader,
+    { title: '默认标题', description: '收藏说明' },
+    {
+      title: () => Vue.h('button', { type: 'button' }, '切换收藏夹'),
+      actions: () => Vue.h('button', { type: 'button' }, '添加'),
+    },
+  );
+  const heading = body.querySelector('h1');
+  assert.equal(body.querySelectorAll('h1').length, 1);
+  assert.equal(heading.querySelector('button').textContent, '切换收藏夹');
+  assert.ok(heading.classList.contains('text-2xl'));
+  assert.ok(!body.textContent.includes('默认标题'));
+  assert.equal(body.querySelector('p').textContent, '收藏说明');
+  assert.equal(body.querySelectorAll('button')[1].textContent, '添加');
+});
+
 test('PageHeader renders title, optional description and actions with root attrs and overrides', async () => {
   const minimal = await render(XPageHeader, { title: '设置' });
   assert.equal(minimal.firstElementChild.tagName, 'HEADER');
