@@ -7,6 +7,7 @@ import * as classes from '../../src/ui/classes.ts';
 import { buttonVariants } from '../../src/ui/button/variants.ts';
 import { useOverlayLayer } from '../../src/ui/overlayLayer.ts';
 import { useDialogMotion } from '../../src/ui/dialog/useDialogMotion.ts';
+import { useReturnFocus } from '../../src/ui/returnFocus.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 
 const passthrough = (_, { slots }) => slots.default?.();
@@ -170,8 +171,13 @@ test('ConfirmDialog maps actions and independent button overrides through real X
   const Button = component('button/XButton', {
     './variants': { buttonVariants },
   });
+  const Dialog = component('dialog/XDialog', {
+    'reka-ui': { ...Reka, DialogPortal: passthrough },
+    '../returnFocus': { useReturnFocus },
+    '@vicons/material': { CloseOutlined: icon },
+  });
   const Confirm = component('dialog/XConfirmDialog', {
-    'reka-ui': { ...Reka, AlertDialogPortal: passthrough },
+    './XDialog.vue': Dialog,
     '../button/XButton.vue': Button,
   });
   const html = await renderToString(
@@ -180,7 +186,11 @@ test('ConfirmDialog maps actions and independent button overrides through real X
       title: 'Delete item',
       description: 'This cannot be undone.',
       danger: true,
+      class: ['confirm-panel', { 'text-error': true }],
+      style: { maxHeight: '320px' },
+      'aria-label': 'Confirm deletion',
       ui: {
+        content: 'text-primary',
         actions: 'confirm-actions mt-2 justify-start gap-1',
         cancel: [
           'cancel-override px-8 text-error',
@@ -216,9 +226,19 @@ test('ConfirmDialog maps actions and independent button overrides through real X
       'px-8',
     ],
   );
-  styles(node(html, 'x-dialog-panel-motion'), ['x-dialog-panel-motion']);
+  const panel = node(html, 'confirm-panel');
+  styles(panel, ['x-dialog-panel-motion', 'text-error'], ['text-primary']);
+  assert.match(panel, /max-height:320px/);
+  assert.match(panel, /aria-label="Confirm deletion"/);
   styles(node(html, 'x-dialog-fade-motion'), ['x-dialog-fade-motion']);
-  assert.match(html, /role="alertdialog"/);
+  assert.match(html, /role="dialog"/);
+  styles(node(html, 'x-dialog-panel-motion'), [
+    'w-[calc(100%-2rem)]',
+    'max-w-md',
+    'p-5',
+    'sm:p-6',
+  ]);
+  assert.doesNotMatch(html, /aria-label="关闭窗口"|\bpr-10\b/);
 });
 
 test('active DropZone maps overlay/content/icon/description and keeps class last', async () => {

@@ -25,6 +25,10 @@ export interface XDialogProps {
   fullScreen?: boolean;
   /** 默认可关闭；false 禁用关闭按钮、Escape 和遮罩关闭。 */
   closable?: boolean;
+  /** 是否显示右上角关闭按钮，默认 true；closable=false 时始终隐藏。 */
+  showClose?: boolean;
+  /** 是否允许点击遮罩关闭，默认 true；不影响 Escape。 */
+  closeOnOverlay?: boolean;
   closeLabel?: string;
 }
 
@@ -45,6 +49,9 @@ export interface XConfirmDialogProps {
   title: string;
   description: string;
   confirmLabel?: string;
+  cancelLabel?: string;
+  /** 是否允许点击遮罩取消，默认 true；loading 时始终禁止交互关闭。 */
+  closeOnOverlay?: boolean;
   loading?: boolean;
   danger?: boolean;
 }

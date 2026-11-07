@@ -84,8 +84,9 @@ const code = `<XDropdownMenu align="end">
       <p class="text-sm leading-6 text-muted">
         菜单通过 side 和 align 控制位置，触发器由 trigger 插槽提供。菜单项使用
         select 事件，destructive 仅改变外观，不自动确认。确认框使用 v-model:open
-        控制开关，confirm 只通知操作，由调用方在成功后关闭；loading
-        阻止交互关闭及重复确认。
+        控制开关，confirm 只通知操作，由调用方在成功后关闭。默认可点击遮罩或按
+        Escape 取消，closeOnOverlay=false 仅禁止遮罩关闭；cancelLabel
+        可自定义取消文案。loading 阻止交互关闭及重复确认。
       </p>
     </section>
   </ComponentPage>

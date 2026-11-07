@@ -1,25 +1,16 @@
 <script setup lang="ts">
-import {
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogOverlay,
-  AlertDialogPortal,
-  AlertDialogRoot,
-  AlertDialogTitle,
-} from 'reka-ui';
-
-import { useTemplateRef } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 
 import XButton from '../button/XButton.vue';
-import { useOverlayLayer } from '../overlayLayer';
 import { mergeClasses } from '../classes';
+import XDialog from './XDialog.vue';
 import type { XConfirmDialogProps } from './types';
-import { useDialogMotion } from './useDialogMotion';
 
 const props = withDefaults(defineProps<XConfirmDialogProps>(), {
   ui: () => ({}),
   confirmLabel: '确认',
+  cancelLabel: '取消',
+  closeOnOverlay: true,
 });
 
 const emit = defineEmits<{
@@ -27,8 +18,31 @@ const emit = defineEmits<{
   confirm: [];
 }>();
 
-const { overlayStyle, contentStyle } = useOverlayLayer(() => props.open);
-useDialogMotion(useTemplateRef('motionContent'), () => props.open);
+const cancelButton =
+  useTemplateRef<InstanceType<typeof XButton>>('cancelButton');
+const dialogUi = computed(() => ({
+  content: mergeClasses(
+    'w-[calc(100%-2rem)] max-w-md overflow-y-auto p-5 sm:p-6',
+    props.ui.content,
+  ),
+  overlay: props.ui.overlay,
+  header: 'p-0 sm:p-0',
+  title: props.ui.title,
+  description: props.ui.description,
+  footer: mergeClasses('mt-6 p-0 sm:p-0', props.ui.actions),
+}));
+
+function requestOpen(open: boolean) {
+  if (!props.loading) emit('update:open', open);
+}
+
+function focusCancel(event: Event) {
+  if (event.defaultPrevented || props.loading) return;
+  const button = cancelButton.value?.$el;
+  if (!button) return;
+  event.preventDefault();
+  button.focus({ preventScroll: true });
+}
 
 function confirm() {
   if (!props.loading) emit('confirm');
@@ -37,65 +51,37 @@ defineOptions({ inheritAttrs: false });
 </script>
 
 <template>
-  <AlertDialogRoot
+  <XDialog
+    v-bind="$attrs"
     :open="open"
-    @update:open="!loading && emit('update:open', $event)"
+    :title="title"
+    :description="description"
+    :ui="dialogUi"
+    :closable="!loading"
+    :show-close="false"
+    :close-on-overlay="closeOnOverlay"
+    @update:open="requestOpen"
+    @open-auto-focus="focusCancel"
   >
-    <AlertDialogPortal>
-      <AlertDialogOverlay
-        :class="
-          mergeClasses(
-            'x-dialog-fade-motion fixed inset-0 bg-black/45',
-            ui.overlay,
-          )
-        "
-        :style="overlayStyle"
-      />
-      <AlertDialogContent
-        ref="motionContent"
-        v-bind="{ ...$attrs, class: undefined }"
-        :style="contentStyle"
-        :class="
-          mergeClasses(
-            'x-dialog-panel-motion fixed top-1/2 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-floating bg-modal p-5 shadow-floating outline-none sm:p-6',
-            ui.content,
-            $attrs.class,
-          )
-        "
+    <template #footer>
+      <XButton
+        ref="cancelButton"
+        :class="mergeClasses(ui.cancel)"
+        color="neutral"
+        variant="outline"
+        :disabled="loading"
+        @click="requestOpen(false)"
       >
-        <AlertDialogTitle
-          :class="mergeClasses('text-lg font-medium text-ink', ui.title)"
-        >
-          {{ title }}
-        </AlertDialogTitle>
-        <AlertDialogDescription
-          :class="
-            mergeClasses('mt-2 text-sm leading-6 text-muted', ui.description)
-          "
-        >
-          {{ description }}
-        </AlertDialogDescription>
-        <div :class="mergeClasses('mt-6 flex justify-end gap-3', ui.actions)">
-          <AlertDialogCancel as-child>
-            <XButton
-              :class="mergeClasses(ui.cancel)"
-              color="neutral"
-              variant="outline"
-              :disabled="loading"
-            >
-              取消
-            </XButton>
-          </AlertDialogCancel>
-          <XButton
-            :class="mergeClasses(ui.confirm)"
-            :color="danger ? 'danger' : 'primary'"
-            :disabled="loading"
-            @click="confirm"
-          >
-            {{ loading ? '处理中…' : confirmLabel }}
-          </XButton>
-        </div>
-      </AlertDialogContent>
-    </AlertDialogPortal>
-  </AlertDialogRoot>
+        {{ cancelLabel }}
+      </XButton>
+      <XButton
+        :class="mergeClasses(ui.confirm)"
+        :color="danger ? 'danger' : 'primary'"
+        :disabled="loading"
+        @click="confirm"
+      >
+        {{ loading ? '处理中…' : confirmLabel }}
+      </XButton>
+    </template>
+  </XDialog>
 </template>

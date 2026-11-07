@@ -31,6 +31,8 @@ const props = withDefaults(defineProps<XDialogProps>(), {
   fullScreen: false,
   scrollable: true,
   closable: true,
+  showClose: true,
+  closeOnOverlay: true,
   closeLabel: '关闭窗口',
 });
 const emit = defineEmits<{
@@ -149,7 +151,9 @@ function restoreFocus(event: Event) {
         @open-auto-focus="emit('openAutoFocus', $event)"
         @close-auto-focus="restoreFocus"
         @escape-key-down="!closable && $event.preventDefault()"
-        @pointer-down-outside="!closable && $event.preventDefault()"
+        @pointer-down-outside="
+          (!closable || !closeOnOverlay) && $event.preventDefault()
+        "
       >
         <header
           v-if="hasHeader()"
@@ -165,7 +169,7 @@ function restoreFocus(event: Event) {
             :class="
               mergeClasses(
                 'text-lg font-medium wrap-break-word',
-                closable && !fullScreen ? 'pr-10' : undefined,
+                closable && showClose && !fullScreen ? 'pr-10' : undefined,
                 ui.title,
               )
             "
@@ -177,7 +181,11 @@ function restoreFocus(event: Event) {
             :class="
               mergeClasses(
                 'text-sm leading-6 text-muted',
-                title || $slots.title ? 'mt-2' : closable ? 'pr-10' : undefined,
+                title || $slots.title
+                  ? 'mt-2'
+                  : closable && showClose
+                    ? 'pr-10'
+                    : undefined,
                 ui.description,
               )
             "
@@ -205,7 +213,9 @@ function restoreFocus(event: Event) {
                 scrollable
                   ? 'overflow-y-auto overscroll-contain'
                   : 'flex flex-col',
-                !hasHeader() && closable ? 'x-dialog-close-space' : undefined,
+                !hasHeader() && closable && showClose
+                  ? 'x-dialog-close-space'
+                  : undefined,
                 ui.body,
               )
             "
@@ -218,7 +228,7 @@ function restoreFocus(event: Event) {
               mergeClasses(
                 'flex shrink-0 flex-wrap items-center justify-end gap-3 pb-5 pl-5 sm:pb-6 sm:pl-6',
                 !$slots.default ? 'pt-5 sm:pt-6' : undefined,
-                !hasHeader() && !$slots.default && closable
+                !hasHeader() && !$slots.default && closable && showClose
                   ? 'pr-14'
                   : 'pr-5 sm:pr-6',
                 ui.footer,
@@ -229,7 +239,7 @@ function restoreFocus(event: Event) {
           </footer>
         </template>
         <button
-          v-if="closable"
+          v-if="closable && showClose"
           type="button"
           :class="
             mergeClasses(
