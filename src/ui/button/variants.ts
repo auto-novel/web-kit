@@ -33,13 +33,8 @@ export const buttonVariants = tv({
       'icon-xs': 'size-6',
     },
   },
-  // 中性描边和透明操作沿用低强调文字及通用控件边框。
+  // 中性描边操作沿用通用控件边框。
   compoundVariants: [
-    {
-      color: 'neutral',
-      variant: ['outline', 'ghost'],
-      class: 'text-muted hover:text-ink',
-    },
     {
       color: 'neutral',
       variant: 'outline',
