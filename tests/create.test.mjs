@@ -117,8 +117,8 @@ test('create restores session and theme, and rejects a second create', async (t)
   assert.equal(kit.whoami.value.user.username, 'member');
   assert.ok(warnings.mock.callCount() > 0);
   assert.equal('notifications' in kit, false);
-  assert.equal(counts.reads, 2); // session + theme
-  assert.equal(counts.added, 2); // session + theme 的 storage 监听
+  assert.equal(counts.reads, 3); // session + theme + attention
+  assert.equal(counts.added, 3); // session + theme + attention 的 storage 监听
   assert.equal(counts.timers, 2); // auth refresh + attention polling
   assert.equal(add.mock.callCount(), 1);
   assert.equal(close.mock.callCount(), 0);

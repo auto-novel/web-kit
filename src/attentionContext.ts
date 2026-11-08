@@ -1,8 +1,9 @@
 import type { AttentionStatus, StrikeReadState } from './api/requests';
 import type { Whoami } from './auth/whoami';
+import { useLocalStorage } from './utils/storage';
 import {
+  computed,
   readonly,
-  ref,
   watch,
   type ComputedRef,
   type DeepReadonly,
@@ -16,6 +17,7 @@ export interface AttentionContext {
 }
 
 interface AttentionSession {
+  userId: number;
   pendingThroughId?: number;
   request?: Promise<void>;
 }
@@ -26,20 +28,86 @@ interface AttentionApi {
   updateMyStrikeReadState(throughId: number): Promise<StrikeReadState>;
 }
 
-const POLL_INTERVAL = 60 * 1000;
+// 与 access token 保持相同的检查间隔和刷新年龄。
+const POLL_INTERVAL = 15 * 60 * 1000;
+const COOLDOWN = 60 * 60 * 1000;
+const STORAGE_KEY = 'web-kit:attention:v1';
+
+interface StoredAttention {
+  userId: number;
+  status: AttentionStatus;
+  fetchedAt: number;
+}
+
+function validateStored(value: unknown): StoredAttention | undefined {
+  const record = value as StoredAttention | null;
+  if (
+    !record ||
+    !Number.isSafeInteger(record.userId) ||
+    record.userId <= 0 ||
+    !Number.isFinite(record.fetchedAt) ||
+    record.fetchedAt < 0 ||
+    typeof record.status?.strikes?.hasUnread !== 'boolean'
+  )
+    return;
+  return {
+    userId: record.userId,
+    status: record.status,
+    fetchedAt: record.fetchedAt,
+  };
+}
 
 export function createAttention(api: AttentionApi): AttentionContext {
-  const status = ref<AttentionStatus>();
   let session: AttentionSession | undefined;
   let timer: ReturnType<typeof globalThis.setInterval> | undefined;
+  const stored = useLocalStorage<StoredAttention | undefined>(STORAGE_KEY, {
+    validate: validateStored,
+    fallback: () => undefined,
+  });
+
+  const status = computed(() =>
+    stored.value?.userId === api.whoami.value.user?.id
+      ? stored.value?.status
+      : undefined,
+  );
+
+  function publish(
+    current: AttentionSession,
+    value: Omit<StoredAttention, 'userId'>,
+  ) {
+    if (session !== current) return;
+    stored.value = { userId: current.userId, ...value };
+  }
 
   async function synchronize(current: AttentionSession) {
+    if (session !== current) return;
+    if (current.pendingThroughId === undefined) {
+      if (
+        typeof document !== 'undefined' &&
+        document.visibilityState !== 'visible'
+      )
+        return;
+      const cached =
+        stored.value?.userId === current.userId ? stored.value : undefined;
+      const now = Date.now();
+      if (
+        cached &&
+        cached.fetchedAt > 0 &&
+        now >= cached.fetchedAt &&
+        now - cached.fetchedAt < COOLDOWN
+      )
+        return;
+    }
     while (session === current) {
       if (current.pendingThroughId !== undefined) {
         const throughId = current.pendingThroughId;
         const result = await api.updateMyStrikeReadState(throughId);
         if (session !== current) return;
-        status.value = { ...status.value, strikes: result };
+        // 已读写入立即广播；查询失败也不能继续沿用写入前的冷却。
+        publish(current, {
+          status: { ...status.value, strikes: result },
+          fetchedAt: 0,
+        });
         // Keep any larger boundary queued while the write was in flight.
         if (current.pendingThroughId === throughId) {
           current.pendingThroughId = undefined;
@@ -52,7 +120,7 @@ export function createAttention(api: AttentionApi): AttentionContext {
       const result = await api.getAttentionStatus();
       if (session !== current) return;
       if (current.pendingThroughId !== undefined) continue;
-      status.value = result;
+      publish(current, { status: result, fetchedAt: Date.now() });
       return;
     }
   }
@@ -64,8 +132,7 @@ export function createAttention(api: AttentionApi): AttentionContext {
     current.request = Promise.resolve()
       .then(() => synchronize(current))
       .catch(() => {
-        // Preserve the last state and the pending boundary. A later refresh
-        // retries only what this account has actually viewed.
+        // 保留旧状态与待提交的已读边界，下次正常刷新时重试。
       })
       .finally(() => {
         current.request = undefined;
@@ -98,8 +165,8 @@ export function createAttention(api: AttentionApi): AttentionContext {
   watch(
     () => api.whoami.value.user?.id,
     (userId) => {
-      session = userId !== undefined ? {} : undefined;
-      status.value = undefined;
+      session = userId !== undefined ? { userId } : undefined;
+      if (!session) stored.value = undefined;
       // 只在已登录时保留轮询定时器。
       if (session) {
         timer ??= globalThis.setInterval(refreshWhenVisible, POLL_INTERVAL);
