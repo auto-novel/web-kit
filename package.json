@@ -24,10 +24,6 @@
     "./vite": {
       "types": "./src/vite.d.ts",
       "default": "./src/vite.js"
-    },
-    "./theme-bootstrap": {
-      "types": "./src/theme/bootstrap.d.ts",
-      "default": "./src/theme/bootstrap.js"
     }
   },
   "files": [
