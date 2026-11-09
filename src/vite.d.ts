@@ -9,10 +9,12 @@ export declare function htmlBootstrapPlugin(options?: HtmlBootstrapOptions): {
   configResolved(config: { command: string; isProduction: boolean }): void;
   transformIndexHtml: {
     order: 'pre';
-    handler: () => {
-      tag: 'script';
-      children: string;
-      injectTo: 'head-prepend' | 'head';
-    }[];
+    handler: () => Promise<
+      {
+        tag: 'script';
+        children: string;
+        injectTo: 'head-prepend' | 'head';
+      }[]
+    >;
   };
 };

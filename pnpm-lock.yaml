@@ -53,9 +53,6 @@ importers:
         specifier: ^5.2.0
         version: 5.2.0(@vue/compiler-sfc@3.5.41)(rolldown@1.2.4)(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))(vue@3.5.41(typescript@6.0.3))
     devDependencies:
-      prettier:
-        specifier: ^3.9.6
-        version: 3.9.6
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.2.2(@types/node@25.9.5)(jiti@2.7.0)(terser@5.50.0)(yaml@2.9.0))
@@ -68,6 +65,9 @@ importers:
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
       typescript:
         specifier: ^6.0.0
         version: 6.0.3
@@ -1998,6 +1998,7 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
+    optional: true
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
@@ -2159,6 +2160,7 @@ snapshots:
   '@types/node@25.9.5':
     dependencies:
       undici-types: 7.24.6
+    optional: true
 
   '@types/trusted-types@2.0.7':
     optional: true
@@ -2317,13 +2319,15 @@ snapshots:
 
   birpc@2.9.0: {}
 
-  buffer-from@1.1.2: {}
+  buffer-from@1.1.2:
+    optional: true
 
   chokidar@5.0.0:
     dependencies:
       readdirp: 5.1.1
 
-  commander@2.20.3: {}
+  commander@2.20.3:
+    optional: true
 
   confbox@0.1.8: {}
 
@@ -2681,8 +2685,10 @@ snapshots:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
+    optional: true
 
-  source-map@0.6.1: {}
+  source-map@0.6.1:
+    optional: true
 
   symbol-tree@3.2.4: {}
 
@@ -2703,6 +2709,7 @@ snapshots:
       acorn: 8.18.0
       commander: 2.20.3
       source-map-support: 0.5.21
+    optional: true
 
   tinyglobby@0.2.17:
     dependencies:
@@ -2731,7 +2738,8 @@ snapshots:
 
   ufo@1.6.4: {}
 
-  undici-types@7.24.6: {}
+  undici-types@7.24.6:
+    optional: true
 
   unplugin-utils@0.3.2:
     dependencies:

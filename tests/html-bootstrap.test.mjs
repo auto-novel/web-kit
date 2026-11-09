@@ -13,8 +13,8 @@ function tags(options, config = { command: 'build', isProduction: true }) {
   return plugin.transformIndexHtml.handler();
 }
 
-function browser() {
-  const scripts = tags()
+async function browser() {
+  const scripts = (await tags())
     .map(({ children }) => `<script>${children}</script>`)
     .join('');
   return new JSDOM(
@@ -26,17 +26,19 @@ function browser() {
   );
 }
 
-test('统计默认关闭，配置 ID 后仅在生产构建启用', () => {
+test('统计默认关闭，配置 ID 后仅在生产构建启用', async () => {
   const analytics = 'G-TEST123';
-  assert.equal(tags().length, 2);
-  assert.equal(tags({ analytics: false }).length, 2);
-  assert.equal(tags({ analytics }).length, 3);
+  assert.equal((await tags()).length, 2);
+  assert.equal((await tags({ analytics: false })).length, 2);
+  assert.equal((await tags({ analytics })).length, 3);
   assert.equal(
-    tags({ analytics }, { command: 'serve', isProduction: false }).length,
+    (await tags({ analytics }, { command: 'serve', isProduction: false }))
+      .length,
     2,
   );
   assert.equal(
-    tags({ analytics }, { command: 'build', isProduction: false }).length,
+    (await tags({ analytics }, { command: 'build', isProduction: false }))
+      .length,
     2,
   );
   assert.throws(
@@ -45,9 +47,33 @@ test('统计默认关闭，配置 ID 后仅在生产构建启用', () => {
   );
 });
 
-test('统计脚本异步加载，初始化 dataLayer 和站点 ID', () => {
-  const injected = tags({ analytics: 'G-TEST123' });
-  const dom = browser();
+test('生产构建始终压缩脚本，开发环境保留原文', async () => {
+  const production = await tags();
+  const readable = await tags(undefined, {
+    command: 'serve',
+    isProduction: false,
+  });
+  for (const [index, tag] of production.entries()) {
+    assert.ok(tag.children.length < readable[index].children.length);
+    assert.equal(tag.injectTo, readable[index].injectTo);
+  }
+  assert.deepEqual(
+    await tags(undefined, {
+      command: 'build',
+      isProduction: true,
+      build: { minify: false },
+    }),
+    production,
+  );
+  assert.deepEqual(
+    await tags(undefined, { command: 'build', isProduction: false }),
+    readable,
+  );
+});
+
+test('统计脚本异步加载，初始化 dataLayer 和站点 ID', async () => {
+  const injected = await tags({ analytics: 'G-TEST123' });
+  const dom = await browser();
   try {
     dom.window.eval(injected[2].children);
     const script = dom.window.document.querySelector('script[src]');
@@ -64,8 +90,8 @@ test('统计脚本异步加载，初始化 dataLayer 和站点 ID', () => {
   }
 });
 
-test('启动错误以纯文本显示', () => {
-  const dom = browser();
+test('启动错误以纯文本显示', async () => {
+  const dom = await browser();
   try {
     const fallback = dom.window.document.getElementById('fallback-error');
     dom.window.dispatchEvent(
@@ -80,8 +106,8 @@ test('启动错误以纯文本显示', () => {
   }
 });
 
-test('补充模块加载和 Promise 错误，挂载后不再写入页面', () => {
-  const dom = browser();
+test('补充模块加载和 Promise 错误，挂载后不再写入页面', async () => {
+  const dom = await browser();
   try {
     const { window } = dom;
     const fallback = window.document.getElementById('fallback-error');
@@ -130,8 +156,9 @@ test('实际 Vite 构建优先注入兜底和主题，并启用统计', async ()
     const html = result.output.find(
       (item) => item.fileName === 'index.html',
     ).source;
+    assert.match(html, /window\.addEventListener\([`'"]error/);
     assert.ok(
-      html.indexOf("window.addEventListener('error'") <
+      html.indexOf('window.addEventListener(') <
         html.indexOf('web-kit:theme:v1'),
     );
     assert.ok(html.indexOf('web-kit:theme:v1') < html.indexOf('type="module"'));

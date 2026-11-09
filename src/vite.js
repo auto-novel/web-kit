@@ -1,4 +1,6 @@
-/** 注入的脚本必须保持 ES5 语法 */
+import { minify } from 'vite';
+
+/** 生产构建压缩目标为 ES2015，脚本在应用入口之前执行。 */
 const startupScript = `(function () {
   function report(message) {
     // Vue 挂载后会移除该节点；head 执行时 body 尚未解析，必须延迟查询。
@@ -61,27 +63,48 @@ export function htmlBootstrapPlugin({ analytics } = {}) {
     );
   }
 
-  let enableAnalytics = false;
+  let productionBuild = false;
   return {
     name: 'web-kit-html-bootstrap',
     configResolved(config) {
-      enableAnalytics =
-        !!analytics && config.command === 'build' && config.isProduction;
+      productionBuild = config.command === 'build' && config.isProduction;
     },
     transformIndexHtml: {
       order: 'pre',
-      handler() {
+      async handler() {
         const tags = [startupScript, themeBootstrapScript].map((children) => ({
           tag: 'script',
           children,
           injectTo: 'head-prepend',
         }));
-        if (enableAnalytics) {
+        if (analytics && productionBuild) {
           tags.push({
             tag: 'script',
             children: analyticsScript(analytics),
             injectTo: 'head',
           });
+        }
+        if (productionBuild) {
+          await Promise.all(
+            tags.map(async (tag) => {
+              const { code, errors } = await minify(
+                'bootstrap.js',
+                tag.children,
+                {
+                  module: false,
+                  compress: { target: 'es2015' },
+                  mangle: true,
+                  codegen: { removeWhitespace: true, legalComments: 'none' },
+                },
+              );
+              if (errors.length) {
+                throw new Error(
+                  errors.map(({ message }) => message).join('\n'),
+                );
+              }
+              tag.children = code;
+            }),
+          );
         }
         return tags;
       },
