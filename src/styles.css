@@ -9,6 +9,4 @@
 @import './styles/components.css';
 @import './shell/motion.css';
 
-@source './shell';
-@source './ui';
-@source './views';
+@source './';
