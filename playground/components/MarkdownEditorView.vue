@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { XButton, XMarkdownEditor, createMarkdown } from '@novelia/web-kit';
+import {
+  XButton,
+  XMarkdownEditor,
+  createMarkdown,
+  useMarkdownDraft,
+} from '@novelia/web-kit/ui';
 import { ref, useTemplateRef } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
@@ -10,6 +15,16 @@ const source = ref(
 );
 const editor = useTemplateRef('editor');
 const sticky = ref(false);
+const draftTarget = ref('one');
+const {
+  text: draftSource,
+  restored: draftRestored,
+  clear: clearDraft,
+} = useMarkdownDraft({
+  key: () => `playground:comment:${draftTarget.value}`,
+  initialValue: '@示例用户 ',
+  maxAge: 3 * 24 * 60 * 60 * 1000,
+});
 const code = `// 模块级创建一次并共享
 const markdown = createMarkdown().disable(['image']);
 // markdown.use(...) 可继续挂载子网站插件
@@ -21,7 +36,22 @@ const markdown = createMarkdown().disable(['image']);
   aria-label="正文"
   sticky
   :sticky-offset="50"
-/>`;
+/>
+
+import { useMarkdownDraft } from '@novelia/web-kit/ui';
+
+// key 由业务组合应用、账号、资源、回复对象；undefined 则不保存。
+const { text: comment, restored, clear, prepareSubmission } = useMarkdownDraft({
+  key: () => draftKey.value,
+  initialValue: '@示例用户 ',
+});
+<XMarkdownEditor v-model="comment" />
+// restored / clear 可由业务在编辑器外展示恢复状态和丢弃入口。
+
+// 请求前捕获快照，只在成功后完成；失败时保留草稿。
+const finish = prepareSubmission();
+await publishComment(comment.value);
+finish(); // 不清除请求期间的新输入；返回是否清空当前正文`;
 </script>
 
 <template>
@@ -80,6 +110,38 @@ const markdown = createMarkdown().disable(['image']);
       </p>
     </section>
     <section class="space-y-3 border-t border-divider pt-6">
+      <h2 class="font-medium">可选的本地文本草稿</h2>
+      <p class="text-sm text-muted">
+        由业务独立调用 useMarkdownDraft，并将返回的 text 通过 v-model
+        绑定编辑器。输入后切换场景或刷新页面会恢复，初始提及不会自动保存。
+        草稿只保存在当前站点的浏览器，不会上传服务器；恢复状态和丢弃入口均由业务按需提供。
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <XButton
+          v-for="target in ['one', 'two']"
+          :key="target"
+          color="neutral"
+          :variant="draftTarget === target ? 'solid' : 'outline'"
+          size="sm"
+          @click="draftTarget = target"
+        >
+          场景 {{ target }}
+        </XButton>
+        <XButton
+          color="neutral"
+          variant="outline"
+          size="sm"
+          @click="clearDraft()"
+        >
+          丢弃当前草稿
+        </XButton>
+      </div>
+      <p v-if="draftRestored" role="status" class="text-sm text-muted">
+        已恢复当前场景的本地草稿
+      </p>
+      <XMarkdownEditor v-model="draftSource" :rows="3" aria-label="草稿示例" />
+    </section>
+    <section class="space-y-3 border-t border-divider pt-6">
       <h2 class="font-medium">禁用、只读和固定高度</h2>
       <div class="grid gap-4 md:grid-cols-2">
         <XMarkdownEditor
@@ -134,6 +196,20 @@ const markdown = createMarkdown().disable(['image']);
         root、toolbar、tabs、tab、tools、tool、textarea、preview。组件引用提供
         textarea、focus、blur
         和两种插入方法。支持的浏览器优先使用原生编辑命令保留撤销；格式按钮在不支持时退回选区替换，粘贴转换则退回原生粘贴。
+      </p>
+      <p class="mt-3 text-sm leading-6 text-muted">
+        useMarkdownDraft 独立管理 localStorage 文本草稿，编辑器仅通过 v-model
+        绑定返回的 text。key 为 undefined 时不读写草稿存储；切换 key
+        会恢复对应正文，无稿时使用 initialValue（默认空串）。maxAge
+        单位为毫秒，默认不过期，本站最多保留 20 份草稿。组合式函数还返回
+        restored、clear 和
+        prepareSubmission；业务可在编辑器外按需展示恢复状态、丢弃草稿。
+        prepareSubmission 返回仅在请求成功后调用的清理回调，
+        返回是否安全清空当前正文。业务应在 key
+        中包含账号以隔离不同用户的草稿；退出账号不会自动删除已保存的草稿。
+        存储不可用时仅保留内存副本；草稿整表保存在一个存储项中，通过 storage
+        事件同步，不覆盖正在编辑的正文。草稿尽力保存；跨标签页同时保存可能互相覆盖，不保证并发一致性。
+        多字段帖子表单应自行管理整体草稿，不要同时开启独立的正文草稿。
       </p>
     </section>
   </ComponentPage>

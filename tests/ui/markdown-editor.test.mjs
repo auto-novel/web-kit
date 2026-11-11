@@ -4,6 +4,7 @@ import * as Vue from 'vue';
 
 import * as styleClasses from '../../src/ui/classes.ts';
 import * as editing from '../../src/ui/markdown/editing.ts';
+import * as draft from '../../src/ui/markdown/draft.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import {
   classes,
@@ -158,6 +159,101 @@ const settle = async () => {
   await Vue.nextTick();
 };
 
+function draftStorage(t) {
+  const values = new Map();
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: {
+      localStorage: {
+        getItem: (key) => values.get(key) ?? null,
+        setItem: (key, value) => values.set(key, value),
+        removeItem: (key) => values.delete(key),
+      },
+    },
+  });
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'window', previous);
+    else delete globalThis.window;
+  });
+  return () => JSON.parse(values.get('web-kit:markdown-drafts:v1') ?? '{}');
+}
+
+async function input(view, text) {
+  view.textarea.value = text;
+  dispatch(view.textarea, 'input');
+  await settle();
+}
+
+test('父组件独立管理草稿，通过编辑器模型恢复、输入、切换场景和清空', async (t) => {
+  const records = draftStorage(t);
+  const scene = Vue.ref('one');
+  const mountDraft = () => {
+    const { createApp, mount: mountApp } = createTestRenderer(t);
+    let state;
+    let editor;
+    const app = createApp({
+      setup() {
+        state = draft.useMarkdownDraft({
+          key: () => `comment:${scene.value}`,
+          initialValue: () => `@${scene.value} `,
+        });
+        const editorRef = Vue.ref();
+        Vue.onMounted(() => {
+          editor = editorRef.value;
+        });
+        return () =>
+          Vue.h(XMarkdownEditor, {
+            ref: editorRef,
+            modelValue: state.text.value,
+            'onUpdate:modelValue': (value) => {
+              state.text.value = value;
+            },
+          });
+      },
+    });
+    const { root, unmount } = mountApp(app);
+    const all = (node) => [node, ...node.children.flatMap(all)];
+    return {
+      state,
+      editor,
+      textarea: all(root).find((node) => node.tag === 'textarea'),
+      unmount,
+    };
+  };
+
+  const first = mountDraft();
+  assert.equal(first.textarea.value, '@one ');
+  assert.equal(first.state.restored.value, false);
+  assert.deepEqual(records(), {});
+  await input(first, '场景一正文');
+  assert.equal(first.state.text.value, '场景一正文');
+  first.unmount();
+
+  const reopened = mountDraft();
+  assert.equal(reopened.textarea.value, '场景一正文');
+  assert.equal(reopened.state.restored.value, true);
+  assert.equal(reopened.editor.clearDraft, undefined);
+  assert.equal(reopened.editor.draftRestored, undefined);
+  assert.equal(reopened.editor.prepareDraftSubmission, undefined);
+  scene.value = 'two';
+  await settle();
+  assert.equal(reopened.textarea.value, '@two ');
+  assert.equal(reopened.state.restored.value, false);
+  await input(reopened, '场景二正文');
+  scene.value = 'one';
+  await settle();
+  assert.equal(reopened.textarea.value, '场景一正文');
+  assert.equal(reopened.state.restored.value, true);
+  reopened.state.clear();
+  await settle();
+  assert.equal(reopened.textarea.value, '');
+  assert.equal(reopened.state.text.value, '');
+  assert.equal(reopened.state.restored.value, false);
+  assert.equal(records()['comment:one'], undefined);
+  assert.equal(records()['comment:two'].text, '场景二正文');
+});
+
 test('原生属性/监听器传给 textarea，布局和部位样式不串位', async (t) => {
   const focused = [];
   const attrs = {
@@ -209,18 +305,27 @@ test('原生属性/监听器传给 textarea，布局和部位样式不串位', a
 
 test('空内容预览显示提示，关闭 preview 返回编辑，空 tools 不渲染工具栏', async (t) => {
   const view = mount(t, { modelValue: '  \n', tools: [] });
-  assert.equal(view.find((node) => node.props.role === 'group'), undefined);
+  assert.equal(
+    view.find((node) => node.props.role === 'group'),
+    undefined,
+  );
   dispatch(view.tab('预览'), 'click');
   await Vue.nextTick();
   assert.equal(view.find((node) => node.tag === 'p').text, '没有可预览的内容');
-  assert.equal(view.find((node) => node.tag === 'article'), undefined);
+  assert.equal(
+    view.find((node) => node.tag === 'article'),
+    undefined,
+  );
   assert.equal(view.textarea.parent.props.hidden, true);
 
   view.props.preview = false;
   await settle();
   assert.ok(view.tab('编辑'));
   assert.equal(view.tab('预览'), undefined);
-  assert.equal(view.find((node) => node.tag === 'p'), undefined);
+  assert.equal(
+    view.find((node) => node.tag === 'p'),
+    undefined,
+  );
   assert.equal(view.textarea.parent.props.hidden, false);
 });
 

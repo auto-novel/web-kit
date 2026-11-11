@@ -1,4 +1,6 @@
 export { createMarkdown, renderMarkdown } from './render';
+export { useMarkdownDraft } from './draft';
+export type { MarkdownDraftOptions } from './draft';
 export type { MarkdownParser } from './render';
 export { default as XMarkdownContent } from './XMarkdownContent.vue';
 export { default as XMarkdownHelpDialog } from './XMarkdownHelpDialog.vue';

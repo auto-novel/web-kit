@@ -52,8 +52,10 @@ export {
   XMarkdownEditorToolButton,
   createMarkdown,
   renderMarkdown,
+  useMarkdownDraft,
 } from './markdown';
 export type {
+  MarkdownDraftOptions,
   MarkdownParser,
   XMarkdownContentProps,
   XMarkdownEditorActions,
