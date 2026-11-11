@@ -113,7 +113,7 @@ export type {
   XSliderTone,
   XSliderUi,
 } from './slider/types';
-export type { XSwitchProps, XSwitchUi } from './switch/types';
+export type { XSwitchProps, XSwitchSize, XSwitchUi } from './switch/types';
 export type { XDrawerProps, XDrawerUi } from './drawer/types';
 export type { XDropZoneProps, XDropZoneUi } from './drop-zone/types';
 export type {

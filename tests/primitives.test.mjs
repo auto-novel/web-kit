@@ -110,7 +110,7 @@ test('Switch merges root ui before class and exposes independent thumb styles', 
   const rootClasses = root.match(/class="([^"]*)"/)[1].split(/\s+/);
   assert.ok(rootClasses.includes('w-14'));
   assert.ok(rootClasses.includes('bg-error'));
-  for (const old of ['w-10', 'w-12', 'bg-border', 'bg-primary']) {
+  for (const old of ['w-9', 'w-12', 'bg-border', 'bg-primary']) {
     assert.ok(!rootClasses.includes(old), old);
   }
   assert.match(root, /role="switch"/);
@@ -121,6 +121,44 @@ test('Switch merges root ui before class and exposes independent thumb styles', 
   assert.match(thumb, /size-5/);
   assert.match(thumb, /bg-paper/);
   assert.doesNotMatch(thumb, /size-4|bg-white/);
+});
+
+test('Switch sizes match Nuxt UI dimensions and RTL offsets without leaking size', async () => {
+  const Switch = await component('switch/XSwitch');
+  for (const [size, height, width, thumbSize] of [
+    [undefined, 5, 9, 4],
+    ['xs', 4, 7, 3],
+    ['sm', 4.5, 8, 3.5],
+    ['md', 5, 9, 4],
+    ['lg', 5.5, 10, 4.5],
+    ['xl', 6, 11, 5],
+  ]) {
+    for (const modelValue of [false, true]) {
+      const html = await renderToString(h(Switch, { size, modelValue }));
+      const document = new JSDOM(html).window.document;
+      const root = document.querySelector('[role="switch"]');
+      const thumb = root.querySelector('span');
+      assert.ok(root.classList.contains(`h-${height}`));
+      assert.ok(root.classList.contains(`w-${width}`));
+      assert.ok(thumb.classList.contains(`size-${thumbSize}`));
+      assert.ok(
+        thumb.classList.contains(
+          `data-[state=checked]:translate-x-${thumbSize}`,
+        ),
+      );
+      assert.ok(
+        thumb.classList.contains(
+          `rtl:data-[state=checked]:-translate-x-${thumbSize}`,
+        ),
+      );
+      assert.equal(root.getAttribute('aria-checked'), String(modelValue));
+      assert.equal(
+        thumb.getAttribute('data-state'),
+        modelValue ? 'checked' : 'unchecked',
+      );
+      assert.equal(root.hasAttribute('size'), false);
+    }
+  }
 });
 
 test('ScrollArea renders a focusable viewport, content slot and caller dimensions', async () => {

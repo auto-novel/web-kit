@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { XSwitch } from '@novelia/web-kit';
+import { XSwitch, type XSwitchSize } from '@novelia/web-kit';
 import { ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
+const sizes: XSwitchSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 const enabled = ref(false);
 const changeCount = ref(0);
 const code = `<XSwitch
@@ -53,11 +54,29 @@ function onChange() {
       </p>
     </section>
     <section class="border-t border-divider pt-6">
+      <h2 class="mb-3 font-medium">尺寸</h2>
+      <div class="flex flex-wrap items-center gap-6">
+        <label
+          v-for="size in sizes"
+          :key="size"
+          class="flex items-center gap-3 text-sm text-muted"
+        >
+          <XSwitch
+            v-model="enabled"
+            :size="size"
+            :aria-label="`${size} 尺寸`"
+          />
+          {{ size }}
+        </label>
+      </div>
+    </section>
+    <section class="border-t border-divider pt-6">
       <h2 class="mb-3 font-medium">接口与交互</h2>
       <p class="text-sm leading-6 text-muted">
-        v-model 默认为 false；disabled 禁用交互，required 标记必选，name 和
-        value 设置表单字段名与选中时提交的值，不改变布尔模型。使用 label 或
-        aria-label 为开关命名。update:modelValue 携带最新布尔值。
+        size 支持 xs / sm / md / lg / xl，尺寸对齐 Nuxt UI，默认 md；v-model
+        默认为 false；disabled 禁用交互，required 标记必选，name 和 value
+        设置表单字段名与选中时提交的值，不改变布尔模型。使用 label 或 aria-label
+        为开关命名。update:modelValue 携带最新布尔值。
       </p>
     </section>
   </ComponentPage>
