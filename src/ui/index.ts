@@ -3,6 +3,7 @@ export { default as XPageHeader } from './page/XPageHeader.vue';
 export type { XPageHeaderProps, XPageProps, XPageUi } from './page/types';
 export { mergeClasses } from './classes';
 export type { XClassValue, XUi } from './classes';
+export type { XColor, XSize, XVariant } from './types';
 export { default as XError } from './error/XError.vue';
 export type { XErrorProps, XErrorUi } from './error/types';
 export { default as XSkeleton } from './skeleton/XSkeleton.vue';
@@ -26,14 +27,9 @@ export { default as XDateRangePicker } from './date-range-picker/XDateRangePicke
 export type {
   XTextareaProps,
   XTextareaUi,
-  XTextareaSize,
   XTextareaAutosize,
 } from './textarea/types';
-export type {
-  XNumberInputProps,
-  XNumberInputUi,
-  XNumberInputSize,
-} from './number-input/types';
+export type { XNumberInputProps, XNumberInputUi } from './number-input/types';
 export type {
   XDateRange,
   XDateRangePickerProps,
@@ -64,12 +60,7 @@ export type {
   XMarkdownEditorToolButtonProps,
   XMarkdownEditorUi,
 } from './markdown';
-export type {
-  XInputProps,
-  XInputSize,
-  XInputType,
-  XInputUi,
-} from './input/types';
+export type { XInputProps, XInputType, XInputUi } from './input/types';
 export { default as XScrollArea } from './scroll-area/XScrollArea.vue';
 export { default as XSeparator } from './separator/XSeparator.vue';
 export { default as XTabs } from './tabs/XTabs.vue';
@@ -109,11 +100,10 @@ export type {
   XSliderMarks,
   XSliderOrientation,
   XSliderProps,
-  XSliderSize,
   XSliderTone,
   XSliderUi,
 } from './slider/types';
-export type { XSwitchProps, XSwitchSize, XSwitchUi } from './switch/types';
+export type { XSwitchProps, XSwitchUi } from './switch/types';
 export type { XDrawerProps, XDrawerUi } from './drawer/types';
 export type { XDropZoneProps, XDropZoneUi } from './drop-zone/types';
 export type {
@@ -124,11 +114,6 @@ export type {
 } from './dialog/types';
 export type { XPaginationProps, XPaginationUi } from './pagination/types';
 export type { XTimePreset, XTimeProps, XTimeValue } from './time/time';
-export type {
-  XButtonColor,
-  XButtonProps,
-  XButtonSize,
-  XButtonVariant,
-} from './button/types';
+export type { XButtonProps, XButtonSize } from './button/types';
 export type { XSelectOption, XSelectProps, XSelectUi } from './select/types';
 export type { XTooltipProps, XTooltipUi } from './tooltip/types';

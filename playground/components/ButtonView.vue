@@ -3,16 +3,16 @@ import { AddOutlined } from '@vicons/material';
 import {
   Toast,
   XButton,
-  type XButtonColor,
+  type XColor,
   type XButtonSize,
-  type XButtonVariant,
+  type XVariant,
 } from '@novelia/web-kit';
 
 import ComponentPage from './ComponentPage.vue';
 
-const colors: XButtonColor[] = ['primary', 'neutral', 'danger', 'warning'];
-const variants: XButtonVariant[] = ['solid', 'soft', 'outline', 'ghost'];
-const sizes: XButtonSize[] = ['md', 'sm', 'xs', 'tiny'];
+const colors: XColor[] = ['primary', 'neutral', 'danger', 'warning'];
+const variants: XVariant[] = ['solid', 'soft', 'outline', 'ghost'];
+const sizes: XButtonSize[] = ['xs', 'sm', 'md', 'lg', 'xl', 'tiny'];
 const iconSizes: XButtonSize[] = ['icon', 'icon-sm', 'icon-xs'];
 const code = `<XButton>主要操作</XButton>
 <XButton color="neutral" variant="outline">取消</XButton>
@@ -96,7 +96,8 @@ async function save() {
     <section aria-labelledby="button-sizes">
       <h2 id="button-sizes" class="mb-2 font-medium">尺寸</h2>
       <p class="mb-4 text-sm leading-6 text-muted">
-        文字按钮由默认尺寸逐级收紧；纯图标按钮需提供可访问名称。
+        文字按钮支持 xs / sm / md / lg / xl 五档及 tiny
+        紧凑尺寸；纯图标按钮需提供可访问名称。
       </p>
       <div class="grid gap-4 lg:grid-cols-2">
         <div class="rounded-sm border border-border bg-surface p-4">

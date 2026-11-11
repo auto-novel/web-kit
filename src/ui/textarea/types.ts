@@ -1,7 +1,6 @@
 import type { XUi } from '../classes';
-import type { XInputSize } from '../input/types';
+import type { XSize } from '../types';
 
-export type XTextareaSize = XInputSize;
 export type XTextareaUi = XUi<'root' | 'textarea' | 'count'>;
 export interface XTextareaAutosize {
   minRows?: number;
@@ -17,6 +16,6 @@ export interface XTextareaProps {
   disabled?: boolean;
   readonly?: boolean;
   invalid?: boolean;
-  size?: XTextareaSize;
+  size?: XSize;
   ui?: XTextareaUi;
 }

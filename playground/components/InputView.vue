@@ -66,9 +66,11 @@ const code = `<XInput
     <section class="border-t border-divider pt-6">
       <h2 class="mb-3 font-medium">尺寸与状态</h2>
       <div class="grid max-w-2xl gap-3 sm:grid-cols-2">
+        <XInput size="xs" placeholder="超小尺寸 xs" aria-label="超小尺寸" />
         <XInput size="sm" placeholder="小尺寸 sm" aria-label="小尺寸" />
         <XInput size="md" placeholder="默认尺寸 md" aria-label="默认尺寸" />
         <XInput size="lg" placeholder="大尺寸 lg" aria-label="大尺寸" />
+        <XInput size="xl" placeholder="超大尺寸 xl" aria-label="超大尺寸" />
         <div>
           <XInput
             invalid

@@ -8,9 +8,11 @@ export const fieldVariants = tv({
   base: 'flex w-full min-w-0 items-center gap-2 rounded-sm border bg-transparent text-ink transition-colors',
   variants: {
     size: {
+      xs: 'min-h-8 px-2 text-xs',
       sm: 'min-h-9 px-2.5 text-sm',
       md: 'min-h-10 px-3 text-sm',
       lg: 'min-h-11 px-3.5 text-base',
+      xl: 'min-h-12 px-4 text-base',
     },
     invalid: {
       true: 'border-error focus-within:ring-2 focus-within:ring-error/15',

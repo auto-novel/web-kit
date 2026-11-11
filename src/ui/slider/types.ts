@@ -1,8 +1,7 @@
 import type { XUi } from '../classes';
+import type { XSize } from '../types';
 
 export type XSliderOrientation = 'horizontal' | 'vertical';
-
-export type XSliderSize = 'sm' | 'md' | 'lg';
 
 export type XSliderTone = 'primary' | 'danger' | 'muted';
 
@@ -34,7 +33,7 @@ export interface XSliderProps {
   inverted?: boolean;
   /** 文本方向；通常由页面继承，仅在需要强制镜像时传入。 */
   dir?: 'ltr' | 'rtl';
-  size?: XSliderSize;
+  size?: XSize;
   tone?: XSliderTone;
   /** 数值气泡：true 悬停或聚焦时显示，'always' 常显。 */
   tooltip?: boolean | 'always';

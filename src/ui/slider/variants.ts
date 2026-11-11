@@ -14,9 +14,11 @@ export const sliderVariants = tv({
   },
   variants: {
     size: {
+      xs: { thumb: 'size-2.5' },
       sm: { thumb: 'size-3' },
       md: { thumb: 'size-4' },
       lg: { thumb: 'size-5' },
+      xl: { thumb: 'size-6' },
     },
     tone: {
       primary: {
@@ -51,12 +53,20 @@ export const sliderVariants = tv({
     hasMarkLabels: { true: {}, false: {} },
   },
   compoundVariants: [
+    { orientation: 'horizontal', size: 'xs', class: { track: 'h-px' } },
     { orientation: 'horizontal', size: 'sm', class: { track: 'h-0.5' } },
     { orientation: 'horizontal', size: 'md', class: { track: 'h-1' } },
     { orientation: 'horizontal', size: 'lg', class: { track: 'h-1.5' } },
+    { orientation: 'horizontal', size: 'xl', class: { track: 'h-2' } },
+    { orientation: 'vertical', size: 'xs', class: { track: 'w-px' } },
     { orientation: 'vertical', size: 'sm', class: { track: 'w-0.5' } },
     { orientation: 'vertical', size: 'md', class: { track: 'w-1' } },
     { orientation: 'vertical', size: 'lg', class: { track: 'w-1.5' } },
+    {
+      orientation: 'vertical',
+      size: 'xl',
+      class: { root: 'w-6', track: 'w-2' },
+    },
     {
       orientation: 'horizontal',
       hasMarkLabels: true,

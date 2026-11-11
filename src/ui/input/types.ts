@@ -1,8 +1,8 @@
 import type { Component } from 'vue';
 
 import type { XUi } from '../classes';
+import type { XSize } from '../types';
 
-export type XInputSize = 'sm' | 'md' | 'lg';
 export type XInputType =
   'text' | 'password' | 'email' | 'search' | 'tel' | 'url';
 export type XInputUi = XUi<
@@ -13,7 +13,7 @@ export interface XInputProps {
   /** 始终绑定字符串，不做数字或空值转换。 */
   modelValue?: string;
   type?: XInputType;
-  size?: XInputSize;
+  size?: XSize;
   disabled?: boolean;
   readonly?: boolean;
   clearable?: boolean;

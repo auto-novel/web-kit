@@ -27,6 +27,8 @@ export const buttonVariants = tv({
       md: 'min-h-10 px-4 text-sm font-medium',
       sm: 'min-h-9 px-3 text-sm font-medium',
       xs: 'min-h-8 px-2 text-xs font-semibold',
+      lg: 'min-h-11 px-5 text-base font-medium',
+      xl: 'min-h-12 px-6 text-base font-medium',
       tiny: 'h-6 px-1.5 text-xs font-normal',
       icon: 'size-9',
       'icon-sm': 'size-8',

@@ -178,6 +178,10 @@ function onChange(value: number) {
       </p>
       <div class="grid max-w-md gap-5">
         <label class="flex flex-col gap-2 text-xs text-muted">
+          xs
+          <XSlider v-model="zoom" size="xs" aria-label="超小尺寸" />
+        </label>
+        <label class="flex flex-col gap-2 text-xs text-muted">
           sm
           <XSlider v-model="zoom" size="sm" aria-label="小尺寸" />
         </label>
@@ -190,8 +194,8 @@ function onChange(value: number) {
           <XSlider v-model="zoom" size="lg" tone="danger" aria-label="大尺寸" />
         </label>
         <label class="flex flex-col gap-2 text-xs text-muted">
-          muted
-          <XSlider v-model="zoom" tone="muted" aria-label="低强调" />
+          xl · muted
+          <XSlider v-model="zoom" size="xl" tone="muted" aria-label="超大尺寸" />
         </label>
       </div>
     </section>

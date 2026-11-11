@@ -93,7 +93,7 @@ const code = `<XAutoComplete
         :filter="false" 配合 @search 更新候选。 @select 返回候选对象并把焦点交回
         输入框，@clear 通知清空。候选为空且未输入时不展示弹层，输入后无匹配展示
         emptyText（自定义 empty 插槽时仍会展示）。支持
-        sm/md/lg、invalid、readonly、disabled； prefix、suffix、option 和 empty
+        xs/sm/md/lg/xl、invalid、readonly、disabled； prefix、suffix、option 和 empty
         插槽可自定义内容。class/style 用于外层，原生属性及事件交给 input； ui
         可覆盖输入框与弹层各部位。组件引用提供 input、focus、blur、select。
       </p>

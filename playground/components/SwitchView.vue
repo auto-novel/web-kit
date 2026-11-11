@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { XSwitch, type XSwitchSize } from '@novelia/web-kit';
+import { XSwitch, type XSize } from '@novelia/web-kit';
 import { ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
-const sizes: XSwitchSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
+const sizes: XSize[] = ['xs', 'sm', 'md', 'lg', 'xl'];
 const enabled = ref(false);
 const changeCount = ref(0);
 const code = `<XSwitch

@@ -1,7 +1,6 @@
 import type { XUi } from '../classes';
-import type { XInputSize } from '../input/types';
+import type { XSize } from '../types';
 
-export type XNumberInputSize = XInputSize;
 export type XNumberInputUi = XUi<'root' | 'input'>;
 
 export interface XNumberInputProps {
@@ -16,6 +15,6 @@ export interface XNumberInputProps {
   disabled?: boolean;
   readonly?: boolean;
   invalid?: boolean;
-  size?: XNumberInputSize;
+  size?: XSize;
   ui?: XNumberInputUi;
 }
