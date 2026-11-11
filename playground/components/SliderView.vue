@@ -75,7 +75,8 @@ function onChange(value: number) {
       </h2>
       <p class="mb-4 text-sm text-muted">
         tooltip 为 true 时悬停或聚焦显示，为 always 时常显；formatValue
-        同时决定气泡文案与 aria-valuetext。
+        同时决定气泡文案与 aria-valuetext。气泡使用浮层定位，拖动时持续显示；
+        tooltipTo 可指定弹窗内、滚动区外的挂载容器，默认挂载到 body。
       </p>
       <div class="grid max-w-md gap-6">
         <label class="flex flex-col gap-2 text-sm text-muted">

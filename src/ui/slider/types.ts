@@ -38,6 +38,8 @@ export interface XSliderProps {
   tone?: XSliderTone;
   /** 数值气泡：true 悬停或聚焦时显示，'always' 常显。 */
   tooltip?: boolean | 'always';
+  /** 气泡挂载目标，默认 body；弹窗内可指定滚动区外的容器。 */
+  tooltipTo?: string | HTMLElement;
   /** 数值转文本，同时用于气泡文案与 aria-valuetext。 */
   formatValue?: (value: number) => string;
   marks?: XSliderMarks;

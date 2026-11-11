@@ -6,9 +6,12 @@ import * as Vue from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { ConfigProvider, useDirection } from 'reka-ui';
 import * as variants from '../../src/ui/slider/variants.ts';
+import * as overlayLayer from '../../src/ui/overlayLayer.ts';
+import { useEventListener } from '@vueuse/core';
+import { createTestRenderer } from '../helpers/test-renderer.mjs';
 
 // Only test wrapper logic; Reka owns keyboard, pointer and rendering behavior.
-async function setup(props, providerDir) {
+async function setup(props, providerDir, renderer) {
   let root;
   const passThrough = {
     setup:
@@ -28,7 +31,33 @@ async function setup(props, providerDir) {
     vue: Vue,
     '../classes': styleClasses,
     './variants': variants,
+    '../overlayLayer': overlayLayer,
+    '@vueuse/core': { useEventListener },
     'reka-ui': {
+      TooltipProvider: passThrough,
+      TooltipTrigger: passThrough,
+      TooltipRoot: {
+        inheritAttrs: false,
+        props: ['open'],
+        setup(props, { slots }) {
+          Vue.provide('tooltip', props);
+          return () => slots.default?.();
+        },
+      },
+      TooltipPortal: {
+        props: ['to'],
+        setup:
+          (props, { slots }) =>
+          () =>
+            Vue.h('div', { 'data-tooltip-to': props.to }, slots.default?.()),
+      },
+      TooltipContent: {
+        setup(_, { attrs, slots }) {
+          const tooltip = Vue.inject('tooltip');
+          return () =>
+            tooltip.open ? Vue.h('aside', attrs, slots.default?.()) : null;
+        },
+      },
       SliderRoot: stub,
       SliderThumb: passThrough,
       SliderTrack: passThrough,
@@ -47,6 +76,12 @@ async function setup(props, providerDir) {
       'onUpdate:modelValue': (value) => events.push(['update', value]),
       onCommit: (value) => events.push(['commit', value]),
     });
+  if (renderer) {
+    const mounted = renderer.mount(
+      renderer.createApp({ render: renderSlider }),
+    );
+    return { ...root, events, ...mounted };
+  }
   const html = await renderToString(
     Vue.createSSRApp({
       render: () =>
@@ -132,7 +167,7 @@ test('snapToMarks 下键盘跳到相邻刻度，回放的 update 不会抵消它
     ['commit', 100],
   ]);
   // 指针拖动仍按最近刻度吸附到 50，与当前值相同，不产生新事件。
-  attrs.onPointerdownCapture();
+  attrs.onPointerdownCapture({ button: 0 });
   emit('update:modelValue', [51]);
   assert.deepEqual(events.at(-1), ['commit', 100]);
 });
@@ -208,4 +243,66 @@ test('刻度文案、常显气泡与 name 生成的表单字段都会渲染', as
     formatValue: (value) => `${value}%`,
   });
   assert.doesNotMatch(plain, />30%</);
+});
+
+test('气泡传递挂载目标、方向和持续定位，移除内联绝对定位', async () => {
+  for (const orientation of ['horizontal', 'vertical']) {
+    const { html } = await setup({
+      modelValue: 0.15,
+      tooltip: 'always',
+      tooltipTo: '#dialog-popups',
+      orientation,
+      formatValue: (value) => `${(value * 100).toFixed(0)}%`,
+    });
+    assert.match(html, /data-tooltip-to="#dialog-popups"/);
+    assert.match(
+      html,
+      new RegExp(`side="${orientation === 'vertical' ? 'left' : 'top'}"`),
+    );
+    assert.match(html, /update-position-strategy="always"/);
+    assert.match(html, /collision-padding="8"/);
+    assert.match(html, />15%</);
+    const tooltipClass = html.match(/<aside[^>]*class="([^"]*)"/)?.[1];
+    assert.ok(tooltipClass);
+    assert.ok(!tooltipClass.split(/\s+/).includes('absolute'));
+  }
+});
+
+test('气泡在悬停、聚焦和拖出边界时显示，结束或取消后清理拖动态', async (t) => {
+  const { attrs, container } = await setup(
+    { modelValue: 20, tooltip: true },
+    undefined,
+    createTestRenderer(t),
+  );
+  function hasTooltip(node = container) {
+    return node.tag === 'aside' || node.children.some(hasTooltip);
+  }
+  assert.equal(hasTooltip(), false);
+  attrs.onPointerenter();
+  await Vue.nextTick();
+  assert.equal(hasTooltip(), true);
+  attrs.onPointerleave();
+  attrs.onFocusin();
+  await Vue.nextTick();
+  assert.equal(hasTooltip(), true);
+  attrs.onFocusout();
+  await Vue.nextTick();
+  assert.equal(hasTooltip(), false);
+
+  for (const end of [
+    'onPointerup',
+    'onPointercancel',
+    'onLostpointercapture',
+  ]) {
+    attrs.onPointerdownCapture({ button: 0 });
+    attrs.onPointerleave();
+    await Vue.nextTick();
+    assert.equal(hasTooltip(), true, end);
+    attrs[end]();
+    await Vue.nextTick();
+    assert.equal(hasTooltip(), false, end);
+  }
+  attrs.onPointerdownCapture({ button: 2 });
+  await Vue.nextTick();
+  assert.equal(hasTooltip(), false);
 });

@@ -4,11 +4,18 @@ import {
   SliderRoot,
   SliderThumb,
   SliderTrack,
+  TooltipContent,
+  TooltipPortal,
+  TooltipProvider,
+  TooltipRoot,
+  TooltipTrigger,
   useDirection,
 } from 'reka-ui';
+import { useEventListener } from '@vueuse/core';
 import { computed, ref, toRef, useAttrs } from 'vue';
 
 import { mergeClasses } from '../classes';
+import { useOverlayLayer } from '../overlayLayer';
 
 import type { XSliderMarks, XSliderProps } from './types';
 import { sliderVariants } from './variants';
@@ -34,6 +41,18 @@ const emit = defineEmits<{ commit: [value: number] }>();
 const attrs = useAttrs();
 const hovered = ref(false);
 const focused = ref(false);
+const dragging = ref(false);
+
+// Reka 已捕获指针，结束/取消事件会冒泡到根节点，无需再监听全局拖动。
+function stopDragging() {
+  dragging.value = false;
+}
+
+useEventListener('blur', () => {
+  stopDragging();
+  hovered.value = false;
+  focused.value = false;
+});
 
 const direction = useDirection(toRef(props, 'dir'));
 const isVertical = computed(() => props.orientation === 'vertical');
@@ -151,8 +170,16 @@ const ariaValueText = computed(() =>
 
 const showTooltip = computed(() => {
   if (props.tooltip === 'always') return true;
-  return props.tooltip === true && (hovered.value || focused.value);
+  return (
+    props.tooltip === true && (hovered.value || focused.value || dragging.value)
+  );
 });
+const { contentStyle } = useOverlayLayer(showTooltip);
+
+function startPointerInput(event: PointerEvent) {
+  markInput(false);
+  if (!props.disabled && event.button === 0) dragging.value = true;
+}
 
 const classes = computed(() =>
   sliderVariants({
@@ -185,7 +212,10 @@ function thumbAttrs() {
     @update:model-value="updateValue"
     @value-commit="commitValue"
     @keydown.capture="markInput(true)"
-    @pointerdown.capture="markInput(false)"
+    @pointerdown.capture="startPointerInput"
+    @pointerup="stopDragging"
+    @pointercancel="stopDragging"
+    @lostpointercapture="stopDragging"
     @pointerenter="hovered = true"
     @pointerleave="hovered = false"
     @focusin="focused = true"
@@ -225,18 +255,33 @@ function thumbAttrs() {
         </span>
       </template>
     </span>
-    <SliderThumb
-      v-bind="thumbAttrs()"
-      :class="mergeClasses(classes.thumb(), ui.thumb)"
-      :aria-valuetext="ariaValueText"
-    >
-      <span
-        v-if="showTooltip"
-        aria-hidden="true"
-        :class="mergeClasses(classes.tooltip(), ui.tooltip)"
+    <TooltipProvider :delay-duration="0">
+      <TooltipRoot
+        :open="showTooltip"
+        disable-closing-trigger
+        disable-hoverable-content
       >
-        {{ displayValue }}
-      </span>
-    </SliderThumb>
+        <TooltipTrigger as-child>
+          <SliderThumb
+            v-bind="thumbAttrs()"
+            :class="mergeClasses(classes.thumb(), ui.thumb)"
+            :aria-valuetext="ariaValueText"
+          />
+        </TooltipTrigger>
+        <TooltipPortal :to="tooltipTo">
+          <TooltipContent
+            :style="contentStyle"
+            :side="isVertical ? 'left' : 'top'"
+            :side-offset="8"
+            :collision-padding="8"
+            update-position-strategy="always"
+            hide-when-detached
+            :class="mergeClasses(classes.tooltip(), ui.tooltip)"
+          >
+            {{ displayValue }}
+          </TooltipContent>
+        </TooltipPortal>
+      </TooltipRoot>
+    </TooltipProvider>
   </SliderRoot>
 </template>

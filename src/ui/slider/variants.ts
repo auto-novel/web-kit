@@ -8,7 +8,7 @@ export const sliderVariants = tv({
     thumb:
       'block rounded-full border-2 bg-surface shadow-sm outline-none transition-shadow focus-visible:ring-4 data-disabled:pointer-events-none motion-reduce:transition-none',
     tooltip:
-      'pointer-events-none absolute z-10 rounded-sm bg-ink px-2 py-1 text-xs font-medium whitespace-nowrap text-surface shadow-sm select-none',
+      'pointer-events-none rounded-sm bg-ink px-2 py-1 text-xs font-medium whitespace-nowrap text-surface shadow-sm select-none',
     markTick: 'absolute bg-border',
     markLabel: 'absolute text-xs whitespace-nowrap text-muted',
   },
@@ -37,7 +37,6 @@ export const sliderVariants = tv({
         root: 'w-full',
         track: 'w-full grow',
         range: 'h-full',
-        tooltip: 'bottom-full left-1/2 mb-2 -translate-x-1/2',
         markTick: 'top-1/2 mt-0.5 h-1 w-px -translate-x-1/2',
         markLabel: 'top-8 -translate-x-1/2',
       },
@@ -45,7 +44,6 @@ export const sliderVariants = tv({
         root: 'h-32 w-5 justify-center',
         track: 'h-full shrink-0',
         range: 'w-full',
-        tooltip: 'top-1/2 right-full mr-2 -translate-y-1/2',
         markTick: 'left-1/2 ml-0.5 h-px w-1 -translate-y-1/2',
         markLabel: 'left-1/2 ml-2 -translate-y-1/2',
       },
