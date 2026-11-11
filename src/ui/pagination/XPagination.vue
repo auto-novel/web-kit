@@ -17,9 +17,10 @@ import {
   useAttrs,
   useTemplateRef,
   watch,
+  type PropType,
 } from 'vue';
 
-import XButton from '../button/XButton.vue';
+import UButton from '@nuxt/ui/components/Button.vue';
 import { mergeClasses } from '../classes';
 import {
   hasPaginationOverlay,
@@ -31,7 +32,18 @@ import type { XPaginationProps } from './types';
 
 defineOptions({ inheritAttrs: false });
 
-const props = withDefaults(defineProps<XPaginationProps>(), { ui: () => ({}) });
+const props = defineProps({
+  page: { type: Number, required: true },
+  totalPages: { type: Number, required: true },
+  // HTMLElement 的类型宏推导不会生成 Object，显式声明以支持容器级快捷键。
+  keyboard: {
+    type: [Boolean, String, Object] as PropType<XPaginationProps['keyboard']>,
+  },
+  ui: {
+    type: Object as PropType<NonNullable<XPaginationProps['ui']>>,
+    default: () => ({}),
+  },
+});
 
 const emit = defineEmits<{
   'update:page': [page: number];
@@ -85,7 +97,8 @@ function rootAttrs() {
   return result;
 }
 
-const navButtonClass = 'w-8 px-0 text-ink hover:text-primary sm:w-auto sm:px-3';
+const navButtonClass =
+  'w-8 shrink-0 justify-center px-0 text-ink hover:text-primary sm:w-auto sm:px-3';
 const pageItemClass =
   'text-xs font-medium text-ink hover:text-primary data-selected:bg-primary-soft data-selected:text-primary-text data-selected:hover:bg-primary-soft-hover data-selected:hover:text-primary';
 
@@ -194,7 +207,7 @@ watch(
     @update:page="$emit('update:page', $event)"
   >
     <PaginationPrev as-child>
-      <XButton
+      <UButton
         color="neutral"
         variant="ghost"
         size="sm"
@@ -206,7 +219,7 @@ watch(
           aria-hidden="true"
         />
         <span class="hidden sm:inline">上一页</span>
-      </XButton>
+      </UButton>
     </PaginationPrev>
 
     <PaginationList
@@ -219,14 +232,16 @@ watch(
           :value="item.value"
           as-child
         >
-          <XButton
+          <UButton
             color="neutral"
             variant="ghost"
-            size="icon-sm"
+            size="sm"
+            square
+            class="size-8 min-h-0 shrink-0 justify-center p-0"
             :class="mergeClasses(pageItemClass, ui.item)"
           >
             {{ item.value }}
-          </XButton>
+          </UButton>
         </PaginationListItem>
         <PageJump
           v-else
@@ -240,22 +255,24 @@ watch(
           }"
           @change="$emit('update:page', $event)"
         >
-          <XButton
+          <UButton
             color="neutral"
             variant="ghost"
-            size="icon-sm"
+            size="sm"
+            square
+            class="size-8 min-h-0 shrink-0 justify-center p-0"
             :class="mergeClasses('text-xs text-muted', ui.ellipsis)"
             aria-label="跳转到指定页"
             title="跳转到指定页"
           >
             …
-          </XButton>
+          </UButton>
         </PageJump>
       </template>
     </PaginationList>
 
     <PaginationNext as-child>
-      <XButton
+      <UButton
         color="neutral"
         variant="ghost"
         size="sm"
@@ -267,7 +284,7 @@ watch(
           aria-hidden="true"
         />
         <span class="hidden sm:inline">下一页</span>
-      </XButton>
+      </UButton>
     </PaginationNext>
   </PaginationRoot>
 </template>

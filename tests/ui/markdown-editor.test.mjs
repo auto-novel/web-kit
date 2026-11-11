@@ -1,339 +1,189 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as Vue from 'vue';
+import { dom } from '../helpers/dom.mjs';
 
-import * as styleClasses from '../../src/ui/classes.ts';
-import * as editing from '../../src/ui/markdown/editing.ts';
-import * as draft from '../../src/ui/markdown/draft.ts';
-import { compileComponent } from '../helpers/compile-component.mjs';
-import {
-  classes,
-  createTestRenderer,
-  dispatch,
-} from '../helpers/test-renderer.mjs';
-
-// Tabs/Button 的交互由各自测试负责；这里只保留编辑器所需的模型和原生按钮。
-const tabContext = Symbol('tabs');
-const XTabs = {
-  props: ['modelValue'],
-  emits: ['update:modelValue'],
-  setup(props, { emit, slots }) {
-    Vue.provide(tabContext, {
-      value: () => props.modelValue,
-      select: (value) => emit('update:modelValue', value),
-    });
-    return () => Vue.h('div', slots.default?.());
-  },
-};
-const XTabsTrigger = {
-  props: ['value'],
-  setup(props, { slots }) {
-    const tabs = Vue.inject(tabContext);
-    return () =>
-      Vue.h(
-        'button',
-        { onClick: () => tabs.select(props.value) },
-        slots.default?.(),
-      );
-  },
-};
-const XTabsContent = {
-  props: { value: String, forceMount: Boolean },
-  setup(props, { slots }) {
-    const tabs = Vue.inject(tabContext);
-    return () =>
-      props.forceMount || tabs.value() === props.value
-        ? Vue.h(
-            'section',
-            { hidden: tabs.value() !== props.value },
-            slots.default?.(),
-          )
-        : null;
-  },
-};
-const XButton = {
-  props: ['variant', 'size'],
-  setup:
-    (_, { slots }) =>
-    () =>
-      Vue.h('button', { type: 'button' }, slots.default?.()),
-};
-const XMarkdownEditorToolButton = compileComponent(
-  new URL(
-    '../../src/ui/markdown/XMarkdownEditorToolButton.vue',
-    import.meta.url,
-  ),
-  {
-    vue: Vue,
-    '../classes': styleClasses,
-    '../button/XButton.vue': XButton,
-    '../tooltip/XTooltip.vue': {
-      setup:
-        (_, { slots }) =>
-        () =>
-          slots.trigger?.(),
-    },
-  },
+const Vue = await import('vue');
+const draft = await import('../../src/ui/markdown/draft.ts');
+const { createComponentServer, installTestRouter } =
+  await import('../helpers/component-server.mjs');
+const server = await createComponentServer({ dom: true });
+const { default: UApp } = await server.ssrLoadModule(
+  '@nuxt/ui/components/App.vue',
 );
-const XMarkdownEditor = compileComponent(
-  new URL('../../src/ui/markdown/XMarkdownEditor.vue', import.meta.url),
-  {
-    vue: Vue,
-    '../classes': styleClasses,
-    './XMarkdownEditorToolButton.vue': XMarkdownEditorToolButton,
-    './XMarkdownContent.vue': {
-      props: ['source', 'markdown'],
-      setup: (props) => () =>
-        Vue.h('article', { markdown: props.markdown }, props.source),
-    },
-    '@vicons/material': {
-      LinkOutlined: () => Vue.h('svg', { 'data-icon': 'link' }),
-      StarBorderOutlined: () => Vue.h('svg', { 'data-icon': 'star' }),
-      UnfoldMoreOutlined: () => Vue.h('svg', { 'data-icon': 'details' }),
-      VisibilityOffOutlined: () => Vue.h('svg', { 'data-icon': 'spoiler' }),
-    },
-    '../tabs/XTabs.vue': XTabs,
-    '../tabs/XTabsList.vue': {
-      setup:
-        (_, { slots }) =>
-        () =>
-          Vue.h('nav', slots.default?.()),
-    },
-    '../tabs/XTabsTrigger.vue': XTabsTrigger,
-    '../tabs/XTabsContent.vue': XTabsContent,
-    './editing': editing,
-  },
+const { default: Editor } = await server.ssrLoadModule(
+  '/src/ui/markdown/XMarkdownEditor.vue',
 );
 
+async function settle() {
+  await Vue.nextTick();
+  await Vue.nextTick();
+  await Vue.nextTick();
+}
 function mount(t, initial = {}, slots = {}) {
-  const { document, createApp, mount: mountApp } = createTestRenderer(t);
+  const host = document.createElement('div');
+  document.body.append(host);
   const props = Vue.reactive({ ...initial });
   const events = [];
   const editor = Vue.ref();
-  const app = createApp({
+  const app = Vue.createApp({
     render: () =>
-      Vue.h(
-        XMarkdownEditor,
-        {
-          ...props,
-          ref: editor,
-          'onUpdate:modelValue': (value) => {
-            events.push(value);
-            props.modelValue = value;
+      Vue.h(UApp, { toaster: null }, () =>
+        Vue.h(
+          Editor,
+          {
+            ...props,
+            ref: editor,
+            'onUpdate:modelValue': (value) => {
+              props.modelValue = value;
+              events.push(value);
+            },
           },
-        },
-        slots,
+          slots,
+        ),
       ),
   });
-  const { root, unmount } = mountApp(app);
-  const all = (node = root) => [
-    node,
-    ...node.children.flatMap((child) => all(child)),
-  ];
-  const find = (predicate) => all().find(predicate);
+  installTestRouter(app);
+  app.mount(host);
+  let mounted = true;
+  const unmount = () => {
+    if (!mounted) return;
+    mounted = false;
+    app.unmount();
+    host.remove();
+  };
+  t.after(unmount);
   return {
-    root,
-    textarea: find((node) => node.tag === 'textarea'),
-    tool: (label) =>
-      find(
-        (node) => node.tag === 'button' && node.props['aria-label'] === label,
-      ),
-    tab: (text) =>
-      find(
-        (node) =>
-          node.tag === 'button' &&
-          (node.text?.trim() === text ||
-            node.children.some((child) => child.text?.trim() === text)),
-      ),
-    find,
+    host,
+    root: host.firstElementChild,
     props,
     events,
-    document,
     editor: editor.value,
+    textarea: host.querySelector('textarea'),
     unmount,
+    tool: (label) => host.querySelector(`button[aria-label="${label}"]`),
+    tab: (text) =>
+      [...host.querySelectorAll('[role="tab"]')].find(
+        (node) => node.textContent.trim() === text,
+      ),
   };
 }
-const settle = async () => {
-  await Vue.nextTick();
-  await Vue.nextTick();
-  await Vue.nextTick();
-};
-
-function draftStorage(t) {
-  const values = new Map();
-  const previous = Object.getOwnPropertyDescriptor(globalThis, 'window');
-  Object.defineProperty(globalThis, 'window', {
-    configurable: true,
-    value: {
-      localStorage: {
-        getItem: (key) => values.get(key) ?? null,
-        setItem: (key, value) => values.set(key, value),
-        removeItem: (key) => values.delete(key),
-      },
-    },
+function event(node, type, options = {}) {
+  const value = new dom.window.Event(type, {
+    bubbles: true,
+    cancelable: true,
+    ...options,
   });
-  t.after(() => {
-    if (previous) Object.defineProperty(globalThis, 'window', previous);
-    else delete globalThis.window;
-  });
-  return () => JSON.parse(values.get('web-kit:markdown-drafts:v1') ?? '{}');
+  node.dispatchEvent(value);
+  return value;
 }
-
 async function input(view, text) {
   view.textarea.value = text;
-  dispatch(view.textarea, 'input');
+  event(view.textarea, 'input');
+  await settle();
+}
+async function preview(view) {
+  const tab = view.tab('预览');
+  tab.dispatchEvent(
+    new dom.window.MouseEvent('mousedown', { bubbles: true, button: 0 }),
+  );
+  tab.click();
   await settle();
 }
 
-test('父组件独立管理草稿，通过编辑器模型恢复、输入、切换场景和清空', async (t) => {
-  const records = draftStorage(t);
+test('父组件独立管理草稿，恢复、输入、切换场景和清空保持编辑器模型同步', async (t) => {
+  dom.window.localStorage.clear();
+  // The draft adapter uses the browser localStorage, not Nuxt's state.
+  const values = new Map();
+  const original = Object.getOwnPropertyDescriptor(dom.window, 'localStorage');
+  Object.defineProperty(dom.window, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key) => values.get(key) ?? null,
+      setItem: (key, value) => values.set(key, value),
+      removeItem: (key) => values.delete(key),
+    },
+  });
+  t.after(() => Object.defineProperty(dom.window, 'localStorage', original));
   const scene = Vue.ref('one');
-  const mountDraft = () => {
-    const { createApp, mount: mountApp } = createTestRenderer(t);
-    let state;
-    let editor;
-    const app = createApp({
-      setup() {
-        state = draft.useMarkdownDraft({
-          key: () => `comment:${scene.value}`,
-          initialValue: () => `@${scene.value} `,
-        });
-        const editorRef = Vue.ref();
-        Vue.onMounted(() => {
-          editor = editorRef.value;
-        });
-        return () =>
-          Vue.h(XMarkdownEditor, {
-            ref: editorRef,
+  let state;
+  const host = document.createElement('div');
+  document.body.append(host);
+  const app = Vue.createApp({
+    setup() {
+      state = draft.useMarkdownDraft({
+        key: () => `comment:${scene.value}`,
+        initialValue: () => `@${scene.value} `,
+      });
+      return () =>
+        Vue.h(UApp, { toaster: null }, () =>
+          Vue.h(Editor, {
             modelValue: state.text.value,
-            'onUpdate:modelValue': (value) => {
-              state.text.value = value;
-            },
-          });
-      },
-    });
-    const { root, unmount } = mountApp(app);
-    const all = (node) => [node, ...node.children.flatMap(all)];
-    return {
-      state,
-      editor,
-      textarea: all(root).find((node) => node.tag === 'textarea'),
-      unmount,
-    };
-  };
-
-  const first = mountDraft();
-  assert.equal(first.textarea.value, '@one ');
-  assert.equal(first.state.restored.value, false);
-  assert.deepEqual(records(), {});
-  await input(first, '场景一正文');
-  assert.equal(first.state.text.value, '场景一正文');
-  first.unmount();
-
-  const reopened = mountDraft();
-  assert.equal(reopened.textarea.value, '场景一正文');
-  assert.equal(reopened.state.restored.value, true);
-  assert.equal(reopened.editor.clearDraft, undefined);
-  assert.equal(reopened.editor.draftRestored, undefined);
-  assert.equal(reopened.editor.prepareDraftSubmission, undefined);
+            'onUpdate:modelValue': (value) => (state.text.value = value),
+          }),
+        );
+    },
+  });
+  installTestRouter(app);
+  app.mount(host);
+  t.after(() => {
+    app.unmount();
+    host.remove();
+  });
+  const view = { textarea: host.querySelector('textarea') };
+  assert.equal(view.textarea.value, '@one ');
+  await input(view, '场景一正文');
   scene.value = 'two';
   await settle();
-  assert.equal(reopened.textarea.value, '@two ');
-  assert.equal(reopened.state.restored.value, false);
-  await input(reopened, '场景二正文');
+  assert.equal(view.textarea.value, '@two ');
+  await input(view, '场景二正文');
   scene.value = 'one';
   await settle();
-  assert.equal(reopened.textarea.value, '场景一正文');
-  assert.equal(reopened.state.restored.value, true);
-  reopened.state.clear();
+  assert.equal(view.textarea.value, '场景一正文');
+  assert.equal(state.restored.value, true);
+  state.clear();
   await settle();
-  assert.equal(reopened.textarea.value, '');
-  assert.equal(reopened.state.text.value, '');
-  assert.equal(reopened.state.restored.value, false);
-  assert.equal(records()['comment:one'], undefined);
-  assert.equal(records()['comment:two'].text, '场景二正文');
+  assert.equal(view.textarea.value, '');
+  const records = JSON.parse(values.get('web-kit:markdown-drafts:v1'));
+  assert.equal(records['comment:one'], undefined);
+  assert.equal(records['comment:two'].text, '场景二正文');
 });
 
-test('原生属性/监听器传给 textarea，布局和部位样式不串位', async (t) => {
-  const focused = [];
-  const attrs = {
+test('原生属性和监听器只交给 textarea，invalid 和部位样式响应更新', async (t) => {
+  let focused = 0;
+  const view = mount(t, {
     id: 'body',
     name: 'body',
-    'aria-label': '正文',
     rows: 4,
     maxlength: 80,
-  };
-  const view = mount(t, {
-    ...attrs,
+    'aria-label': '正文',
     'aria-invalid': 'grammar',
     class: 'w-64',
     style: { marginTop: '4px' },
-    sticky: true,
-    stickyOffset: -3,
-    onFocus: (event) => focused.push(event),
-    ui: {
-      root: 'rounded-lg',
-      toolbar: 'bg-red-100',
-      textarea: 'px-8',
-      tool: 'text-red-500',
-    },
+    onFocus: () => focused++,
+    ui: { root: 'rounded-lg', textarea: 'px-8', tool: 'text-red-500' },
   });
-  const { root, textarea, props } = view;
-  assert.deepEqual(root.props.style, { marginTop: '4px' });
-  assert.ok(
-    classes(root).includes('w-64') && classes(root).includes('rounded-lg'),
-  );
-  assert.equal(root.props.id, undefined);
-  for (const [key, value] of Object.entries(attrs))
-    assert.equal(textarea.props[key], value);
-  assert.ok(
-    classes(textarea).includes('px-8') && !classes(textarea).includes('px-3'),
-  );
-  assert.ok(!classes(textarea).includes('w-64'));
-  const toolbar = view.find((node) => classes(node).includes('bg-red-100'));
-  assert.deepEqual(toolbar.props.style, { top: '0px' });
-  assert.ok(classes(view.tool('粗体')).includes('text-red-500'));
-  assert.deepEqual(focused, [dispatch(textarea, 'focus')]);
-  assert.equal(textarea.props['aria-invalid'], 'grammar');
-  props.invalid = true;
-  props.stickyOffset = 24;
-  await Vue.nextTick();
-  assert.equal(textarea.props['aria-invalid'], true);
-  assert.ok(classes(root).includes('border-error'));
-  assert.deepEqual(toolbar.props.style, { top: '24px' });
-});
-
-test('空内容预览显示提示，关闭 preview 返回编辑，空 tools 不渲染工具栏', async (t) => {
-  const view = mount(t, { modelValue: '  \n', tools: [] });
-  assert.equal(
-    view.find((node) => node.props.role === 'group'),
-    undefined,
-  );
-  dispatch(view.tab('预览'), 'click');
-  await Vue.nextTick();
-  assert.equal(view.find((node) => node.tag === 'p').text, '没有可预览的内容');
-  assert.equal(
-    view.find((node) => node.tag === 'article'),
-    undefined,
-  );
-  assert.equal(view.textarea.parent.props.hidden, true);
-
-  view.props.preview = false;
+  assert.equal(view.textarea.id, 'body');
+  assert.equal(view.textarea.name, 'body');
+  assert.equal(view.textarea.rows, 4);
+  assert.equal(view.textarea.maxLength, 80);
+  assert.equal(view.textarea.getAttribute('aria-invalid'), 'grammar');
+  assert.equal(view.root.id, '');
+  assert.ok(view.root.classList.contains('w-64'));
+  assert.ok(view.textarea.classList.contains('px-8'));
+  assert.ok(view.tool('粗体').classList.contains('text-red-500'));
+  view.textarea.focus();
+  assert.equal(focused, 1);
+  view.props.invalid = true;
   await settle();
-  assert.ok(view.tab('编辑'));
-  assert.equal(view.tab('预览'), undefined);
-  assert.equal(
-    view.find((node) => node.tag === 'p'),
-    undefined,
-  );
-  assert.equal(view.textarea.parent.props.hidden, false);
+  assert.equal(view.textarea.getAttribute('aria-invalid'), 'true');
+  assert.ok(view.root.classList.contains('border-error'));
 });
 
-test('内置预览同步源码和解析器，toolbar 获得操作，focus 恢复编辑', async (t) => {
+test('真实 UTabs 预览保留 textarea、更新源码；focus 和关闭 preview 恢复编辑', async (t) => {
   let actions;
   const view = mount(
     t,
-    { modelValue: '原文', tools: [] },
+    { modelValue: '# 原文', tools: [] },
     {
       toolbar: (value) => {
         actions = value;
@@ -342,94 +192,90 @@ test('内置预览同步源码和解析器，toolbar 获得操作，focus 恢复
     },
   );
   assert.equal(actions.wrapSelection, view.editor.wrapSelection);
-  assert.equal(actions.insertBlock, view.editor.insertBlock);
-  const tools = view.find((node) => node.props.role === 'group');
-  dispatch(view.tab('预览'), 'click');
-  await Vue.nextTick();
-  assert.equal(view.find((node) => node.tag === 'article').text, '原文');
-  assert.equal(view.textarea.parent.props.hidden, true);
-  assert.equal(tools.props.inert, true);
-  assert.equal(tools.props['aria-hidden'], true);
-  view.props.modelValue = '更新';
-  await Vue.nextTick();
-  assert.equal(view.find((node) => node.tag === 'article').text, '更新');
-  const markdown = Vue.markRaw({ render: (source) => source });
-  view.props.markdown = markdown;
-  await Vue.nextTick();
+  await preview(view);
+  assert.equal(view.host.querySelector('textarea'), view.textarea);
+  assert.match(view.host.textContent, /原文/);
   assert.equal(
-    view.find((node) => node.tag === 'article').props.markdown,
-    markdown,
+    view.textarea.closest('[role="tabpanel"]').getAttribute('data-state'),
+    'inactive',
   );
-  assert.equal(view.textarea.props.markdown, undefined);
-  assert.equal(view.textarea.props.preview, undefined);
+  const tools = view.host.querySelector('[role="group"]');
+  assert.equal(tools.getAttribute('aria-hidden'), 'true');
+  view.props.modelValue = '# 更新';
+  await settle();
+  assert.match(view.host.textContent, /更新/);
   await view.editor.focus();
-  assert.equal(tools.props.inert, false);
-  assert.equal(tools.props['aria-hidden'], undefined);
-  assert.equal(view.textarea.parent.props.hidden, false);
-  assert.equal(view.document.activeElement, view.textarea);
+  await settle();
+  assert.equal(document.activeElement, view.textarea);
+  assert.equal(
+    view.textarea.closest('[role="tabpanel"]').getAttribute('data-state'),
+    'active',
+  );
   view.editor.blur();
-  assert.equal(view.document.activeElement, null);
+  assert.notEqual(document.activeElement, view.textarea);
+  await preview(view);
+  view.props.preview = false;
+  await settle();
+  assert.equal(view.tab('预览'), undefined);
+  assert.equal(view.textarea.hidden, false);
 });
 
-test('工具阻止 mousedown 丢失选区，但由 click 激活以兼容键盘', async (t) => {
+test('autosize 切回编辑后等待面板可见再测量，预览期间保留高度', async (t) => {
+  const view = mount(t, { modelValue: '正文' });
+  const measurements = [];
+  let contentHeight = 360;
+  Object.defineProperty(view.textarea, 'scrollHeight', {
+    configurable: true,
+    get() {
+      const hidden = !!view.textarea.closest('[hidden]');
+      measurements.push(hidden);
+      return hidden ? 0 : contentHeight;
+    },
+  });
+  await input(view, '较长正文');
+  assert.equal(view.textarea.style.height, '360px');
+
+  await preview(view);
+  contentHeight = 480;
+  view.props.modelValue = '预览期间更新正文';
+  await settle();
+  assert.equal(view.textarea.style.height, '360px');
+
+  const tab = view.tab('编辑');
+  tab.dispatchEvent(
+    new dom.window.MouseEvent('mousedown', { bubbles: true, button: 0 }),
+  );
+  tab.click();
+  // 同一轮更新触发普通 resize，仍隐藏时不应写回零高度。
+  view.props.rows = 8;
+  await settle();
+  assert.equal(view.textarea.style.height, '360px');
+  await new Promise((resolve) => dom.window.requestAnimationFrame(resolve));
+  assert.equal(view.textarea.closest('[role="tabpanel"]').hidden, false);
+  assert.equal(view.textarea.style.height, '480px');
+  assert.deepEqual(measurements, [false, false]);
+});
+
+test('空预览提示与空 tools 不产生工具栏', async (t) => {
+  const view = mount(t, { modelValue: '  \n', tools: [] });
+  assert.equal(view.host.querySelector('[role="group"]'), null);
+  await preview(view);
+  assert.match(view.host.textContent, /没有可预览的内容/);
+});
+
+test('工具保留选区、键盘 click 激活；公开块插入保持占位选区与换行', async (t) => {
   const view = mount(t, { modelValue: '前文字后', tools: ['bold', 'link'] });
-  assert.equal(view.tool('链接').props.type, 'button');
   view.textarea.setSelectionRange(1, 3);
-  assert.equal(dispatch(view.tool('粗体'), 'mousedown').defaultPrevented, true);
-  assert.deepEqual(view.events, []);
-  // 键盘生成的 click 没有先行 mousedown，同样必须生效。
-  dispatch(view.tool('粗体'), 'click');
+  assert.equal(event(view.tool('粗体'), 'mousedown').defaultPrevented, true);
+  view.tool('粗体').click();
   await settle();
   assert.equal(view.props.modelValue, '前**文字**后');
-  assert.deepEqual(view.events, ['前**文字**后']);
   assert.deepEqual(
     [view.textarea.selectionStart, view.textarea.selectionEnd],
     [3, 5],
   );
-  view.textarea.setSelectionRange(0, 0);
-  dispatch(view.tool('链接'), 'click');
+  view.props.modelValue = '前后';
   await settle();
-  assert.equal(view.props.modelValue, '[链接文字](https://)前**文字**后');
-  assert.deepEqual(
-    [view.textarea.selectionStart, view.textarea.selectionEnd],
-    [1, 5],
-  );
-});
-
-test('扩展工具默认关闭，显式配置后遵循顺序、样式和插入语法', async (t) => {
-  const view = mount(t);
-  for (const label of ['粗体', '斜体', '删除线', '行内代码', '链接'])
-    assert.ok(view.tool(label));
-  for (const label of ['剧透', '评分', '折叠内容'])
-    assert.equal(view.tool(label), undefined);
-
-  view.props.tools = ['details', 'spoiler', 'star'];
-  view.props.ui = { tool: 'text-red-500' };
-  await Vue.nextTick();
-  const group = view.find((node) => node.props.role === 'group');
-  assert.deepEqual(
-    group.children
-      .filter((node) => node.tag === 'button')
-      .map((node) => node.props['aria-label']),
-    ['折叠内容', '剧透', '评分'],
-  );
-  for (const [label, source, start, end, expected] of [
-    ['剧透', '前文字后', 1, 3, '前!!文字!!后'],
-    ['评分', '前后', 1, 1, '前\n::: star 5\n后'],
-    ['折叠内容', '前后', 1, 1, '前\n::: details 点击展开\n折叠内容\n:::\n后'],
-  ]) {
-    view.props.modelValue = source;
-    await Vue.nextTick();
-    view.textarea.setSelectionRange(start, end);
-    assert.ok(classes(view.tool(label)).includes('text-red-500'));
-    dispatch(view.tool(label), 'click');
-    await settle();
-    assert.equal(view.props.modelValue, expected);
-  }
-});
-
-test('公开选区包裹和块插入保持模型同步、占位选区与必要换行', async (t) => {
-  const view = mount(t, { modelValue: '前后' });
   view.textarea.setSelectionRange(1, 1);
   assert.equal(await view.editor.insertBlock('```\n', '\n```', '代码'), true);
   assert.equal(view.props.modelValue, '前\n```\n代码\n```\n后');
@@ -437,110 +283,93 @@ test('公开选区包裹和块插入保持模型同步、占位选区与必要�
     [view.textarea.selectionStart, view.textarea.selectionEnd],
     [6, 8],
   );
-  assert.equal(await view.editor.wrapSelection('**', '**'), true);
-  assert.equal(view.props.modelValue, '前\n```\n**代码**\n```\n后');
-  view.props.modelValue = '前\n后';
-  await Vue.nextTick();
-  view.textarea.setSelectionRange(2, 2);
-  assert.equal(await view.editor.insertBlock('# ', '', '标题'), true);
-  assert.equal(view.props.modelValue, '前\n# 标题\n后');
+});
+
+test('扩展工具显式启用后遵循顺序和插入语法', async (t) => {
+  const view = mount(t, { tools: ['details', 'spoiler', 'star'] });
+  assert.deepEqual(
+    [...view.host.querySelectorAll('[role="group"] button')].map((node) =>
+      node.getAttribute('aria-label'),
+    ),
+    ['折叠内容', '剧透', '评分'],
+  );
+  for (const [label, expected] of [
+    ['剧透', '前!!文字!!后'],
+    ['评分', '前\n::: star 5\n后'],
+    ['折叠内容', '前\n::: details 点击展开\n折叠内容\n:::\n后'],
+  ]) {
+    view.props.modelValue = label === '剧透' ? '前文字后' : '前后';
+    await settle();
+    view.textarea.setSelectionRange(1, label === '剧透' ? 3 : 1);
+    view.tool(label).click();
+    await settle();
+    assert.equal(view.props.modelValue, expected);
+  }
 });
 
 test('disabled/readonly/组合输入拒绝工具和公开操作；maxlength 拒绝超长插入', async (t) => {
-  let actions;
-  const view = mount(
-    t,
-    {
-      modelValue: '文字',
-      maxlength: 5,
-      tools: ['bold', 'spoiler', 'star', 'details'],
-    },
-    {
-      toolbar: (value) => {
-        actions = value;
-        return null;
-      },
-    },
-  );
-  view.textarea.setSelectionRange(0, 2);
-  const labels = ['粗体', '剧透', '评分', '折叠内容'];
-  const oldClicks = labels.map((label) => view.tool(label).props.onClick);
+  const view = mount(t, { modelValue: '文字', maxlength: 5 });
   for (const state of ['disabled', 'readonly', 'composing']) {
-    if (state === 'composing') dispatch(view.textarea, 'compositionstart');
+    if (state === 'composing') event(view.textarea, 'compositionstart');
     else view.props[state] = true;
-    await Vue.nextTick();
-    assert.equal(actions.disabled, true);
-    for (const label of labels)
-      assert.equal(view.tool(label).props.disabled, true);
-    oldClicks.forEach((click) => click());
+    await settle();
+    assert.equal(view.tool('粗体').disabled, true);
     assert.equal(await view.editor.wrapSelection('*', '*'), false);
     assert.equal(await view.editor.insertBlock('# '), false);
-    await settle();
-    assert.deepEqual(view.events, []);
-    if (state === 'composing') dispatch(view.textarea, 'compositionend');
+    if (state === 'composing') event(view.textarea, 'compositionend');
     else view.props[state] = false;
-    await Vue.nextTick();
+    await settle();
   }
-  assert.equal(actions.disabled, false);
+  view.textarea.setSelectionRange(0, 2);
   assert.equal(await view.editor.wrapSelection('**', '**'), false);
-  assert.deepEqual(view.events, []);
   assert.equal(await view.editor.wrapSelection('*', '*'), true);
   assert.equal(view.props.modelValue, '*文字*');
 });
 
-test('textarea 输入与粘贴同步模型，IME 期间延迟提交且不转换粘贴', async (t) => {
+test('textarea 模型保留字符串，IME 延迟提交，粘贴链接转换保留选区', async (t) => {
   const view = mount(t, { modelValue: '初始' });
-  view.document.execCommand = (_, __, text) => {
-    const { textarea } = view;
-    textarea.setRangeText(text, textarea.selectionStart, textarea.selectionEnd);
-    dispatch(textarea, 'input');
-    return true;
-  };
-  const paste = () => {
-    const event = Object.assign(new Event('paste', { cancelable: true }), {
-      clipboardData: { getData: () => 'https://example.com' },
-    });
-    view.textarea.dispatchEvent(event);
-    return event;
-  };
-  view.textarea.value = '001';
-  dispatch(view.textarea, 'input');
-  await Vue.nextTick();
+  await input(view, '001');
   assert.deepEqual(view.events, ['001']);
-  view.props.modelValue = '外部';
-  await Vue.nextTick();
-  assert.equal(view.textarea.value, '外部');
-  view.textarea.focus();
-  view.textarea.setSelectionRange(0, 2);
-  dispatch(view.textarea, 'compositionstart');
-  assert.equal(paste().defaultPrevented, false);
-  view.textarea.value = 'zhong';
-  dispatch(view.textarea, 'input');
+  event(view.textarea, 'compositionstart');
+  await input(view, 'zhong');
   assert.deepEqual(view.events, ['001']);
   view.textarea.value = '中文';
-  dispatch(view.textarea, 'compositionend');
-  await Vue.nextTick();
+  event(view.textarea, 'compositionend');
+  await settle();
   assert.deepEqual(view.events, ['001', '中文']);
-  assert.equal(paste().defaultPrevented, true);
-  await Vue.nextTick();
-  assert.deepEqual(view.events, [
-    '001',
-    '中文',
-    '[中文](https://example.com/)',
-  ]);
+  document.execCommand = (_, __, text) => {
+    view.textarea.setRangeText(
+      text,
+      view.textarea.selectionStart,
+      view.textarea.selectionEnd,
+    );
+    event(view.textarea, 'input');
+    return true;
+  };
+  t.after(() => delete document.execCommand);
+  view.textarea.focus();
+  view.textarea.setSelectionRange(0, 2);
+  const paste = new dom.window.Event('paste', {
+    bubbles: true,
+    cancelable: true,
+  });
+  paste.clipboardData = { getData: () => 'https://example.com' };
+  view.textarea.dispatchEvent(paste);
+  await settle();
+  assert.equal(paste.defaultPrevented, true);
+  assert.equal(view.props.modelValue, '[中文](https://example.com/)');
 });
 
-test('sticky 工具栏越过偏移后标记 stuck，关闭 sticky 时断开观察', async (t) => {
-  const previous = Object.getOwnPropertyDescriptor(
-    globalThis,
-    'IntersectionObserver',
-  );
-  let observer;
-  class IntersectionObserver {
+test('sticky 越过偏移标记 stuck，关闭时断开观察；autosize 更新并在卸载断开', async (t) => {
+  const previousIntersection = globalThis.IntersectionObserver;
+  const previousResize = globalThis.ResizeObserver;
+  let stuckObserver;
+  let widthObserver;
+  globalThis.IntersectionObserver = class {
     constructor(callback, options) {
       this.callback = callback;
       this.options = options;
-      observer = this;
+      stuckObserver = this;
     }
     observe(node) {
       this.node = node;
@@ -548,98 +377,51 @@ test('sticky 工具栏越过偏移后标记 stuck，关闭 sticky 时断开观�
     disconnect() {
       this.disconnected = true;
     }
-  }
-  Object.defineProperty(globalThis, 'IntersectionObserver', {
-    configurable: true,
-    value: IntersectionObserver,
+  };
+  globalThis.ResizeObserver = class {
+    constructor(callback) {
+      this.callback = callback;
+      widthObserver = this;
+    }
+    observe(node) {
+      this.node = node;
+    }
+    unobserve() {}
+    disconnect() {
+      this.disconnected = true;
+    }
+  };
+  t.after(() => {
+    globalThis.IntersectionObserver = previousIntersection;
+    globalThis.ResizeObserver = previousResize;
   });
-  t.after(() =>
-    previous
-      ? Object.defineProperty(globalThis, 'IntersectionObserver', previous)
-      : delete globalThis.IntersectionObserver,
-  );
   const view = mount(t, { sticky: true, stickyOffset: 50 });
-  const toolbar = view.find((node) => classes(node).includes('bg-body'));
-  assert.ok(classes(view.root).includes('relative'));
-  assert.equal(observer.options.root, null);
-  assert.equal(observer.options.rootMargin, '-50px 0px 0px 0px');
-  assert.equal(
-    observer.node,
-    view.find((node) => classes(node).includes('h-px')),
-  );
-  observer.callback([
+  assert.equal(stuckObserver.options.rootMargin, '-50px 0px 0px 0px');
+  stuckObserver.callback([
     {
       isIntersecting: false,
       boundingClientRect: { top: 10 },
       rootBounds: { top: 50 },
     },
   ]);
-  await Vue.nextTick();
-  assert.equal(toolbar.props['data-stuck'], true);
-  assert.ok(
-    classes(toolbar).includes('shadow-[0_4px_10px_-6px_rgb(0_0_0_/_0.3)]'),
-  );
-  observer.callback([
-    {
-      isIntersecting: true,
-      boundingClientRect: { top: 60 },
-      rootBounds: { top: 50 },
-    },
-  ]);
-  await Vue.nextTick();
-  assert.equal(toolbar.props['data-stuck'], undefined);
-  assert.ok(
-    !classes(toolbar).includes('shadow-[0_4px_10px_-6px_rgb(0_0_0_/_0.3)]'),
-  );
+  await settle();
+  assert.ok(view.host.querySelector('[data-stuck]'));
   view.props.sticky = false;
   await settle();
-  assert.equal(observer.disconnected, true);
-  assert.equal(toolbar.props['data-stuck'], undefined);
-});
-
-test('autosize 随内容/宽度更新，关闭后清高度，卸载断开 observer', async (t) => {
-  const previous = Object.getOwnPropertyDescriptor(
-    globalThis,
-    'ResizeObserver',
-  );
-  let observer;
-  class ResizeObserver {
-    constructor(callback) {
-      this.callback = callback;
-      observer = this;
-    }
-    observe(node) {
-      this.node = node;
-    }
-    disconnect() {
-      this.disconnected = true;
-    }
-  }
-  Object.defineProperty(globalThis, 'ResizeObserver', {
+  assert.equal(stuckObserver.disconnected, true);
+  assert.equal(view.host.querySelector('[data-stuck]'), null);
+  // Reka also creates observers; identify the editor observer by the root it observes.
+  const editorObserver = widthObserver;
+  Object.defineProperty(view.textarea, 'scrollHeight', {
     configurable: true,
-    value: ResizeObserver,
+    value: 144,
   });
-  t.after(() =>
-    previous
-      ? Object.defineProperty(globalThis, 'ResizeObserver', previous)
-      : delete globalThis.ResizeObserver,
-  );
-  const view = mount(t);
-  assert.equal(observer.node, view.root);
-  assert.equal(view.textarea.style.height, '96px');
-  view.textarea.scrollHeight = 144;
-  observer.callback([{ contentRect: { width: 300 } }]);
-  assert.equal(view.textarea.style.height, '144px');
-  view.textarea.scrollHeight = 180;
-  observer.callback([{ contentRect: { width: 300 } }]);
-  assert.equal(view.textarea.style.height, '144px');
   view.props.modelValue = '更多内容';
-  await Vue.nextTick();
-  assert.equal(view.textarea.style.height, '180px');
+  await settle();
+  assert.equal(view.textarea.style.height, '144px');
   view.props.autosize = false;
-  await Vue.nextTick();
+  await settle();
   assert.equal(view.textarea.style.height, '');
-  assert.ok(classes(view.textarea).includes('resize-y'));
   view.unmount();
-  assert.equal(observer.disconnected, true);
+  assert.equal(editorObserver.disconnected, true);
 });

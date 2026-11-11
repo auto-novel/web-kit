@@ -1,0 +1,5 @@
+/* 禁用自动扫描，验证发布包显式 @source 也能覆盖顶层主题预设。 */
+@import 'tailwindcss' source(none);
+@import '@novelia/web-kit/nuxt-ui.css';
+
+@source inline('bg-primary bg-muted bg-(--color-muted) border-(--color-muted) focus-visible:ring-(--color-muted)/20 dark:bg-paper');

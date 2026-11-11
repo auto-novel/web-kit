@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { DriveFolderUploadOutlined } from '@vicons/material';
 
-import { useOverlayLayer } from '../overlayLayer';
 import { mergeClasses } from '../classes';
 import type { XDropZoneProps } from './types';
 import { useFileDrop } from './useFileDrop';
@@ -17,7 +16,6 @@ const { active } = useFileDrop(
   () => props.disabled,
   (files, event) => emit('drop', files, event),
 );
-const { overlayStyle } = useOverlayLayer(active);
 </script>
 
 <template>
@@ -27,12 +25,11 @@ const { overlayStyle } = useOverlayLayer(active);
       v-bind="{ ...$attrs, class: undefined }"
       :class="
         mergeClasses(
-          'fixed inset-0 bg-black/70 p-4 text-white sm:p-10',
+          'fixed inset-0 z-[200] bg-black/70 p-4 text-white sm:p-10',
           ui.overlay,
           $attrs.class,
         )
       "
-      :style="overlayStyle"
       role="status"
     >
       <div

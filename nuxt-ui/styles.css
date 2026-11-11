@@ -1,0 +1,2 @@
+/* 完整样式入口的别名；宿主只需导入 styles.css 或本文件之一。 */
+@import '../src/styles.css';

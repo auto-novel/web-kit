@@ -1,17 +1,18 @@
 <script setup lang="ts">
+import UApp from '@nuxt/ui/components/App.vue';
+import { zh_cn } from '@nuxt/ui/locale';
 import { RouterView } from 'vue-router';
 
 import XToaster from '../ui/toast/XToaster.vue';
-import { useDialogPointerTracking } from '../ui/dialog/useDialogMotion';
-
-useDialogPointerTracking();
 
 defineOptions({ inheritAttrs: false });
 </script>
 
 <template>
-  <slot>
-    <RouterView />
-  </slot>
-  <XToaster />
+  <UApp :locale="zh_cn" :toaster="{ position: 'top-center' }">
+    <slot>
+      <RouterView />
+    </slot>
+    <XToaster />
+  </UApp>
 </template>

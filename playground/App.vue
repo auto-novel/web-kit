@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import UButton from '@nuxt/ui/components/Button.vue';
 import {
   WidgetsOutlined,
   HomeOutlined,
   OpenInNewOutlined,
   PaletteOutlined,
-  PersonOutlined,
   ReportOutlined,
 } from '@vicons/material';
 import {
@@ -12,49 +12,24 @@ import {
   WebKitLayout,
   type WebKitMenuOption,
 } from '@novelia/web-kit/shell';
-import { XButton } from '@novelia/web-kit/ui';
-import { RouterLink, useRoute } from 'vue-router';
-
-import { componentPages } from './componentPages';
+import { useRoute } from 'vue-router';
 
 const route = useRoute();
-
-const componentNavigationGroups: WebKitMenuOption[] = [
-  { key: 'input-components', label: '输入组件', category: 'input' },
-  { key: 'style-components', label: '样式组件', category: 'style' },
-].map(({ key, label, category }) => ({
-  key,
-  type: 'group',
-  label,
-  icon: WidgetsOutlined,
-  children: componentPages
-    .filter((page) => page.category === category)
-    .map(({ name, label, to }) => ({ key: name, label, to })),
-}));
 
 const navigationOptions: WebKitMenuOption[] = [
   { key: 'home', label: '首页', icon: HomeOutlined, to: '/' },
   { key: 'theme', label: '主题测试', icon: PaletteOutlined, to: '/theme' },
   {
+    key: 'nuxt-ui',
+    label: 'Nuxt组件',
+    icon: PaletteOutlined,
+    to: '/nuxt-ui',
+  },
+  {
     key: 'components',
-    label: '基础组件总览 Overview',
+    label: '扩展组件',
     icon: WidgetsOutlined,
     to: '/components',
-  },
-  ...componentNavigationGroups,
-  {
-    key: 'account',
-    type: 'group',
-    label: '账号',
-    icon: PersonOutlined,
-    children: [
-      {
-        key: 'profile',
-        label: '个人资料',
-        icon: PersonOutlined,
-        to: '/profile',
-      },
-    ],
   },
   { key: 'divider', type: 'divider' },
   {
@@ -100,17 +75,17 @@ const accountOptions: WebKitMenuOption[] = [
       :selected-navigation-key="String(route.name ?? '')"
     >
       <template #header-actions>
-        <XButton
-          :as="RouterLink"
+        <UButton
           to="/theme"
           color="neutral"
           variant="ghost"
-          size="icon"
+          square
+          size="md"
           aria-label="主题测试"
           title="主题测试"
         >
           <PaletteOutlined class="size-5" aria-hidden="true" />
-        </XButton>
+        </UButton>
       </template>
       <RouterView />
     </WebKitLayout>

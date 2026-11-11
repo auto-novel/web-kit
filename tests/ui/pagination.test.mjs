@@ -1,91 +1,15 @@
 import assert from 'node:assert/strict';
-import test, { after } from 'node:test';
+import test from 'node:test';
 
-import { JSDOM } from 'jsdom';
+import { dom } from '../helpers/dom.mjs';
 
-import { compileComponent } from '../helpers/compile-component.mjs';
-
-// 用真实 Reka 与 DOM 事件验证键盘作用域和跳页流程，而非手动发送组件事件。
-const dom = new JSDOM('<!doctype html><html><body></body></html>', {
-  pretendToBeVisual: true,
-});
-for (const key of [
-  'window',
-  'document',
-  'Document',
-  'ShadowRoot',
-  'Element',
-  'HTMLElement',
-  'HTMLInputElement',
-  'SVGElement',
-  'Node',
-  'NodeFilter',
-  'MutationObserver',
-  'CustomEvent',
-  'Event',
-  'KeyboardEvent',
-  'MouseEvent',
-  'FocusEvent',
-])
-  globalThis[key] = key === 'window' ? dom.window : dom.window[key];
-globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
-globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(
-  dom.window,
-);
-globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(
-  dom.window,
-);
-globalThis.ResizeObserver = class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
-globalThis.PointerEvent = dom.window.PointerEvent ?? dom.window.MouseEvent;
-dom.window.PointerEvent = globalThis.PointerEvent;
-after(() => dom.window.close());
-
+// Real DOM events verify keyboard scope and the page-jump lifecycle.
 const Vue = await import('vue');
-const Reka = await import('reka-ui');
-const VueUse = await import('@vueuse/core');
-const styleClasses = await import('../../src/ui/classes.ts');
-const buttonVariants = await import('../../src/ui/button/variants.ts');
-const overlayLayer = await import('../../src/ui/overlayLayer.ts');
-const keyboard = await import('../../src/ui/pagination/keyboard.ts');
-
-const icon = () => Vue.h('svg');
-const XButton = compileComponent(
-  new URL('../../src/ui/button/XButton.vue', import.meta.url),
-  {
-    vue: Vue,
-    '../classes': styleClasses,
-    './variants': buttonVariants,
-  },
-);
-const PageJump = compileComponent(
-  new URL('../../src/ui/pagination/PageJump.vue', import.meta.url),
-  {
-    vue: Vue,
-    'reka-ui': Reka,
-    '../button/XButton.vue': XButton,
-    '../classes': styleClasses,
-    '../overlayLayer': overlayLayer,
-  },
-);
-const XPagination = compileComponent(
-  new URL('../../src/ui/pagination/XPagination.vue', import.meta.url),
-  {
-    vue: Vue,
-    'reka-ui': Reka,
-    '@vueuse/core': VueUse,
-    '@vicons/material': {
-      ChevronLeftOutlined: icon,
-      ChevronRightOutlined: icon,
-    },
-    '../button/XButton.vue': XButton,
-    '../classes': styleClasses,
-    './keyboard': keyboard,
-    './PageJump.vue': PageJump,
-  },
+const { createComponentServer, installTestRouter } =
+  await import('../helpers/component-server.mjs');
+const server = await createComponentServer({ dom: true });
+const { default: XPagination } = await server.ssrLoadModule(
+  '/src/ui/pagination/XPagination.vue',
 );
 
 async function settle() {
@@ -131,6 +55,7 @@ async function mount(t, initial = {}, { dialog = false, scope = false } = {}) {
         },
       }),
   });
+  installTestRouter(app);
   app.mount(parent);
   await Vue.nextTick();
   t.after(async () => {

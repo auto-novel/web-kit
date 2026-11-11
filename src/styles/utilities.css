@@ -1,9 +1,16 @@
-@utility page-container {
-  width: min(100% - 2rem, 72rem);
-  margin-inline: auto;
+/* Decoration only; compose typography and spacing at the call site. */
+@utility heading-bar {
+  position: relative;
+  padding-inline-start: 12px;
 
-  @media (max-width: 767px) {
-    width: calc(100% - 24px);
+  &::before {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: 9999px;
+    background-color: var(--color-primary);
+    content: '';
   }
 }
 

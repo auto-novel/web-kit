@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { XPage, XPageHeader, useWebKit } from '@novelia/web-kit';
+import UPageHeader from '@nuxt/ui/components/PageHeader.vue';
+import { XPage, useWebKit } from '@novelia/web-kit';
 
 const { whoami } = useWebKit();
 </script>
 
 <template>
   <XPage>
-    <XPageHeader title="web-kit playground" />
+    <UPageHeader title="web-kit playground" />
     <div class="flex flex-col gap-6">
       <section class="border-divider border-b pb-6">
         <p class="text-muted text-sm">
@@ -19,7 +20,7 @@ const { whoami } = useWebKit();
       </section>
 
       <section class="border-divider border-b pb-6">
-        <h2 class="mb-3 font-medium">会话</h2>
+        <h2 class="heading-bar mb-3 font-medium">会话</h2>
         <p class="text-sm">
           登录状态：{{
             whoami.isSignedIn ? (whoami.user?.username ?? '已登录') : '未登录'
@@ -33,7 +34,7 @@ const { whoami } = useWebKit();
       </section>
 
       <section class="border-divider border-b pb-6">
-        <h2 class="mb-3 font-medium">长内容（验证布局内滚动）</h2>
+        <h2 class="heading-bar mb-3 font-medium">长内容（验证布局内滚动）</h2>
         <p v-for="index in 40" :key="index" class="text-muted py-1 text-sm">
           第 {{ index }} 行
         </p>

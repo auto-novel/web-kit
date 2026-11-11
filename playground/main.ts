@@ -1,5 +1,6 @@
 import { createWebKit, MyStrikeListView } from '@novelia/web-kit';
-import { createApp } from 'vue';
+import ui from '@nuxt/ui/vue-plugin';
+import { createApp, nextTick } from 'vue';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 import App from './App.vue';
@@ -19,6 +20,12 @@ const webKit = createWebKit({
 
 const router = createRouter({
   history: createWebHashHistory(),
+  async scrollBehavior(to, _from, savedPosition) {
+    await nextTick();
+    if (savedPosition) return savedPosition;
+    if (to.hash) return { el: to.hash };
+    return { top: 0 };
+  },
   routes: [
     { path: '/', name: 'home', component: HomeView },
     {
@@ -27,26 +34,19 @@ const router = createRouter({
       component: () => import('./ThemeView.vue'),
     },
     {
+      path: '/nuxt-ui',
+      name: 'nuxt-ui',
+      component: () => import('./NuxtUiView.vue'),
+    },
+    {
       path: '/components',
       name: 'components',
       component: () => import('./ComponentsView.vue'),
     },
-    ...componentPages.map(({ to, name, title, component }) => ({
-      path: to,
-      name,
-      component,
-      meta: { title },
+    ...componentPages.map(({ slug, anchor, path = '/components' }) => ({
+      path: `/components/${slug}`,
+      redirect: { path, hash: `#${anchor}` },
     })),
-    // Preserve bookmarks to the former combined demo page.
-    {
-      path: '/components/layout-primitives',
-      redirect: '/components/scroll-area',
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('./ProfileView.vue'),
-    },
     {
       path: '/strikes',
       name: 'strikes',
@@ -55,4 +55,7 @@ const router = createRouter({
   ],
 });
 
-createApp(App).use(webKit).use(router).mount('#app');
+const app = createApp(App).use(webKit).use(router).use(ui);
+
+// Resolve the initial lazy route before mounting so scrollBehavior can find anchors.
+void router.isReady().then(() => app.mount('#app'));

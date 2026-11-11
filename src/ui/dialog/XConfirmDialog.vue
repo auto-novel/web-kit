@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue';
-
-import XButton from '../button/XButton.vue';
+import UButton from '@nuxt/ui/components/Button.vue';
+import UModal from '@nuxt/ui/components/Modal.vue';
 import { mergeClasses } from '../classes';
-import XDialog from './XDialog.vue';
 import type { XConfirmDialogProps } from './types';
 
 const props = withDefaults(defineProps<XConfirmDialogProps>(), {
@@ -12,59 +11,55 @@ const props = withDefaults(defineProps<XConfirmDialogProps>(), {
   cancelLabel: '取消',
   closeOnOverlay: true,
 });
-
 const emit = defineEmits<{
   'update:open': [open: boolean];
   confirm: [];
 }>();
+defineOptions({ inheritAttrs: false });
 
 const cancelButton =
-  useTemplateRef<InstanceType<typeof XButton>>('cancelButton');
+  useTemplateRef<InstanceType<typeof UButton>>('cancelButton');
 const dialogUi = computed(() => ({
-  content: mergeClasses(
-    'w-[calc(100%-2rem)] max-w-md overflow-y-auto p-5 sm:p-6',
-    props.ui.content,
-  ),
-  overlay: props.ui.overlay,
-  header: 'p-0 sm:p-0',
-  title: props.ui.title,
-  description: props.ui.description,
-  footer: mergeClasses('mt-6 p-0 sm:p-0', props.ui.actions),
+  content: mergeClasses('max-w-md divide-y-0', props.ui.content),
+  overlay: mergeClasses(props.ui.overlay),
+  header: 'p-5 pb-0 sm:p-6 sm:pb-0',
+  title: mergeClasses(props.ui.title),
+  description: mergeClasses(props.ui.description),
+  footer: mergeClasses('px-5 pt-6 pb-5 sm:px-6 sm:pb-6', props.ui.actions),
 }));
-
+const content = {
+  onOpenAutoFocus(event: Event) {
+    const button = cancelButton.value?.$el;
+    if (event.defaultPrevented || props.loading || !button) return;
+    event.preventDefault();
+    button.focus({ preventScroll: true });
+  },
+  onPointerDownOutside(event: Event) {
+    if (props.loading || !props.closeOnOverlay) event.preventDefault();
+  },
+};
 function requestOpen(open: boolean) {
   if (!props.loading) emit('update:open', open);
 }
-
-function focusCancel(event: Event) {
-  if (event.defaultPrevented || props.loading) return;
-  const button = cancelButton.value?.$el;
-  if (!button) return;
-  event.preventDefault();
-  button.focus({ preventScroll: true });
-}
-
 function confirm() {
   if (!props.loading) emit('confirm');
 }
-defineOptions({ inheritAttrs: false });
 </script>
 
 <template>
-  <XDialog
+  <UModal
     v-bind="$attrs"
     :open="open"
     :title="title"
     :description="description"
     :ui="dialogUi"
-    :closable="!loading"
-    :show-close="false"
-    :close-on-overlay="closeOnOverlay"
+    :dismissible="!loading"
+    :close="false"
+    :content="content"
     @update:open="requestOpen"
-    @open-auto-focus="focusCancel"
   >
     <template #footer>
-      <XButton
+      <UButton
         ref="cancelButton"
         :class="mergeClasses(ui.cancel)"
         color="neutral"
@@ -73,15 +68,15 @@ defineOptions({ inheritAttrs: false });
         @click="requestOpen(false)"
       >
         {{ cancelLabel }}
-      </XButton>
-      <XButton
+      </UButton>
+      <UButton
         :class="mergeClasses(ui.confirm)"
-        :color="danger ? 'danger' : 'primary'"
+        :color="danger ? 'error' : 'primary'"
         :disabled="loading"
         @click="confirm"
       >
         {{ loading ? '处理中…' : confirmLabel }}
-      </XButton>
+      </UButton>
     </template>
-  </XDialog>
+  </UModal>
 </template>

@@ -1,5 +1,4 @@
 import type { XUi } from '../classes';
-import type { XSize } from '../types';
 
 /** 无时区的 ISO 日期（YYYY-MM-DD），不包含时间。 */
 export type XDateRange = [string, string];
@@ -16,7 +15,6 @@ export interface XDateRangePickerProps {
   /** 只读仍可打开查看，但不能选择或清空。 */
   readonly?: boolean;
   invalid?: boolean;
-  size?: XSize;
   /** 日历的 BCP 47 locale；触发器仍显示 ISO 日期。 */
   locale?: string;
   min?: string;

@@ -3,8 +3,6 @@ import test from 'node:test';
 import * as Vue from 'vue';
 import { parseDate } from '@internationalized/date';
 import * as styleClasses from '../../src/ui/classes.ts';
-import * as field from '../../src/ui/field.ts';
-import { useOverlayLayer } from '../../src/ui/overlayLayer.ts';
 import { compileComponent } from '../helpers/compile-component.mjs';
 import { createTestRenderer, dispatch } from '../helpers/test-renderer.mjs';
 
@@ -67,8 +65,6 @@ function mount(t, initial = {}) {
         CloseOutlined: icon,
       },
       '../classes': styleClasses,
-      '../field': field,
-      '../overlayLayer': { useOverlayLayer },
     },
   );
   const props = Vue.reactive({ ...initial });

@@ -12,8 +12,12 @@ import {
 } from 'vue';
 
 import {
+  CodeOutlined,
+  FormatBoldOutlined,
+  FormatItalicOutlined,
   LinkOutlined,
   StarBorderOutlined,
+  StrikethroughSOutlined,
   UnfoldMoreOutlined,
   VisibilityOffOutlined,
 } from '@vicons/material';
@@ -21,10 +25,7 @@ import {
 import XMarkdownContent from './XMarkdownContent.vue';
 import XMarkdownEditorToolButton from './XMarkdownEditorToolButton.vue';
 import { mergeClasses } from '../classes';
-import XTabs from '../tabs/XTabs.vue';
-import XTabsList from '../tabs/XTabsList.vue';
-import XTabsTrigger from '../tabs/XTabsTrigger.vue';
-import XTabsContent from '../tabs/XTabsContent.vue';
+import UTabs from '@nuxt/ui/components/Tabs.vue';
 import { handleMarkdownLinkPaste, insertMarkdownText } from './editing';
 import type {
   XMarkdownEditorActions,
@@ -48,8 +49,12 @@ defineSlots<{
   toolbar?: (props: XMarkdownEditorActions & { disabled: boolean }) => unknown;
 }>();
 const activeTab = ref('edit');
-const tabClass =
-  'border-r border-border border-b-transparent font-semibold data-[state=active]:text-ink';
+const modeItems = computed(() => [
+  { label: '编辑', value: 'edit', slot: 'edit' as const },
+  ...(props.preview
+    ? [{ label: '预览', value: 'preview', slot: 'preview' as const }]
+    : []),
+]);
 const textarea = useTemplateRef<HTMLTextAreaElement>('textarea');
 const root = useTemplateRef<HTMLElement>('root');
 const sentinel = useTemplateRef<HTMLElement>('sentinel');
@@ -61,9 +66,9 @@ const blocked = computed(
 const stickyOffsetPx = computed(() =>
   Number.isFinite(props.stickyOffset) ? Math.max(0, props.stickyOffset) : 0,
 );
-const toolbarStyle = computed(() =>
-  props.sticky ? { top: `${stickyOffsetPx.value}px` } : undefined,
-);
+const toolbarStyle = computed(() => ({
+  '--markdown-editor-toolbar-top': `${stickyOffsetPx.value}px`,
+}));
 let widthObserver: ResizeObserver | undefined;
 let stuckObserver: IntersectionObserver | undefined;
 
@@ -74,7 +79,7 @@ function resize() {
     element.style.height = '';
     return;
   }
-  if (activeTab.value !== 'edit') return;
+  if (activeTab.value !== 'edit' || element.closest('[hidden]')) return;
   const view = element.ownerDocument.defaultView;
   const scrollY = view?.scrollY;
   element.style.height = 'auto';
@@ -140,9 +145,21 @@ onBeforeUnmount(() => {
   widthObserver?.disconnect();
   stuckObserver?.disconnect();
 });
-watch([model, activeTab, () => props.rows, () => props.autosize], resize, {
+watch([model, () => props.rows, () => props.autosize], resize, {
   flush: 'post',
 });
+watch(
+  activeTab,
+  (tab, _previous, onCleanup) => {
+    if (tab !== 'edit') return;
+    const view = textarea.value?.ownerDocument.defaultView;
+    if (!view) return;
+    // Reka Presence 会在 nextTick 后才移除 hidden，等下一帧再测量。
+    const frame = view.requestAnimationFrame(resize);
+    onCleanup(() => view.cancelAnimationFrame(frame));
+  },
+  { flush: 'post' },
+);
 watch([() => props.sticky, stickyOffsetPx], observeStuck, { flush: 'post' });
 watch(
   () => props.preview,
@@ -197,36 +214,35 @@ interface ToolDefinition {
   prefix: string;
   suffix: string;
   placeholder: string;
-  text?: string;
-  icon?: Component;
+  icon: Component;
   block?: boolean;
 }
 
 const toolDefinitions: Record<XMarkdownEditorTool, ToolDefinition> = {
   bold: {
     label: '粗体',
-    text: 'B',
+    icon: FormatBoldOutlined,
     prefix: '**',
     suffix: '**',
     placeholder: '粗体',
   },
   italic: {
     label: '斜体',
-    text: 'I',
+    icon: FormatItalicOutlined,
     prefix: '*',
     suffix: '*',
     placeholder: '斜体',
   },
   strike: {
     label: '删除线',
-    text: 'S',
+    icon: StrikethroughSOutlined,
     prefix: '~~',
     suffix: '~~',
     placeholder: '删除线',
   },
   code: {
     label: '行内代码',
-    text: '<>',
+    icon: CodeOutlined,
     prefix: '`',
     suffix: '`',
     placeholder: '行内代码',
@@ -303,39 +319,30 @@ defineExpose({
       class="pointer-events-none absolute inset-x-0 top-0 h-px"
       aria-hidden="true"
     />
-    <XTabs v-model="activeTab" class="gap-0 rounded-[inherit]">
-      <div
-        :data-stuck="stuck || undefined"
-        :style="toolbarStyle"
-        :class="
-          mergeClasses(
-            'flex flex-wrap items-stretch rounded-t-[inherit] border-b border-border bg-body',
-            sticky && 'sticky z-20',
-            stuck && 'shadow-[0_4px_10px_-6px_rgb(0_0_0_/_0.3)]',
-            ui.toolbar,
-          )
-        "
-      >
-        <XTabsList
-          aria-label="Markdown 编辑模式"
-          :class="
-            mergeClasses(
-              'gap-0 border-0 data-[orientation=horizontal]:border-b-0 [&>[data-slot=tabs-indicator]]:bg-ink',
-              ui.tabs,
-            )
-          "
-        >
-          <XTabsTrigger value="edit" :class="mergeClasses(tabClass, ui.tab)">
-            编辑
-          </XTabsTrigger>
-          <XTabsTrigger
-            v-if="preview"
-            value="preview"
-            :class="mergeClasses(tabClass, ui.tab)"
-          >
-            预览
-          </XTabsTrigger>
-        </XTabsList>
+    <UTabs
+      v-model="activeTab"
+      :items="modeItems"
+      :unmount-on-hide="false"
+      variant="link"
+      :data-stuck="stuck || undefined"
+      :style="toolbarStyle"
+      :ui="{
+        root: 'gap-0 rounded-[inherit]',
+        list: mergeClasses(
+          'flex-wrap items-stretch rounded-t-[inherit] border-border bg-body p-0',
+          sticky && 'sticky top-(--markdown-editor-toolbar-top) z-20',
+          stuck && 'shadow-[0_4px_10px_-6px_rgb(0_0_0_/_0.3)]',
+          ui.toolbar,
+          ui.tabs,
+        ),
+        trigger: mergeClasses(
+          'rounded-none border-r border-border px-4 py-2 text-sm font-semibold data-[state=active]:text-ink',
+          ui.tab,
+        ),
+        indicator: 'bg-ink',
+      }"
+    >
+      <template #list-trailing>
         <div
           v-if="tools.length || $slots.toolbar"
           role="group"
@@ -355,26 +362,10 @@ defineExpose({
             :key="tool"
             :disabled="blocked"
             :label="toolDefinitions[tool].label"
-            :class="
-              mergeClasses(
-                {
-                  'font-bold': tool === 'bold',
-                  italic: tool === 'italic',
-                  'line-through': tool === 'strike',
-                },
-                ui.tool,
-              )
-            "
+            :icon="toolDefinitions[tool].icon"
+            :class="ui.tool"
             @click="insertTool(tool)"
-          >
-            <component
-              :is="toolDefinitions[tool].icon"
-              v-if="toolDefinitions[tool].icon"
-              class="size-4"
-              aria-hidden="true"
-            />
-            <template v-else>{{ toolDefinitions[tool].text }}</template>
-          </XMarkdownEditorToolButton>
+          />
           <span
             v-if="tools.length && $slots.toolbar"
             class="mx-1 h-4 w-px shrink-0 bg-border"
@@ -387,8 +378,8 @@ defineExpose({
             :insert-block="insertBlock"
           />
         </div>
-      </div>
-      <XTabsContent value="edit" force-mount>
+      </template>
+      <template #edit>
         <textarea
           ref="textarea"
           v-model="model"
@@ -407,7 +398,7 @@ defineExpose({
           "
           :class="
             mergeClasses(
-              'block w-full border-0 bg-transparent px-3 py-3 text-sm leading-6 text-ink outline-none placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-50',
+              'block w-full border-0 bg-transparent p-3 text-sm leading-6 text-ink outline-none placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-50',
               autosize ? 'resize-none overflow-hidden' : 'resize-y',
               ui.textarea,
             )
@@ -416,23 +407,23 @@ defineExpose({
           @compositionend="composing = false"
           @paste="paste"
         />
-      </XTabsContent>
-      <!-- 与 textarea 的 rows × leading-6 + 上下 py-3 保持一致。 -->
-      <XTabsContent
-        v-if="preview"
-        value="preview"
-        :style="{ '--markdown-editor-min-height': `${rows * 1.5 + 1.5}rem` }"
-        :class="
-          mergeClasses('min-h-(--markdown-editor-min-height) p-4', ui.preview)
-        "
-      >
-        <XMarkdownContent
-          v-if="model.trim()"
-          :source="model"
-          :markdown="markdown"
-        />
-        <p v-else class="text-sm text-muted">没有可预览的内容</p>
-      </XTabsContent>
-    </XTabs>
+      </template>
+      <template #preview>
+        <!-- 与 textarea 的 rows × leading-6 + 上下 py-3 保持一致。 -->
+        <div
+          :style="{ '--markdown-editor-min-height': `${rows * 1.5 + 1.5}rem` }"
+          :class="
+            mergeClasses('min-h-(--markdown-editor-min-height) p-4', ui.preview)
+          "
+        >
+          <XMarkdownContent
+            v-if="model.trim()"
+            :source="model"
+            :markdown="markdown"
+          />
+          <p v-else class="text-sm text-muted">没有可预览的内容</p>
+        </div>
+      </template>
+    </UTabs>
   </div>
 </template>

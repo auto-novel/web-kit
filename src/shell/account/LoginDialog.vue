@@ -8,9 +8,9 @@ import {
 import { computed, ref, watch } from 'vue';
 
 import { useWebKit, useWebKitInternals } from '../../context';
-import XButton from '../../ui/button/XButton.vue';
-import XDialog from '../../ui/dialog/XDialog.vue';
-import XInput from '../../ui/input/XInput.vue';
+import UButton from '@nuxt/ui/components/Button.vue';
+import UInput from '@nuxt/ui/components/Input.vue';
+import UModal from '@nuxt/ui/components/Modal.vue';
 import { getApiErrorMessage } from '../../ui/toast/apiError';
 
 const open = defineModel<boolean>('open', { required: true });
@@ -21,6 +21,7 @@ const password = ref('');
 const passwordVisible = ref(false);
 const error = ref<string>();
 const submitting = ref(false);
+const closeButton = { 'aria-label': '关闭登录窗口', color: 'neutral' as const };
 const returnTo = ref('');
 const registerUrl = computed(() => createAccountFlowUrl('register'));
 const resetPasswordUrl = computed(() => createAccountFlowUrl('reset-password'));
@@ -65,77 +66,94 @@ async function login() {
 </script>
 
 <template>
-  <XDialog
+  <UModal
     v-model:open="open"
     title="登录"
-    close-label="关闭登录窗口"
-    :closable="!submitting"
-    class="w-md"
+    :close="submitting ? false : closeButton"
+    :dismissible="!submitting"
+    :ui="{ content: 'w-md' }"
   >
-    <form class="login-form flex flex-col gap-4" @submit.prevent="login">
-      <XInput
-        v-model="username"
-        name="username"
-        :leading-icon="PersonOutlineOutlined"
-        aria-label="用户名或邮箱"
-        autocomplete="username"
-        placeholder="用户名 / 邮箱"
-        required
-        :disabled="submitting"
-      />
-      <XInput
-        v-model="password"
-        name="password"
-        :type="passwordVisible ? 'text' : 'password'"
-        :leading-icon="LockOutlined"
-        aria-label="密码"
-        autocomplete="current-password"
-        placeholder="密码"
-        required
-        :disabled="submitting"
-      >
-        <template #tail>
-          <button
-            type="button"
-            :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
-            :aria-pressed="passwordVisible"
-            :disabled="submitting"
-            class="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed"
-            @mousedown.prevent
-            @click="passwordVisible = !passwordVisible"
+    <template #body>
+      <form class="login-form flex flex-col gap-4" @submit.prevent="login">
+        <UInput
+          v-model="username"
+          class="w-full"
+          name="username"
+          aria-label="用户名或邮箱"
+          autocomplete="username"
+          placeholder="用户名 / 邮箱"
+          required
+          :disabled="submitting"
+        >
+          <template #leading>
+            <PersonOutlineOutlined class="size-5" aria-hidden="true" />
+          </template>
+        </UInput>
+        <UInput
+          v-model="password"
+          class="w-full"
+          name="password"
+          :type="passwordVisible ? 'text' : 'password'"
+          aria-label="密码"
+          autocomplete="current-password"
+          placeholder="密码"
+          required
+          :disabled="submitting"
+        >
+          <template #leading>
+            <LockOutlined class="size-5" aria-hidden="true" />
+          </template>
+          <template #trailing>
+            <button
+              type="button"
+              :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
+              :aria-pressed="passwordVisible"
+              :disabled="submitting"
+              class="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed"
+              @mousedown.prevent
+              @click="passwordVisible = !passwordVisible"
+            >
+              <component
+                :is="
+                  passwordVisible ? VisibilityOutlined : VisibilityOffOutlined
+                "
+                class="size-5"
+                aria-hidden="true"
+              />
+            </button>
+          </template>
+        </UInput>
+        <p v-if="error" class="text-sm text-error-text" role="alert">
+          {{ error }}
+        </p>
+        <UButton
+          type="submit"
+          class="justify-center"
+          :loading="submitting"
+          :disabled="submitting"
+          :aria-busy="submitting"
+        >
+          {{ submitting ? '登录中…' : '登录' }}
+        </UButton>
+        <div class="flex justify-between gap-4 text-sm text-primary">
+          <a
+            :href="registerUrl"
+            :aria-disabled="submitting"
+            @click="submitting && $event.preventDefault()"
           >
-            <component
-              :is="passwordVisible ? VisibilityOutlined : VisibilityOffOutlined"
-              class="size-5"
-              aria-hidden="true"
-            />
-          </button>
-        </template>
-      </XInput>
-      <p v-if="error" class="text-sm text-error-text" role="alert">
-        {{ error }}
-      </p>
-      <XButton type="submit" :disabled="submitting" :aria-busy="submitting">
-        {{ submitting ? '登录中…' : '登录' }}
-      </XButton>
-      <div class="flex justify-between gap-4 text-sm text-primary">
-        <a
-          :href="registerUrl"
-          :aria-disabled="submitting"
-          @click="submitting && $event.preventDefault()"
-        >
-          注册账号
-        </a>
-        <a
-          :href="resetPasswordUrl"
-          :aria-disabled="submitting"
-          @click="submitting && $event.preventDefault()"
-        >
-          忘记密码？
-        </a>
-      </div>
-    </form>
-  </XDialog>
+            注册账号
+          </a>
+          <a
+            :href="resetPasswordUrl"
+            :aria-disabled="submitting"
+            @click="submitting && $event.preventDefault()"
+          >
+            忘记密码？
+          </a>
+        </div>
+      </form>
+    </template>
+  </UModal>
 </template>
 
 <style scoped>

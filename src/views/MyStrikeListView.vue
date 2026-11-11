@@ -5,13 +5,13 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useWebKit, useWebKitInternals } from '../context';
-import XButton from '../ui/button/XButton.vue';
-import XEmpty from '../ui/empty/XEmpty.vue';
-import XError from '../ui/error/XError.vue';
-import XSkeleton from '../ui/skeleton/XSkeleton.vue';
+import UButton from '@nuxt/ui/components/Button.vue';
+import UEmpty from '@nuxt/ui/components/Empty.vue';
+import UError from '@nuxt/ui/components/Error.vue';
+import USkeleton from '@nuxt/ui/components/Skeleton.vue';
+import UPageHeader from '@nuxt/ui/components/PageHeader.vue';
 import XPagination from '../ui/pagination/XPagination.vue';
 import XPage from '../ui/page/XPage.vue';
-import XPageHeader from '../ui/page/XPageHeader.vue';
 import XTime from '../ui/time/XTime.vue';
 import { getApiErrorMessage } from '../ui/toast/apiError';
 
@@ -81,7 +81,7 @@ onBeforeUnmount(() => requestId++);
 
 <template>
   <XPage>
-    <XPageHeader
+    <UPageHeader
       title="处罚记录"
       description="查看你的账号处罚及其撤销状态。"
     />
@@ -104,17 +104,26 @@ onBeforeUnmount(() => requestId++);
         <span class="sr-only">正在加载处罚记录…</span>
         <div v-for="index in 4" :key="index" class="py-5">
           <div class="flex items-center justify-between gap-4">
-            <XSkeleton class="h-5 w-1/3 bg-border" />
-            <XSkeleton class="h-5 w-16 rounded-full" />
+            <USkeleton class="h-5 w-1/3" />
+            <USkeleton class="h-5 w-16 rounded-full" />
           </div>
-          <XSkeleton class="mt-3 h-4 w-full" />
-          <XSkeleton class="mt-2 h-4 w-2/3" />
+          <USkeleton class="mt-3 h-4 w-full" />
+          <USkeleton class="mt-2 h-4 w-2/3" />
         </div>
       </div>
-      <XError v-else-if="error" title="处罚记录加载失败" :description="error">
-        <XButton @click="loadStrikes">再试一次</XButton>
-      </XError>
-      <XEmpty
+      <UError
+        v-else-if="error"
+        :as="{ root: 'div', statusMessage: 'h2' }"
+        :error="{ statusMessage: '处罚记录加载失败', message: error }"
+        :clear="false"
+        class="min-h-0 py-8"
+        role="alert"
+      >
+        <template #links>
+          <UButton @click="loadStrikes">再试一次</UButton>
+        </template>
+      </UError>
+      <UEmpty
         v-else-if="!strikes.length"
         title="暂无处罚记录"
         description="你的账号目前没有处罚记录。"

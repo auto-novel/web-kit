@@ -1,21 +1,14 @@
 import assert from 'node:assert/strict';
-import { after, test } from 'node:test';
+import { test } from 'node:test';
 
-import vue from '@vitejs/plugin-vue';
 import { JSDOM } from 'jsdom';
-import { createServer } from 'vite';
 import { h } from 'vue';
-import { renderToString } from 'vue/server-renderer';
+import {
+  createComponentServer,
+  renderWithRouter as renderToString,
+} from './helpers/component-server.mjs';
 
-// Compile the actual SFCs so props, slots and Reka accessibility semantics are tested.
-const server = await createServer({
-  configFile: false,
-  root: new URL('..', import.meta.url).pathname,
-  plugins: [vue()],
-  server: { middlewareMode: true, watch: null, ws: false },
-  appType: 'custom',
-});
-after(() => server.close());
+const server = await createComponentServer();
 
 async function component(path) {
   return (await server.ssrLoadModule(`/src/ui/${path}.vue`)).default;
@@ -39,145 +32,34 @@ test('Time merges caller classes without changing its native time element or emp
   assert.doesNotMatch(await renderToString(h(Time, { time: null })), /<time\b/);
 });
 
-test('Separator defaults to decorative and supports semantic vertical separators', async () => {
-  const Separator = await component('separator/XSeparator');
-  const decorative = await renderToString(h(Separator));
-  assert.match(decorative, /role="none"/);
-  const semantic = await renderToString(
-    h(Separator, { orientation: 'vertical', decorative: false }),
-  );
-  assert.match(semantic, /role="separator"/);
-  assert.match(semantic, /aria-orientation="vertical"/);
-});
-
-test('Tabs default value selects the panel and preserves disabled tab semantics', async () => {
-  const [Tabs, List, Trigger, Content] = await Promise.all(
-    ['XTabs', 'XTabsList', 'XTabsTrigger', 'XTabsContent'].map((name) =>
-      component(`tabs/${name}`),
-    ),
+test('PageHeader keeps actions beside the title at every screen width', async () => {
+  const { default: PageHeader } = await server.ssrLoadModule(
+    '@nuxt/ui/components/PageHeader.vue',
   );
   const html = await renderToString(
     h(
-      Tabs,
+      PageHeader,
+      { title: '页面标题', description: '页面说明' },
       {
-        defaultValue: 'second',
-        orientation: 'vertical',
-        activationMode: 'manual',
-      },
-      {
-        default: () => [
-          h(
-            List,
-            { 'aria-label': 'Settings' },
-            {
-              default: () => [
-                h(Trigger, { value: 'first', disabled: true }, () => 'First'),
-                h(Trigger, { value: 'second' }, () => 'Second'),
-              ],
-            },
-          ),
-          h(
-            Content,
-            { value: 'first', forceMount: true },
-            () => 'Preserved panel',
-          ),
-          h(Content, { value: 'second' }, () => 'Selected panel'),
-        ],
+        links: () => h('button', '新增'),
       },
     ),
   );
-  assert.match(html, /role="tablist"/);
-  assert.match(html, /aria-orientation="vertical"/);
-  assert.match(html, /aria-selected="false"[^>]*disabled/);
-  assert.match(html, /aria-selected="true"/);
-  assert.match(html, /data-state="inactive"[^>]*hidden/);
-  assert.match(html, /Preserved panel/);
-  assert.match(html, /Selected panel/);
-});
-
-test('Switch merges root ui before class and exposes independent thumb styles', async () => {
-  const Switch = await component('switch/XSwitch');
-  const html = await renderToString(
-    h(Switch, {
-      modelValue: true,
-      class: ['w-14', { 'bg-error': true }],
-      style: { marginTop: '3px' },
-      'aria-label': 'Enable alerts',
-      ui: { root: 'w-12 bg-primary', thumb: ['size-5', { 'bg-paper': true }] },
-    }),
+  const document = new JSDOM(html).window.document;
+  const wrapper = document.querySelector('[data-slot="wrapper"]');
+  const title = document.querySelector('[data-slot="title"]');
+  const links = document.querySelector('[data-slot="links"]');
+  assert.ok(wrapper.classList.contains('flex-row'));
+  assert.equal(wrapper.classList.contains('flex-col'), false);
+  assert.ok(wrapper.classList.contains('items-center'));
+  assert.equal(title.parentElement, wrapper);
+  assert.equal(links.previousElementSibling, title);
+  assert.ok(title.classList.contains('min-w-0'));
+  assert.ok(links.classList.contains('shrink-0'));
+  assert.equal(
+    document.querySelector('[data-slot="description"]').textContent,
+    '页面说明',
   );
-  const root = html.match(/<button\b[^>]*>/)[0];
-  const rootClasses = root.match(/class="([^"]*)"/)[1].split(/\s+/);
-  assert.ok(rootClasses.includes('w-14'));
-  assert.ok(rootClasses.includes('bg-error'));
-  for (const old of ['w-9', 'w-12', 'bg-border', 'bg-primary']) {
-    assert.ok(!rootClasses.includes(old), old);
-  }
-  assert.match(root, /role="switch"/);
-  assert.match(root, /aria-checked="true"/);
-  assert.match(root, /aria-label="Enable alerts"/);
-  assert.match(root, /margin-top:3px/);
-  const thumb = html.match(/<span\b[^>]*>/)[0];
-  assert.match(thumb, /size-5/);
-  assert.match(thumb, /bg-paper/);
-  assert.doesNotMatch(thumb, /size-4|bg-white/);
-});
-
-test('Switch sizes match Nuxt UI dimensions and RTL offsets without leaking size', async () => {
-  const Switch = await component('switch/XSwitch');
-  for (const [size, height, width, thumbSize] of [
-    [undefined, 5, 9, 4],
-    ['xs', 4, 7, 3],
-    ['sm', 4.5, 8, 3.5],
-    ['md', 5, 9, 4],
-    ['lg', 5.5, 10, 4.5],
-    ['xl', 6, 11, 5],
-  ]) {
-    for (const modelValue of [false, true]) {
-      const html = await renderToString(h(Switch, { size, modelValue }));
-      const document = new JSDOM(html).window.document;
-      const root = document.querySelector('[role="switch"]');
-      const thumb = root.querySelector('span');
-      assert.ok(root.classList.contains(`h-${height}`));
-      assert.ok(root.classList.contains(`w-${width}`));
-      assert.ok(thumb.classList.contains(`size-${thumbSize}`));
-      assert.ok(
-        thumb.classList.contains(
-          `data-[state=checked]:translate-x-${thumbSize}`,
-        ),
-      );
-      assert.ok(
-        thumb.classList.contains(
-          `rtl:data-[state=checked]:-translate-x-${thumbSize}`,
-        ),
-      );
-      assert.equal(root.getAttribute('aria-checked'), String(modelValue));
-      assert.equal(
-        thumb.getAttribute('data-state'),
-        modelValue ? 'checked' : 'unchecked',
-      );
-      assert.equal(root.hasAttribute('size'), false);
-    }
-  }
-});
-
-test('ScrollArea renders a focusable viewport, content slot and caller dimensions', async () => {
-  const ScrollArea = await component('scroll-area/XScrollArea');
-  const html = await renderToString(
-    h(
-      ScrollArea,
-      {
-        orientation: 'both',
-        class: 'h-48',
-        ui: { viewport: 'p-4' },
-      },
-      () => 'Scrollable content',
-    ),
-  );
-  assert.match(html, /h-48/);
-  assert.match(html, /tabindex="0"/);
-  assert.match(html, /p-4/);
-  assert.match(html, /Scrollable content/);
 });
 
 test('Pagination maps navigation and page regions without leaking ui to the DOM', async () => {
@@ -228,12 +110,22 @@ test('Pagination shares page buttons across screen sizes and uses accessible mob
     assert.ok(list.querySelector('[aria-label="跳转到指定页"]'));
     assert.equal(document.querySelector('[data-pagination-summary]'), null);
 
+    for (const button of list.querySelectorAll('button')) {
+      assert.ok(button.classList.contains('justify-center'));
+      assert.ok(button.classList.contains('shrink-0'));
+      assert.ok(button.classList.contains('size-8'));
+      assert.ok(button.classList.contains('p-0'));
+      assert.equal(button.classList.contains('p-1.5'), false);
+    }
+
     for (const [label, disabled] of [
       ['上一页', page === 1],
       ['下一页', page === 20],
     ]) {
       const button = document.querySelector(`button[aria-label="${label}"]`);
       assert.equal(button.disabled, disabled);
+      assert.ok(button.classList.contains('justify-center'));
+      assert.ok(button.classList.contains('shrink-0'));
       const icon = button.querySelector('svg');
       assert.equal(icon.getAttribute('aria-hidden'), 'true');
       assert.ok(icon.classList.contains('sm:hidden'));
@@ -264,22 +156,4 @@ test('Pagination keeps Reka internals out of root attrs', async () => {
     5,
   );
   assert.equal(document.querySelector('[aria-current="page"]').disabled, false);
-});
-
-test('DropdownMenu preserves custom trigger and disabled accessibility state', async () => {
-  const DropdownMenu = await component('dropdown-menu/XDropdownMenu');
-  const html = await renderToString(
-    h(
-      DropdownMenu,
-      { disabled: true },
-      {
-        trigger: () => h('button', { 'aria-label': 'Actions' }, 'Open menu'),
-      },
-    ),
-  );
-  assert.match(html, /aria-haspopup="menu"/);
-  assert.match(html, /aria-expanded="false"/);
-  assert.match(html, /disabled/);
-  assert.match(html, /aria-label="Actions"/);
-  assert.match(html, /Open menu/);
 });

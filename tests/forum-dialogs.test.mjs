@@ -1,9 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as Vue from 'vue';
+import { dom } from './helpers/dom.mjs';
+const Vue = await import('vue');
+const { createComponentServer, installTestRouter } =
+  await import('./helpers/component-server.mjs');
+const server = await createComponentServer({ dom: true });
+const { default: InputMenu } = await server.ssrLoadModule(
+  '@nuxt/ui/components/InputMenu.vue',
+);
+const { default: Button } = await server.ssrLoadModule(
+  '@nuxt/ui/components/Button.vue',
+);
+const { default: DialogComponent } = await server.ssrLoadModule(
+  '@nuxt/ui/components/Modal.vue',
+);
 
 import { compileComponent } from './helpers/compile-component.mjs';
-import { createTestRenderer } from './helpers/test-renderer.mjs';
 
 function mountModeration(t, { action = 'strike', failure = null } = {}) {
   let resolveStrike;
@@ -16,8 +28,6 @@ function mountModeration(t, { action = 'strike', failure = null } = {}) {
   const deleted = [];
   const effects = [];
   const whoami = Vue.ref({ user: { id: 1 }, asAdmin: true });
-  let editor;
-  const passThrough = (_, { slots }) => slots.default?.();
   const Dialog = compileComponent(
     new URL('../src/forum/UserModerationDialog.vue', import.meta.url),
     {
@@ -35,15 +45,9 @@ function mountModeration(t, { action = 'strike', failure = null } = {}) {
           },
         }),
       },
-      '../ui/auto-complete/XAutoComplete.vue': {
-        props: ['modelValue'],
-        setup(_, { emit }) {
-          editor = emit;
-          return () => null;
-        },
-      },
-      '../ui/button/XButton.vue': passThrough,
-      '../ui/dialog/XDialog.vue': passThrough,
+      '@nuxt/ui/components/InputMenu.vue': InputMenu,
+      '@nuxt/ui/components/Button.vue': Button,
+      '@nuxt/ui/components/Modal.vue': DialogComponent,
       '../ui/toast': {
         Toast: {
           success: (message) => effects.push(['success', message]),
@@ -70,39 +74,58 @@ function mountModeration(t, { action = 'strike', failure = null } = {}) {
       if (failure === 'cleanup') throw new Error('Delete failed');
     },
   });
-  const renderer = createTestRenderer(t);
-  const mounted = renderer.mount(
-    renderer.createApp({
-      render: () =>
-        Vue.h(Dialog, {
-          ...props,
-          'onUpdate:open': (open) => effects.push(['open', open]),
-          onCommentDeleted: () => effects.push(['commentDeleted']),
-          onCommentsDeleted: () => effects.push(['commentsDeleted']),
-        }),
-    }),
-  );
-  function find(tag, node = mounted.container) {
-    return node.tag === tag
-      ? node
-      : node.children.map((child) => find(tag, child)).find(Boolean);
+  const host = document.createElement('div');
+  document.body.append(host);
+  const app = Vue.createApp({
+    render: () =>
+      Vue.h(Dialog, {
+        ...props,
+        'onUpdate:open': (open) => effects.push(['open', open]),
+        onCommentDeleted: () => effects.push(['commentDeleted']),
+        onCommentsDeleted: () => effects.push(['commentsDeleted']),
+      }),
+  });
+  installTestRouter(app);
+  app.mount(host);
+  let mounted = true;
+  const unmount = () => {
+    if (!mounted) return;
+    mounted = false;
+    app.unmount();
+    host.remove();
+  };
+  t.after(unmount);
+  function find(tag) {
+    return document.querySelector(`[role="dialog"] ${tag}`);
   }
   async function submit() {
-    editor('update:modelValue', 'Reason');
+    await Vue.nextTick();
+    const input = find('input[role="combobox"]');
+    input.value = 'Reason';
+    input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
     if (action === 'ban') {
-      const checkbox = find('input');
+      const checkbox = find('input[type="checkbox"]');
       checkbox.checked = true;
-      checkbox.dispatchEvent(new Event('change'));
+      checkbox.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
     }
     await Vue.nextTick();
-    const completion = find('form').props.onSubmit(
-      new Event('submit', { cancelable: true }),
+    // Keep the submission promise observable to verify post-unmount cleanup.
+    const completion = find('form').__vnode.props.onSubmit(
+      new dom.window.Event('submit', { cancelable: true }),
     );
     assert.equal(requests.length, 1);
+    await Vue.nextTick();
+    assert.equal(input.readOnly, true);
+    let menu = input.__vueParentComponent;
+    while (menu && menu.type !== InputMenu) menu = menu.parent;
+    assert.ok(menu, 'the reason field uses the actual Nuxt InputMenu');
+    menu.emit('update:modelValue', 'Changed while submitting');
+    await Vue.nextTick();
+    assert.equal(menu.props.modelValue, 'Reason');
     return { completion };
   }
   return {
-    ...mounted,
+    unmount,
     props,
     whoami,
     requests,

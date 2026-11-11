@@ -55,8 +55,6 @@ const XDateRangePicker = compileComponent(
       CloseOutlined: icon,
     },
     '../classes': await import('../../src/ui/classes.ts'),
-    '../field': await import('../../src/ui/field.ts'),
-    '../overlayLayer': await import('../../src/ui/overlayLayer.ts'),
   },
 );
 

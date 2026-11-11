@@ -1,0 +1,35 @@
+/* 复用既有主题状态；不引入 .dark 或第二份 localStorage 偏好。 */
+@custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@layer base {
+  :root {
+    --ui-primary: var(--color-primary);
+    --ui-secondary: var(--color-primary);
+    --ui-success: var(--color-success);
+    --ui-info: var(--color-info);
+    --ui-warning: var(--color-warning);
+    --ui-error: var(--color-error);
+
+    --ui-text-dimmed: var(--color-muted);
+    --ui-text-muted: var(--color-muted);
+    --ui-text-toned: var(--color-ink);
+    --ui-text: var(--color-ink);
+    --ui-text-highlighted: var(--color-ink);
+    --ui-text-inverted: var(--color-surface);
+
+    --ui-bg: var(--color-surface);
+    --ui-bg-muted: var(--color-embedded);
+    --ui-bg-elevated: var(--color-embedded);
+    --ui-bg-accented: var(--color-hover);
+    --ui-bg-inverted: var(--color-ink);
+
+    --ui-border: var(--color-border);
+    --ui-border-muted: var(--color-divider);
+    --ui-border-accented: var(--color-border);
+    --ui-border-inverted: var(--color-ink);
+
+    --ui-container: 72rem;
+    --ui-header-height: 50px;
+  }
+}

@@ -2,8 +2,8 @@
 import { HelpOutlineOutlined } from '@vicons/material';
 import { ref } from 'vue';
 
-import XButton from '../button/XButton.vue';
-import XDialog from '../dialog/XDialog.vue';
+import UButton from '@nuxt/ui/components/Button.vue';
+import UModal from '@nuxt/ui/components/Modal.vue';
 
 withDefaults(defineProps<{ mode?: 'article' | 'comment' }>(), {
   mode: 'comment',
@@ -52,71 +52,70 @@ const features: MarkdownFeature[] = [
 </script>
 
 <template>
-  <XDialog
+  <UModal
     v-model:open="open"
     title="Markdown 语法帮助"
-    description="以下是编辑器支持的基本语法，特殊标记的功能不能用于评论。"
-    class="w-2xl"
     :ui="{
+      content:
+        'w-2xl max-w-[calc(100vw-2rem)] max-h-[min(80dvh,calc(100dvh-2rem))]',
       header:
         'border-b border-divider px-5 py-4 pr-14 sm:px-6 sm:py-4 sm:pr-14',
       title: 'font-semibold',
       description: 'mt-1',
       body: 'p-4 sm:p-6',
     }"
-    style="max-height: min(80dvh, calc(100dvh - 2rem))"
   >
-    <template #trigger>
-      <XButton
-        color="neutral"
-        variant="ghost"
-        size="xs"
-        class="hover:bg-divider/40 hover:text-ink"
-      >
-        <HelpOutlineOutlined class="size-4" aria-hidden="true" />
-        Markdown 语法帮助
-      </XButton>
-    </template>
-    <div>
-      <div
-        class="divide-y divide-divider sm:divide-y-0 sm:overflow-hidden sm:rounded-md sm:border sm:border-border"
-      >
+    <UButton
+      color="neutral"
+      variant="ghost"
+      size="xs"
+      class="hover:bg-divider/40 hover:text-ink"
+    >
+      <HelpOutlineOutlined class="size-4" aria-hidden="true" />
+      Markdown 语法帮助
+    </UButton>
+    <template #body>
+      <div>
         <div
-          class="hidden grid-cols-[10.5rem_minmax(0,1fr)] bg-paper text-xs font-semibold text-muted sm:grid"
+          class="divide-y divide-divider sm:divide-y-0 sm:overflow-hidden sm:rounded-md sm:border sm:border-border"
         >
-          <span class="px-3 py-2.5">功能</span>
-          <span class="px-3 py-2.5">基本语法</span>
-        </div>
-        <section
-          v-for="feature in features"
-          :key="feature.name"
-          class="grid gap-2 py-3 text-sm sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:items-center sm:gap-0 sm:border-t sm:border-divider sm:py-0"
-          :class="{
-            'bg-paper/50': mode === 'comment' && feature.articleOnly,
-          }"
-        >
-          <div class="sm:px-3 sm:py-2.5">
-            <h3 class="font-medium text-ink">
-              {{ feature.name }}
-            </h3>
-            <span
-              v-if="feature.articleOnly"
-              class="mt-1 block text-xs text-warning"
-            >
-              评论不支持
-            </span>
-          </div>
-          <code
-            class="block whitespace-pre-wrap rounded-sm bg-paper px-2 py-1.5 font-mono text-xs leading-5 text-ink sm:mx-3 sm:my-2"
+          <div
+            class="hidden grid-cols-[10.5rem_minmax(0,1fr)] bg-paper text-xs font-semibold text-muted sm:grid"
           >
-            {{ feature.syntax }}
-          </code>
-        </section>
-      </div>
+            <span class="px-3 py-2.5">功能</span>
+            <span class="px-3 py-2.5">基本语法</span>
+          </div>
+          <section
+            v-for="feature in features"
+            :key="feature.name"
+            class="grid gap-2 py-3 text-sm sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:items-center sm:gap-0 sm:border-t sm:border-divider sm:py-0"
+            :class="{
+              'bg-paper/50': mode === 'comment' && feature.articleOnly,
+            }"
+          >
+            <div class="sm:px-3 sm:py-2.5">
+              <h3 class="font-medium text-ink">
+                {{ feature.name }}
+              </h3>
+              <span
+                v-if="feature.articleOnly"
+                class="mt-1 block text-xs text-warning"
+              >
+                评论不支持
+              </span>
+            </div>
+            <code
+              class="block whitespace-pre-wrap rounded-sm bg-paper px-2 py-1.5 font-mono text-xs leading-5 text-ink sm:mx-3 sm:my-2"
+            >
+              {{ feature.syntax }}
+            </code>
+          </section>
+        </div>
 
-      <p class="mt-4 text-xs leading-5 text-muted">
-        为保证内容安全，文章和评论都不支持直接嵌入 HTML。
-      </p>
-    </div>
-  </XDialog>
+        <p class="mt-4 text-xs leading-5 text-muted">
+          为保证内容安全，文章和评论都不支持直接嵌入 HTML。
+        </p>
+      </div>
+    </template>
+  </UModal>
 </template>

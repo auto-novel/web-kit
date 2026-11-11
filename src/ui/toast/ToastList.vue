@@ -16,10 +16,7 @@ import {
   useToastManager,
 } from 'reka-ui';
 
-import { useToastLayer } from '../overlayLayer';
-
 const { toasts } = useToastManager();
-const layerStyle = useToastLayer();
 </script>
 
 <template>
@@ -67,8 +64,7 @@ const layerStyle = useToastLayer();
 
   <ToastPortal>
     <ToastViewport
-      :style="layerStyle"
-      class="pointer-events-none fixed inset-x-4 top-3 mx-auto flex w-auto max-w-3xl max-h-[calc(100vh-2rem)] flex-col items-center gap-2 outline-none"
+      class="pointer-events-none fixed inset-x-4 z-[100] top-3 mx-auto flex w-auto max-w-3xl max-h-[calc(100vh-2rem)] flex-col items-center gap-2 outline-none"
       label="通知（{hotkey}）"
     />
   </ToastPortal>

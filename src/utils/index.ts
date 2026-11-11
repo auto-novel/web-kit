@@ -13,3 +13,5 @@ export type {
   UploadRequestOptions,
   UploadStatus,
 } from './upload';
+export { useDragScroll } from './useDragScroll';
+export type { UseDragScrollOptions } from './useDragScroll';

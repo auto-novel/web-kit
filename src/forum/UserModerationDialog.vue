@@ -2,9 +2,9 @@
 import { computed, effectScope, onScopeDispose, ref, watch } from 'vue';
 
 import { useWebKitInternals } from '../context';
-import XAutoComplete from '../ui/auto-complete/XAutoComplete.vue';
-import XButton from '../ui/button/XButton.vue';
-import XDialog from '../ui/dialog/XDialog.vue';
+import UInputMenu from '@nuxt/ui/components/InputMenu.vue';
+import UButton from '@nuxt/ui/components/Button.vue';
+import UModal from '@nuxt/ui/components/Modal.vue';
 import { Toast } from '../ui/toast';
 import { getApiErrorMessage } from '../ui/toast/apiError';
 
@@ -32,6 +32,13 @@ const pointOptions = [1, 2, 3];
 const point = ref(1);
 const removeComments = ref(false);
 const submitting = ref(false);
+// Reka AutocompleteInput 不继承根节点 disabled，以只读和模型守卫锁定提交值。
+const reasonModel = computed({
+  get: () => reason.value,
+  set: (value: string) => {
+    if (!submitting.value) reason.value = value;
+  },
+});
 const isStrike = computed(() => props.action === 'strike');
 const reasonPresets = computed(() =>
   isStrike.value ? ['骂人', '灌水', '网赚盘'] : ['营利', '宣扬纳粹'],
@@ -156,105 +163,115 @@ async function submit() {
 </script>
 
 <template>
-  <XDialog
+  <UModal
     :open="open"
     :title="title"
-    :closable="!submitting"
-    class="w-md"
+    :dismissible="!submitting"
+    :close="!submitting"
+    :ui="{ content: 'w-md' }"
     @update:open="updateOpen"
   >
-    <form class="space-y-4" @submit.prevent="submit">
-      <label class="block">
-        <span class="text-sm font-medium text-ink">
-          {{ isStrike ? '处罚原因' : '封禁原因' }}
-        </span>
-        <XAutoComplete
-          v-model="reason"
-          :options="reasonPresets"
-          size="sm"
-          class="mt-1.5 bg-surface"
-          :placeholder="isStrike ? '选择或填写处罚原因' : '选择或填写封禁原因'"
-          empty-text="无匹配原因，可直接填写"
-          :disabled="submitting"
-          required
-          autofocus
-        />
-      </label>
+    <template #body>
+      <form class="space-y-4" @submit.prevent="submit">
+        <label class="block">
+          <span class="text-sm font-medium text-ink">
+            {{ isStrike ? '处罚原因' : '封禁原因' }}
+          </span>
+          <UInputMenu
+            v-model="reasonModel"
+            :content="{ side: 'bottom' }"
+            mode="autocomplete"
+            :items="reasonPresets"
+            size="sm"
+            class="mt-1.5 w-full"
+            :placeholder="
+              isStrike ? '选择或填写处罚原因' : '选择或填写封禁原因'
+            "
+            :disabled="submitting"
+            :readonly="submitting"
+            required
+            autofocus
+          >
+            <template #empty>无匹配原因，可直接填写</template>
+          </UInputMenu>
+        </label>
 
-      <fieldset v-if="isStrike" :disabled="submitting">
-        <legend class="text-sm font-medium text-ink">处罚分值</legend>
-        <div class="mt-1.5 flex gap-2">
-          <label v-for="option in pointOptions" :key="option">
-            <input
-              v-model="point"
-              type="radio"
-              name="strike-point"
-              :value="option"
-              class="peer sr-only"
-            />
-            <span
-              class="block cursor-pointer rounded-sm border border-border bg-surface px-4 py-1.5 text-sm text-muted transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
-              :class="{
-                'hover:border-primary hover:text-primary peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:outline-primary':
-                  option === 1,
-                'hover:border-warning hover:text-warning peer-checked:border-warning peer-checked:bg-warning-soft peer-checked:text-warning peer-focus-visible:outline-warning':
-                  option === 2,
-                'hover:border-error hover:text-error peer-checked:border-error peer-checked:bg-error-soft peer-checked:text-error peer-focus-visible:outline-error':
-                  option === 3,
-              }"
-            >
-              {{ option }} 分
+        <fieldset v-if="isStrike" :disabled="submitting">
+          <legend class="text-sm font-medium text-ink">处罚分值</legend>
+          <div class="mt-1.5 flex gap-2">
+            <label v-for="option in pointOptions" :key="option">
+              <input
+                v-model="point"
+                type="radio"
+                name="strike-point"
+                :value="option"
+                class="peer sr-only"
+              />
+              <span
+                class="block cursor-pointer rounded-sm border border-border bg-surface px-4 py-1.5 text-sm text-muted transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+                :class="{
+                  'hover:border-primary hover:text-primary peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:outline-primary':
+                    option === 1,
+                  'hover:border-warning hover:text-warning peer-checked:border-warning peer-checked:bg-warning-soft peer-checked:text-warning peer-focus-visible:outline-warning':
+                    option === 2,
+                  'hover:border-error hover:text-error peer-checked:border-error peer-checked:bg-error-soft peer-checked:text-error peer-focus-visible:outline-error':
+                    option === 3,
+                }"
+              >
+                {{ option }} 分
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label
+          v-else-if="deleteCommentsByAuthor"
+          class="flex cursor-pointer items-start gap-3 rounded-sm border border-border bg-paper/60 p-3"
+        >
+          <input
+            v-model="removeComments"
+            type="checkbox"
+            class="mt-0.5 size-4 shrink-0 accent-primary"
+            :disabled="submitting"
+          />
+          <span>
+            <span class="block text-sm font-medium text-ink">
+              删除该用户的全部评论
             </span>
-          </label>
+            <span class="mt-1 block text-xs leading-5 text-muted">
+              包括该用户在所有帖子及外部资源下发表的评论。
+            </span>
+          </span>
+        </label>
+
+        <div v-if="isStrike">
+          <p class="text-sm font-medium text-ink">处罚依据</p>
+          <p
+            class="mt-1.5 max-h-28 overflow-y-auto whitespace-pre-wrap wrap-anywhere rounded-sm bg-paper px-3 py-2 text-xs leading-5 text-muted"
+          >
+            {{ evidence }}
+          </p>
         </div>
-      </fieldset>
 
-      <label
-        v-else-if="deleteCommentsByAuthor"
-        class="flex cursor-pointer items-start gap-3 rounded-sm border border-border bg-paper/60 px-3 py-3"
-      >
-        <input
-          v-model="removeComments"
-          type="checkbox"
-          class="mt-0.5 size-4 shrink-0 accent-primary"
-          :disabled="submitting"
-        />
-        <span>
-          <span class="block text-sm font-medium text-ink">
-            删除该用户的全部评论
-          </span>
-          <span class="mt-1 block text-xs leading-5 text-muted">
-            包括该用户在所有帖子及外部资源下发表的评论。
-          </span>
-        </span>
-      </label>
-
-      <div v-if="isStrike">
-        <p class="text-sm font-medium text-ink">处罚依据</p>
-        <p
-          class="mt-1.5 max-h-28 overflow-y-auto whitespace-pre-wrap wrap-anywhere rounded-sm bg-paper px-3 py-2 text-xs leading-5 text-muted"
-        >
-          {{ evidence }}
-        </p>
-      </div>
-
-      <div class="flex justify-end gap-3 pt-2">
-        <XButton
-          color="neutral"
-          variant="outline"
-          :disabled="submitting"
-          @click="updateOpen(false)"
-        >
-          取消
-        </XButton>
-        <XButton
-          type="submit"
-          color="danger"
-          :disabled="!canSubmit || submitting"
-        >
-          {{ submitting ? '处理中…' : isStrike ? '确认处罚' : '确认封禁' }}
-        </XButton>
-      </div>
-    </form>
-  </XDialog>
+        <div class="flex justify-end gap-3 pt-2">
+          <UButton
+            color="neutral"
+            variant="outline"
+            :disabled="submitting"
+            @click="updateOpen(false)"
+          >
+            取消
+          </UButton>
+          <UButton
+            type="submit"
+            color="error"
+            :loading="submitting"
+            :disabled="!canSubmit || submitting"
+          >
+            {{ submitting ? '处理中…' : isStrike ? '确认处罚' : '确认封禁' }}
+          </UButton>
+        </div>
+      </form>
+    </template>
+  </UModal>
 </template>

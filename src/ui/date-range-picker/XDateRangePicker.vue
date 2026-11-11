@@ -36,8 +36,6 @@ import {
 } from 'vue';
 
 import { mergeClasses } from '../classes';
-import { fieldVariants, fieldClearClass } from '../field';
-import { useOverlayLayer } from '../overlayLayer';
 import type { XDateRangePickerProps } from './types';
 
 defineOptions({ inheritAttrs: false });
@@ -45,7 +43,6 @@ const props = withDefaults(
   defineProps<Omit<XDateRangePickerProps, 'modelValue'>>(),
   {
     placeholder: '选择日期区间',
-    size: 'md',
     locale: 'zh-CN',
     ui: () => ({}),
   },
@@ -57,7 +54,6 @@ const attrs = useAttrs();
 const open = ref(false);
 const draft = shallowRef<DateRange>({ start: undefined, end: undefined });
 const trigger = useTemplateRef<{ $el?: HTMLElement }>('trigger');
-const { contentStyle } = useOverlayLayer(open);
 const minValue = computed(() => (props.min ? parseDate(props.min) : undefined));
 const maxValue = computed(() => (props.max ? parseDate(props.max) : undefined));
 // Reka 的日历默认使用英文名称；没有独立标签时沿用触发器的 aria-label。
@@ -105,7 +101,14 @@ function clear() {
       :style="$attrs.style"
       :class="
         mergeClasses(
-          fieldVariants({ size, invalid, disabled }),
+          'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-sm border bg-transparent px-3 text-sm text-ink transition-colors',
+          invalid
+            ? 'border-error focus-within:ring-2 focus-within:ring-error/15'
+            : 'border-border',
+          disabled
+            ? 'cursor-not-allowed opacity-50'
+            : !invalid &&
+                'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15',
           ui.root,
           $attrs.class,
         )
@@ -136,7 +139,12 @@ function clear() {
         v-if="clearable && model && !disabled && !readonly"
         type="button"
         aria-label="清空日期区间"
-        :class="mergeClasses(fieldClearClass, ui.clear)"
+        :class="
+          mergeClasses(
+            'inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+            ui.clear,
+          )
+        "
         @click="clear"
       >
         <CloseOutlined class="size-4" aria-hidden="true" />
@@ -146,10 +154,9 @@ function clear() {
       <PopoverContent
         :side-offset="6"
         align="start"
-        :style="contentStyle"
         :class="
           mergeClasses(
-            'floating-panel floating-panel-motion max-w-[calc(100vw-1rem)] p-3 text-sm text-ink',
+            'floating-panel max-w-[calc(100vw-1rem)] p-3 text-sm text-ink',
             ui.content,
           )
         "
@@ -191,7 +198,7 @@ function clear() {
           <RangeCalendarGrid
             v-for="month in grid"
             :key="month.value.toString()"
-            class="w-full border-collapse select-none"
+            class="w-full select-none"
           >
             <RangeCalendarGridHead>
               <RangeCalendarGridRow>

@@ -12,11 +12,6 @@ const XPage = compileComponent(
   new URL('../../src/ui/page/XPage.vue', import.meta.url),
   dependencies,
 );
-const XPageHeader = compileComponent(
-  new URL('../../src/ui/page/XPageHeader.vue', import.meta.url),
-  dependencies,
-);
-
 async function render(component, props, slots) {
   const html = await renderToString(Vue.h(component, props, slots));
   return new JSDOM(html).window.document.body;
@@ -57,10 +52,7 @@ test('Page adds the optional aside without duplicating body or header content', 
     XPage,
     {},
     {
-      default: () => [
-        Vue.h(XPageHeader, { title: '我的收藏' }),
-        Vue.h('p', '收藏列表'),
-      ],
+      default: () => [Vue.h('h1', '我的收藏'), Vue.h('p', '收藏列表')],
       aside: () => Vue.h('nav', { 'aria-label': '收藏夹' }, '目录'),
     },
   );
@@ -112,51 +104,4 @@ test('Page merges aside ui class after the defaults', async () => {
   assert.ok(aside.classList.contains('ps-2'));
   assert.ok(!aside.classList.contains('ps-5'));
   assert.ok(aside.classList.contains('sticky'));
-});
-
-test('PageHeader title slot replaces the fallback while preserving heading semantics and other slots', async () => {
-  const body = await render(
-    XPageHeader,
-    { title: '默认标题', description: '收藏说明' },
-    {
-      title: () => Vue.h('button', { type: 'button' }, '切换收藏夹'),
-      actions: () => Vue.h('button', { type: 'button' }, '添加'),
-    },
-  );
-  const heading = body.querySelector('h1');
-  assert.equal(body.querySelectorAll('h1').length, 1);
-  assert.equal(heading.querySelector('button').textContent, '切换收藏夹');
-  assert.ok(heading.classList.contains('text-2xl'));
-  assert.ok(!body.textContent.includes('默认标题'));
-  assert.equal(body.querySelector('p').textContent, '收藏说明');
-  assert.equal(body.querySelectorAll('button')[1].textContent, '添加');
-});
-
-test('PageHeader renders title, optional description and actions with root attrs and overrides', async () => {
-  const minimal = await render(XPageHeader, { title: '设置' });
-  assert.equal(minimal.firstElementChild.tagName, 'HEADER');
-  assert.ok(minimal.firstElementChild.classList.contains('mb-6'));
-  assert.ok(!minimal.firstElementChild.classList.contains('mt-6'));
-  assert.equal(minimal.querySelector('h1').textContent, '设置');
-  assert.equal(minimal.querySelector('p'), null);
-  assert.equal(minimal.firstElementChild.children.length, 1);
-
-  const body = await render(
-    XPageHeader,
-    {
-      title: '<工作区>',
-      description: '翻译任务',
-      id: 'heading',
-      class: 'my-2',
-    },
-    { actions: () => Vue.h('button', { type: 'button' }, '添加') },
-  );
-  const root = body.firstElementChild;
-  assert.equal(root.id, 'heading');
-  assert.ok(root.classList.contains('my-2'));
-  assert.ok(!root.classList.contains('mb-6'));
-  assert.equal(root.getAttribute('title'), null);
-  assert.equal(root.querySelector('h1').textContent, '<工作区>');
-  assert.equal(root.querySelector('p').textContent, '翻译任务');
-  assert.equal(root.querySelector('button').textContent, '添加');
 });

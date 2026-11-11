@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { XButton, XPage, XPageHeader, useWebKit } from '@novelia/web-kit';
+import UPageHeader from '@nuxt/ui/components/PageHeader.vue';
+import { XPage, useWebKit } from '@novelia/web-kit';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 const { theme } = useWebKit();
@@ -25,12 +26,6 @@ onUnmounted(() => {
   if (readerPreview.value) theme.clearOverride();
 });
 
-const preferenceOptions = [
-  { value: 'system', label: '跟随系统' },
-  { value: 'light', label: '浅色' },
-  { value: 'dark', label: '深色' },
-] as const;
-
 // 使用完整的静态类名，让 Tailwind 能扫描到每个色块的工具类。
 const colorGroups = [
   {
@@ -54,10 +49,8 @@ const colorGroups = [
     colors: [
       { token: 'primary', class: 'bg-primary' },
       { token: 'primary-hover', class: 'bg-primary-hover' },
-      { token: 'primary-pressed', class: 'bg-primary-pressed' },
       { token: 'primary-soft', class: 'bg-primary-soft' },
       { token: 'primary-soft-hover', class: 'bg-primary-soft-hover' },
-      { token: 'primary-soft-pressed', class: 'bg-primary-soft-pressed' },
       { token: 'primary-text', class: 'bg-primary-text' },
       { token: 'on-primary', class: 'bg-on-primary' },
     ],
@@ -66,39 +59,24 @@ const colorGroups = [
     title: '成功',
     colors: [
       { token: 'success', class: 'bg-success' },
-      { token: 'success-hover', class: 'bg-success-hover' },
-      { token: 'success-pressed', class: 'bg-success-pressed' },
       { token: 'success-soft', class: 'bg-success-soft' },
-      { token: 'success-soft-hover', class: 'bg-success-soft-hover' },
-      { token: 'success-soft-pressed', class: 'bg-success-soft-pressed' },
       { token: 'success-text', class: 'bg-success-text' },
-      { token: 'on-success', class: 'bg-on-success' },
     ],
   },
   {
     title: '信息',
     colors: [
       { token: 'info', class: 'bg-info' },
-      { token: 'info-hover', class: 'bg-info-hover' },
-      { token: 'info-pressed', class: 'bg-info-pressed' },
       { token: 'info-soft', class: 'bg-info-soft' },
-      { token: 'info-soft-hover', class: 'bg-info-soft-hover' },
-      { token: 'info-soft-pressed', class: 'bg-info-soft-pressed' },
       { token: 'info-text', class: 'bg-info-text' },
-      { token: 'on-info', class: 'bg-on-info' },
     ],
   },
   {
     title: '警告',
     colors: [
       { token: 'warning', class: 'bg-warning' },
-      { token: 'warning-hover', class: 'bg-warning-hover' },
-      { token: 'warning-pressed', class: 'bg-warning-pressed' },
       { token: 'warning-soft', class: 'bg-warning-soft' },
-      { token: 'warning-soft-hover', class: 'bg-warning-soft-hover' },
-      { token: 'warning-soft-pressed', class: 'bg-warning-soft-pressed' },
       { token: 'warning-text', class: 'bg-warning-text' },
-      { token: 'on-warning', class: 'bg-on-warning' },
     ],
   },
   {
@@ -106,10 +84,7 @@ const colorGroups = [
     colors: [
       { token: 'error', class: 'bg-error' },
       { token: 'error-hover', class: 'bg-error-hover' },
-      { token: 'error-pressed', class: 'bg-error-pressed' },
       { token: 'error-soft', class: 'bg-error-soft' },
-      { token: 'error-soft-hover', class: 'bg-error-soft-hover' },
-      { token: 'error-soft-pressed', class: 'bg-error-soft-pressed' },
       { token: 'error-text', class: 'bg-error-text' },
       { token: 'on-error', class: 'bg-on-error' },
     ],
@@ -118,13 +93,8 @@ const colorGroups = [
     title: '中性',
     colors: [
       { token: 'neutral', class: 'bg-neutral' },
-      { token: 'neutral-hover', class: 'bg-neutral-hover' },
-      { token: 'neutral-pressed', class: 'bg-neutral-pressed' },
       { token: 'neutral-soft', class: 'bg-neutral-soft' },
-      { token: 'neutral-soft-hover', class: 'bg-neutral-soft-hover' },
-      { token: 'neutral-soft-pressed', class: 'bg-neutral-soft-pressed' },
       { token: 'neutral-text', class: 'bg-neutral-text' },
-      { token: 'on-neutral', class: 'bg-on-neutral' },
     ],
   },
 ];
@@ -168,35 +138,10 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
 
 <template>
   <XPage>
-    <XPageHeader
+    <UPageHeader
       title="主题测试"
       description="使用 web-kit 的真实主题变量和 Tailwind 工具类，不另设展示配色。"
-    >
-      <template #actions>
-        <div
-          class="flex flex-wrap items-center gap-2"
-          role="group"
-          aria-label="主题偏好"
-        >
-          <XButton
-            v-for="option in preferenceOptions"
-            :key="option.value"
-            :color="
-              theme.preference.value === option.value ? 'primary' : 'neutral'
-            "
-            :variant="
-              theme.preference.value === option.value ? 'solid' : 'outline'
-            "
-            @click="theme.setPreference(option.value)"
-          >
-            {{ option.label }}
-          </XButton>
-        </div>
-        <XButton color="neutral" variant="outline" @click="theme.toggleTheme">
-          当前：{{ theme.isDark.value ? '深色' : '浅色' }} · 切换主题
-        </XButton>
-      </template>
-    </XPageHeader>
+    />
     <div class="flex flex-col gap-8">
       <p class="text-sm text-muted">
         切换主题后，色块和变量值会同步更新。“跟随系统”会响应操作系统的
@@ -204,7 +149,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
       </p>
 
       <section aria-labelledby="reader-theme-preview">
-        <h2 id="reader-theme-preview" class="mb-2 font-medium">
+        <h2 id="reader-theme-preview" class="heading-bar mb-2 font-medium">
           阅读器临时主题
         </h2>
         <p class="mb-4 text-sm text-muted">
@@ -239,7 +184,9 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
       </section>
 
       <section aria-labelledby="theme-palette">
-        <h2 id="theme-palette" class="mb-2 font-medium">颜色 token</h2>
+        <h2 id="theme-palette" class="heading-bar mb-2 font-medium">
+          颜色 token
+        </h2>
         <p class="mb-4 text-sm text-muted">
           色块使用 bg-*，下方显示根元素上的实际变量值。半透明色叠加在 surface
           背景上。每种语义色提供相同的状态、浅底、文字及反色角色。语义浅底默认浅色为
@@ -279,7 +226,9 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
         aria-labelledby="theme-surfaces"
         class="border-t border-divider pt-6"
       >
-        <h2 id="theme-surfaces" class="mb-4 font-medium">背景层级与文字</h2>
+        <h2 id="theme-surfaces" class="heading-bar mb-4 font-medium">
+          背景层级与文字
+        </h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <article
             v-for="surface in surfaces"
@@ -321,7 +270,9 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
         aria-labelledby="theme-status"
         class="border-t border-divider pt-6"
       >
-        <h2 id="theme-status" class="mb-4 font-medium">语义状态与浅色背景</h2>
+        <h2 id="theme-status" class="heading-bar mb-4 font-medium">
+          语义状态与浅色背景
+        </h2>
         <div class="grid gap-3 sm:grid-cols-2">
           <article
             v-for="status in statuses"
@@ -355,7 +306,9 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
         aria-labelledby="theme-accent"
         class="border-t border-divider pt-6"
       >
-        <h2 id="theme-accent" class="mb-4 font-medium">主色与危险色对比</h2>
+        <h2 id="theme-accent" class="heading-bar mb-4 font-medium">
+          主色与危险色对比
+        </h2>
         <div class="mt-4 flex flex-wrap gap-3">
           <div class="rounded-sm bg-primary px-4 py-3 text-sm text-on-primary">
             bg-primary + text-on-primary

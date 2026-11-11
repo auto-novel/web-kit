@@ -1,3 +1,4 @@
+import type { Component } from 'vue';
 import type { XUi } from '../classes';
 import type { MarkdownParser } from './render';
 
@@ -36,6 +37,8 @@ export type XMarkdownEditorUi = XUi<
 export interface XMarkdownEditorToolButtonProps {
   /** 同时用于 tooltip 和 aria-label，图标按钮也必须提供名称。 */
   label: string;
+  /** 支持 Iconify 名称或 Vue 图标组件。 */
+  icon?: string | Component;
   disabled?: boolean;
 }
 

@@ -7,9 +7,8 @@ import {
 } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 
-import XButton from '../button/XButton.vue';
+import UButton from '@nuxt/ui/components/Button.vue';
 import { mergeClasses, type XUi } from '../classes';
-import { useOverlayLayer } from '../overlayLayer';
 
 const props = withDefaults(
   defineProps<{
@@ -26,7 +25,6 @@ const emit = defineEmits<{
 
 const open = ref(false);
 const jumpPage = ref<number | string>(props.page);
-const { contentStyle } = useOverlayLayer(open);
 
 const targetPage = computed(() => Number(jumpPage.value));
 const canJump = computed(
@@ -60,7 +58,6 @@ function jumpToPage() {
     </PopoverTrigger>
     <PopoverPortal>
       <PopoverContent
-        :style="contentStyle"
         :side-offset="6"
         :collision-padding="8"
         :class="
@@ -87,7 +84,7 @@ function jumpToPage() {
             aria-label="跳转页码"
             :class="
               mergeClasses(
-                'h-9 w-16 rounded-sm border border-border bg-transparent px-2 text-sm text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-50',
+                'h-9 w-16 rounded-sm border border-border bg-transparent px-2 text-sm text-ink outline-none transition focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15',
                 ui.input,
               )
             "
@@ -95,7 +92,7 @@ function jumpToPage() {
           />
           页
         </label>
-        <XButton
+        <UButton
           color="neutral"
           variant="outline"
           size="sm"
@@ -104,7 +101,7 @@ function jumpToPage() {
           @click="jumpToPage"
         >
           跳转
-        </XButton>
+        </UButton>
       </PopoverContent>
     </PopoverPortal>
   </PopoverRoot>

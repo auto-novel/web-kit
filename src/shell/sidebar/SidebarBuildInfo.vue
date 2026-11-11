@@ -45,7 +45,7 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
           {{ shortCommit }}
         </code>
       </a>
-      <code v-else class="block text-xs">
+      <code v-else class="text-xs">
         {{ shortCommit }}
       </code>
     </div>

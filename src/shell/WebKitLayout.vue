@@ -9,7 +9,9 @@ import { useRoute } from 'vue-router';
 
 import { selectedGroupKeys } from './menu/helpers';
 import type { WebKitMenuOption } from '../types';
-import XDrawer from '../ui/drawer/XDrawer.vue';
+import USlideover, {
+  type SlideoverProps,
+} from '@nuxt/ui/components/Slideover.vue';
 import { useWebKitViewport } from '../utils/viewport';
 import UserAccountButton from './account/UserAccountButton.vue';
 import { WebKitSidebar, useSidebarPreference } from './sidebar';
@@ -24,6 +26,11 @@ const route = useRoute();
 const { viewportMode, isMobile } = useWebKitViewport();
 const mobileMenuOpen = ref(false);
 const mobileMenuId = useId();
+const mobileMenuContent: NonNullable<SlideoverProps['content']> & {
+  id: string;
+} = {
+  id: mobileMenuId,
+};
 const sidebarPreference = useSidebarPreference();
 const sidebarCollapsed = computed(
   () => viewportMode.value === 'tablet' || sidebarPreference.value,
@@ -70,22 +77,25 @@ watch(
 
 <template>
   <div class="web-kit-layout flex min-h-dvh bg-body">
-    <XDrawer
-      :id="mobileMenuId"
+    <USlideover
       v-model:open="mobileMenuOpen"
       title="站点导航"
       side="left"
+      :content="mobileMenuContent"
+      :ui="{ content: 'w-[280px] max-w-[calc(100vw-3rem)]' }"
     >
-      <WebKitSidebar
-        :options="navigationOptions"
-        :expanded="expanded"
-        :selected="selectedNavigationKey"
-        full-width
-        mobile-header
-        panel="modal"
-        @select="selectNavigation"
-      />
-    </XDrawer>
+      <template #content>
+        <WebKitSidebar
+          :options="navigationOptions"
+          :expanded="expanded"
+          :selected="selectedNavigationKey"
+          full-width
+          mobile-header
+          panel="modal"
+          @select="selectNavigation"
+        />
+      </template>
+    </USlideover>
 
     <!-- Match the header's sticky bounds; the full-height panel overflows below. -->
     <div
@@ -98,7 +108,6 @@ watch(
           :expanded="expanded"
           :selected="selectedNavigationKey"
           :collapsed="sidebarCollapsed"
-          class="flex-none"
           @select="selectNavigation"
         />
       </div>
