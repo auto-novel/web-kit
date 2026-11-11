@@ -4,6 +4,7 @@ import { zh_cn } from '@nuxt/ui/locale';
 import { RouterView } from 'vue-router';
 
 import XToaster from '../ui/toast/XToaster.vue';
+import XLoadingBar from '../ui/loading-bar/XLoadingBar.vue';
 
 defineOptions({ inheritAttrs: false });
 </script>
@@ -14,5 +15,6 @@ defineOptions({ inheritAttrs: false });
       <RouterView />
     </slot>
     <XToaster />
+    <XLoadingBar />
   </UApp>
 </template>

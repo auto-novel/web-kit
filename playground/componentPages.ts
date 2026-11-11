@@ -3,6 +3,7 @@ export const componentPages = [
   { slug: 'confirm-dialog', anchor: 'confirm-dialog' },
   { slug: 'date-range-picker', anchor: 'date-range-picker' },
   { slug: 'drop-zone', anchor: 'drop-zone' },
+  { slug: 'loading-bar', anchor: 'loading-bar' },
   { slug: 'markdown-editor', anchor: 'markdown-editor' },
   { slug: 'page', anchor: 'page' },
   { slug: 'pagination', anchor: 'pagination' },

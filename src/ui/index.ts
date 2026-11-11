@@ -31,6 +31,9 @@ export type {
   XMarkdownEditorUi,
 } from './markdown';
 export { default as XTime } from './time/XTime.vue';
+export { default as XLoadingBar } from './loading-bar/XLoadingBar.vue';
+export { LoadingBar } from './loading-bar/manager';
+export type { LoadingBarTask } from './loading-bar/manager';
 export { Toast } from './toast';
 export { getApiErrorMessage } from './toast/apiError';
 export type {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  LoadingBar,
   Toast,
   XConfirmDialog,
   XDateRangePicker,
@@ -11,6 +12,7 @@ import {
   XTime,
   createMarkdown,
   useMarkdownDraft,
+  type LoadingBarTask,
   type ToastId,
   type ToastOptions,
   type XDateRange,
@@ -46,6 +48,20 @@ const page = ref(2);
 const showAside = ref(false);
 const sampleTime = new Date('2025-06-05T15:04:30+08:00');
 const relativeBase = new Date('2025-06-05T15:07:30+08:00');
+const loadingTasks = shallowRef<LoadingBarTask[]>([]);
+function startLoadingTask() {
+  loadingTasks.value = [...loadingTasks.value, LoadingBar.start()];
+}
+function finishLoadingTask(fail = false) {
+  const [task, ...remaining] = loadingTasks.value;
+  if (!task) return;
+  loadingTasks.value = remaining;
+  if (fail) task.error();
+  else task.finish();
+}
+function runQuickPromise() {
+  void LoadingBar.promise(Promise.resolve());
+}
 const ownedIds = new Set<ToastId>();
 const editableId = ref<ToastId>();
 const pending = ref(false);
@@ -98,6 +114,8 @@ function startOperation() {
     });
 }
 onBeforeUnmount(() => {
+  for (const task of loadingTasks.value) task.finish();
+  loadingTasks.value = [];
   finishOperation?.(false);
   for (const id of ownedIds) Toast.dismiss(id);
 });
@@ -336,6 +354,49 @@ const menuItems = [
         <p class="mt-3 text-xs text-muted" aria-live="polite">
           当前页：{{ page }} / 20
         </p>
+      </section>
+
+      <section
+        id="loading-bar"
+        aria-labelledby="loading-bar-title"
+        class="scroll-mt-20 py-8"
+      >
+        <h2 id="loading-bar-title" class="heading-bar mb-4 text-lg font-medium">
+          顶部加载条 · LoadingBar
+        </h2>
+        <p class="mb-4 text-sm text-muted">
+          可多次开始任务，所有任务结束后收起加载条。
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <UButton @click="startLoadingTask">开始任务</UButton>
+          <UButton
+            color="success"
+            variant="outline"
+            :disabled="!loadingTasks.length"
+            @click="finishLoadingTask()"
+          >
+            完成一个
+          </UButton>
+          <UButton
+            color="error"
+            variant="outline"
+            :disabled="!loadingTasks.length"
+            @click="finishLoadingTask(true)"
+          >
+            失败一个
+          </UButton>
+        </div>
+        <p class="mt-3 text-xs text-muted" aria-live="polite">
+          待处理：{{ loadingTasks.length }}
+        </p>
+        <div class="mt-4 space-y-2">
+          <UButton color="neutral" variant="outline" @click="runQuickPromise">
+            快速 Promise
+          </UButton>
+          <p class="text-xs text-muted">
+            立即完成的 Promise 不显示加载条，避免闪烁。
+          </p>
+        </div>
       </section>
 
       <section
