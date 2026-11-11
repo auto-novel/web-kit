@@ -5,7 +5,7 @@ import { ref } from 'vue';
 import ComponentPage from './ComponentPage.vue';
 
 const scrollType = ref<'auto' | 'always' | 'scroll' | 'hover'>('auto');
-const code = `<XScrollArea class="h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }">
+const code = `<XScrollArea class="max-h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }">
   <p v-for="row in 20" :key="row">第 {{ row }} 行</p>
 </XScrollArea>
 
@@ -30,12 +30,36 @@ const code = `<XScrollArea class="h-48 w-full max-w-lg" :ui="{ viewport: 'p-4' }
     description="在受限尺寸内滚动内容，支持纵向、横向、双向滚动与不同的滚动条显示模式。"
     :code="code"
   >
+    <section aria-labelledby="scroll-auto-height" class="min-w-0">
+      <h2 id="scroll-auto-height" class="mb-2 font-medium">
+        内容自适应与最大高度
+      </h2>
+      <p class="mb-4 text-sm leading-6 text-muted">
+        两个区域都只设置 max-h-48：短内容不留空白，长内容达到最大高度后滚动。
+      </p>
+      <div class="grid min-w-0 items-start gap-6 lg:grid-cols-2">
+        <XScrollArea
+          v-for="count in [2, 16]"
+          :key="count"
+          class="max-h-48 w-full max-w-lg rounded-sm border border-border bg-surface"
+          :ui="{ viewport: 'p-4' }"
+        >
+          <ul class="space-y-3 text-sm">
+            <li v-for="index in count" :key="index">
+              第 {{ index }} 项 · 项目动态
+            </li>
+          </ul>
+        </XScrollArea>
+      </div>
+    </section>
+
     <section aria-labelledby="scroll-directions" class="min-w-0">
       <h2 id="scroll-directions" class="mb-2 font-medium">三个滚动方向</h2>
       <p id="scroll-keyboard-help" class="mb-4 text-sm leading-6 text-muted">
         使用滚轮、触控板或拖动滚动条浏览内容。按 Tab
         聚焦滚动视口后，可用方向键滚动；横向区域可用左右方向键。
-        外层必须有明确的高度和受限宽度，内容溢出后才会产生滚动。
+        默认高度随内容自适应，外层设置 max-height 后，超出上限才滚动；也可用
+        height 固定高度。横向滚动需要限制宽度。
       </p>
       <div class="grid min-w-0 gap-6 lg:grid-cols-2">
         <div class="min-w-0">

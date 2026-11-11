@@ -32,7 +32,7 @@ const { dragging, onPointerDown, onClick, onDragStart } = useDragScroll(props);
     :scroll-hide-delay="scrollHideDelay"
     :class="
       mergeClasses(
-        'relative min-h-0 min-w-0 overflow-hidden',
+        'relative flex min-h-0 min-w-0 flex-col overflow-hidden',
         ui.root,
         $attrs.class,
       )
@@ -45,7 +45,7 @@ const { dragging, onPointerDown, onClick, onDragStart } = useDragScroll(props);
       :style="dragging ? { userSelect: 'none', cursor: 'grabbing' } : undefined"
       :class="
         mergeClasses(
-          'size-full rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30',
+          'min-h-0 w-full min-w-0 flex-auto rounded-[inherit] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30',
           ui.viewport,
         )
       "
