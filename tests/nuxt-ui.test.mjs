@@ -21,10 +21,18 @@ test('Nuxt UI 使用显式配置，不创建第二份主题状态或自动导入
     base: 'cursor-pointer rounded-sm font-normal',
   });
   assert.equal('empty' in webKitNuxtUiOptions.ui, false);
-  assert.equal(
-    webKitNuxtUiOptions.ui.input.variants.size.md.base.includes('min-h-10'),
-    true,
-  );
+  for (const name of [
+    'button',
+    'input',
+    'inputNumber',
+    'textarea',
+    'select',
+    'selectMenu',
+    'inputMenu',
+    'dropdownMenu',
+  ]) {
+    assert.equal(webKitNuxtUiOptions.ui[name].variants?.size, undefined, name);
+  }
 });
 
 test('按钮保留默认状态和尺寸，字段与滑块应用轻量主题', async () => {
@@ -42,11 +50,50 @@ test('按钮保留默认状态和尺寸，字段与滑块应用轻量主题', as
     const { default: Input } = await server.ssrLoadModule(
       '@nuxt/ui/components/Input.vue',
     );
+    const { default: Link } = await server.ssrLoadModule(
+      '@nuxt/ui/components/Link.vue',
+    );
     const router = createRouter({
       history: createMemoryHistory(),
       routes: [{ path: '/', component: { render: () => null } }],
     });
     await router.push('/');
+    const renderLink = async (props) => {
+      const app = createSSRApp({
+        render: () => h(Link, { to: '/', ...props }, () => '链接'),
+      });
+      app.use(router);
+      return renderToString(app);
+    };
+    // 普通链接不随路由匹配变色，保留禁用状态与调用方覆盖能力。
+    for (const active of [false, true]) {
+      const link = await renderLink({ active });
+      assert.match(link, /href="\/"/);
+      const classes = link.match(/class="([^"]*)"/)[1].split(/\s+/);
+      for (const value of [
+        'text-primary',
+        'hover:text-primary-hover',
+        'transition-colors',
+        'rounded-sm',
+        'outline-primary',
+        'focus-visible:outline-2',
+        'focus-visible:outline-offset-2',
+      ])
+        assert.ok(classes.includes(value), value);
+      assert.doesNotMatch(
+        link,
+        /text-muted|hover:text-default|rounded-md|outline-primary\/25|focus-visible:outline-3/,
+      );
+    }
+    const disabledLink = await renderLink({ disabled: true });
+    assert.match(disabledLink, /aria-disabled="true"/);
+    assert.match(disabledLink, /cursor-not-allowed/);
+    assert.doesNotMatch(disabledLink, /hover:text-/);
+    const customLink = await renderLink({ class: 'text-ink hover:text-error' });
+    assert.match(customLink, /text-ink hover:text-error/);
+    assert.doesNotMatch(customLink, /text-primary/);
+    const rawLink = await renderLink({ raw: true });
+    assert.doesNotMatch(rawLink, /text-primary|focus-visible:outline/);
     const app = createSSRApp({ render: () => h(Button, {}, () => '测试') });
     app.use(router);
     const button = await renderToString(app);
@@ -58,31 +105,58 @@ test('按钮保留默认状态和尺寸，字段与滑块应用轻量主题', as
     assert.match(button, /disabled:opacity-75/);
     assert.match(button, /px-2\.5 py-1\.5/);
     assert.doesNotMatch(button, /--nui-|min-h-10/);
-    // 字号对齐 Naive UI，按钮和字段共用档位且不残留默认字号。
+    // 保留 Nuxt UI 默认字号与内边距，不残留自定义尺寸。
     for (const [size, fontSize] of Object.entries({
       xs: 'text-xs',
-      sm: 'text-sm',
+      sm: 'text-xs',
       md: 'text-sm',
-      lg: 'text-[15px]',
+      lg: 'text-sm',
       xl: 'text-base',
     })) {
       const sizedApp = createSSRApp({
         render: () => h(Button, { size }, () => size),
       });
       sizedApp.use(router);
-      for (const html of [
-        await renderToString(sizedApp),
-        await renderToString(h(Input, { size })),
+      const inputFontSize = {
+        xs: 'text-sm/4',
+        sm: 'text-sm/4',
+        md: 'text-base/5',
+        lg: 'text-base/5',
+        xl: 'text-base',
+      }[size];
+      for (const [html, expectedFontSize] of [
+        [await renderToString(sizedApp), fontSize],
+        [await renderToString(h(Input, { size })), inputFontSize],
       ]) {
         const classes = [...html.matchAll(/class="([^"]*)"/g)].flatMap(
           (match) => match[1].split(/\s+/),
         );
-        assert.ok(classes.includes(fontSize), `${size}: ${fontSize}`);
+        assert.ok(
+          classes.includes(expectedFontSize),
+          `${size}: ${expectedFontSize}`,
+        );
+        const padding = {
+          xs: ['px-2', 'py-1'],
+          sm: ['px-2.5', 'py-1.5'],
+          md: ['px-2.5', 'py-1.5'],
+          lg: ['px-3', 'py-2'],
+          xl: ['px-3', 'py-2'],
+        }[size];
+        for (const value of padding)
+          assert.ok(classes.includes(value), `${size}: ${value}`);
+        assert.ok(!classes.some((value) => value.startsWith('min-h-')));
         assert.deepEqual(
           classes.filter((value) =>
-            ['text-xs', 'text-sm', 'text-base', 'text-[15px]'].includes(value),
+            [
+              'text-xs',
+              'text-sm',
+              'text-base',
+              'text-sm/4',
+              'text-base/5',
+              'text-[15px]',
+            ].includes(value),
           ),
-          [fontSize],
+          [expectedFontSize],
         );
       }
     }
@@ -138,7 +212,8 @@ test('按钮保留默认状态和尺寸，字段与滑块应用轻量主题', as
       }
     }
     const input = await renderToString(h(Input, { modelValue: 'Novelia' }));
-    assert.match(input, /min-h-10/);
+    assert.doesNotMatch(input, /min-h-10/);
+    assert.match(input, /px-2\.5 py-1\.5/);
     assert.match(input, /border-border/);
     assert.match(input, /bg-transparent/);
     assert.match(input, /focus-visible:border-primary/);

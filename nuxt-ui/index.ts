@@ -2,28 +2,11 @@ import type { NuxtUIOptions } from '@nuxt/ui/vite';
 
 // 通用控件直接使用 Nuxt UI；此处仅维护 Novelia 的统一外观。
 // 宿主使用 ui(webKitNuxtUiOptions)，并在 Tailwind 之后导入 styles.css。
-const fontSizes = {
-  xs: { base: 'text-xs' },
-  sm: { base: 'text-sm' },
-  md: { base: 'text-sm' },
-  lg: { base: 'text-[15px]' },
-  xl: { base: 'text-base' },
-};
-
-const fieldSizes = {
-  xs: { base: `min-h-8 px-2 ${fontSizes.xs.base}` },
-  sm: { base: `min-h-9 px-2.5 ${fontSizes.sm.base}` },
-  md: { base: `min-h-10 px-3 ${fontSizes.md.base}` },
-  lg: { base: `min-h-11 px-3.5 ${fontSizes.lg.base}` },
-  xl: { base: `min-h-12 px-4 ${fontSizes.xl.base}` },
-};
-
 const fieldTheme = {
   slots: {
     base: 'rounded-sm font-normal disabled:opacity-50 placeholder:text-muted',
   },
   variants: {
-    size: fieldSizes,
     variant: {
       outline: 'border border-border bg-transparent ring-0',
     },
@@ -70,9 +53,20 @@ export const webKitNuxtUiOptions = {
       error: 'rose',
       neutral: 'zinc',
     },
+    link: {
+      base: 'rounded-sm transition-colors outline-primary focus-visible:outline-2 focus-visible:outline-offset-2',
+      variants: {
+        active: {
+          true: 'text-primary',
+          false: 'text-primary',
+        },
+      },
+      compoundVariants: [
+        { disabled: false, class: 'hover:text-primary-hover' },
+      ],
+    },
     button: {
       slots: { base: 'cursor-pointer rounded-sm font-normal' },
-      variants: { size: fontSizes },
       compoundVariants: [
         {
           color: 'neutral',
@@ -111,16 +105,7 @@ export const webKitNuxtUiOptions = {
     },
     input: fieldTheme,
     inputNumber: fieldTheme,
-    textarea: {
-      ...fieldTheme,
-      variants: {
-        ...fieldTheme.variants,
-        size: {
-          ...fieldSizes,
-          md: { base: 'px-3 py-2 text-sm' },
-        },
-      },
-    },
+    textarea: fieldTheme,
     select: {
       ...fieldTheme,
       slots: {
@@ -155,7 +140,6 @@ export const webKitNuxtUiOptions = {
     },
     dropdownMenu: {
       slots: { content: floatingContent, item: menuItem },
-      variants: { size: { md: { item: 'px-3 py-2 text-sm' } } },
     },
     tabs: {
       slots: {

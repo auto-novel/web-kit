@@ -8,6 +8,7 @@ import UCard from '@nuxt/ui/components/Card.vue';
 import UCheckbox from '@nuxt/ui/components/Checkbox.vue';
 import UFormField from '@nuxt/ui/components/FormField.vue';
 import UInput from '@nuxt/ui/components/Input.vue';
+import ULink from '@nuxt/ui/components/Link.vue';
 import UModal from '@nuxt/ui/components/Modal.vue';
 import UPageHeader from '@nuxt/ui/components/PageHeader.vue';
 import UProgress from '@nuxt/ui/components/Progress.vue';
@@ -147,10 +148,15 @@ const tabs = [
         <div class="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
             <h3 class="mb-3 text-sm font-medium">尺寸 · Size</h3>
-            <div class="flex flex-wrap items-center gap-3">
-              <UButton v-for="size in sizes" :key="size" :size="size">
-                {{ size }}
-              </UButton>
+            <div class="flex flex-wrap items-end gap-4">
+              <div
+                v-for="size in sizes"
+                :key="size"
+                class="flex flex-col items-center gap-2"
+              >
+                <UButton :size="size">继续阅读</UButton>
+                <span class="text-xs text-muted">{{ size }}</span>
+              </div>
             </div>
           </div>
           <div>
@@ -321,6 +327,31 @@ const tabs = [
                 size="lg"
                 aria-label="默认用户头像"
               />
+            </div>
+          </div>
+          <div class="space-y-4 md:col-span-2">
+            <h3 class="text-sm font-medium">链接 · ULink</h3>
+            <div class="grid gap-6 md:grid-cols-2">
+              <div>
+                <h4 class="mb-3 text-sm font-medium">默认与状态</h4>
+                <div class="flex flex-wrap items-center gap-4">
+                  <ULink to="/nuxt-ui" :active="false">未激活链接</ULink>
+                  <ULink to="/nuxt-ui" :active="true">激活链接</ULink>
+                  <ULink to="/nuxt-ui" disabled>禁用链接</ULink>
+                  <ULink to="https://ui.nuxt.com" target="_blank">
+                    外部链接 ↗
+                  </ULink>
+                </div>
+              </div>
+              <div>
+                <h4 class="mb-3 text-sm font-medium">样式覆盖</h4>
+                <div class="flex flex-wrap items-center gap-4">
+                  <ULink to="/nuxt-ui" class="text-ink hover:text-error">
+                    自定义颜色
+                  </ULink>
+                  <ULink to="/nuxt-ui" raw>raw · 不应用默认样式</ULink>
+                </div>
+              </div>
             </div>
           </div>
           <UAlert
