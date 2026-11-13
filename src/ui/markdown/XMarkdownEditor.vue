@@ -305,9 +305,9 @@ defineExpose({
     :style="$attrs.style"
     :class="
       mergeClasses(
-        '@container/markdown-editor w-full min-w-0 rounded-sm border bg-transparent text-ink',
+        '@container/markdown-editor w-full min-w-0 rounded-sm border bg-transparent text-default',
         sticky && 'relative',
-        invalid ? 'border-error' : 'border-border',
+        invalid ? 'border-error' : 'border-default',
         ui.root,
         $attrs.class,
       )
@@ -329,17 +329,17 @@ defineExpose({
       :ui="{
         root: 'gap-0 rounded-[inherit]',
         list: mergeClasses(
-          'flex-wrap items-stretch rounded-t-[inherit] border-border bg-body p-0',
+          'flex-wrap items-stretch rounded-t-[inherit] border-default bg-default p-0',
           sticky && 'sticky top-(--markdown-editor-toolbar-top) z-20',
           stuck && 'shadow-[0_4px_10px_-6px_rgb(0_0_0_/_0.3)]',
           ui.toolbar,
           ui.tabs,
         ),
         trigger: mergeClasses(
-          'rounded-none border-r border-border px-4 py-2 text-sm font-semibold data-[state=active]:text-ink',
+          'rounded-none border-r border-default px-4 py-2 text-sm font-semibold data-[state=active]:text-default',
           ui.tab,
         ),
-        indicator: 'bg-ink',
+        indicator: 'bg-(--ui-text)',
       }"
     >
       <template #list-trailing>
@@ -351,7 +351,7 @@ defineExpose({
           :aria-hidden="activeTab !== 'edit' || undefined"
           :class="
             mergeClasses(
-              'order-last flex w-full flex-wrap items-center gap-0.5 border-t border-border p-1 @md/markdown-editor:order-none @md/markdown-editor:ml-auto @md/markdown-editor:w-auto @md/markdown-editor:border-t-0',
+              'order-last flex w-full flex-wrap items-center gap-0.5 border-t border-default p-1 @md/markdown-editor:order-none @md/markdown-editor:ml-auto @md/markdown-editor:w-auto @md/markdown-editor:border-t-0',
               activeTab !== 'edit' && 'invisible',
               ui.tools,
             )
@@ -398,7 +398,7 @@ defineExpose({
           "
           :class="
             mergeClasses(
-              'block w-full border-0 bg-transparent p-3 text-sm leading-6 text-ink outline-none placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-50',
+              'block w-full border-0 bg-transparent p-3 text-sm leading-6 text-default outline-none placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-50',
               autosize ? 'resize-none overflow-hidden' : 'resize-y',
               ui.textarea,
             )

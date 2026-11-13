@@ -2,4 +2,4 @@
 @import 'tailwindcss' source(none);
 @import '@novelia/web-kit/nuxt-ui.css';
 
-@source inline('bg-primary bg-muted bg-(--color-muted) border-(--color-muted) focus-visible:ring-(--color-muted)/20 dark:bg-paper');
+@source inline('bg-primary bg-muted bg-default border-default text-default text-muted bg-(--ui-text-muted) border-(--ui-text-muted) focus-visible:ring-(--ui-text-muted)/20 dark:bg-paper');

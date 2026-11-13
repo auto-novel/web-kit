@@ -59,7 +59,7 @@ const features: MarkdownFeature[] = [
       content:
         'w-2xl max-w-[calc(100vw-2rem)] max-h-[min(80dvh,calc(100dvh-2rem))]',
       header:
-        'border-b border-divider px-5 py-4 pr-14 sm:px-6 sm:py-4 sm:pr-14',
+        'border-b border-default px-5 py-4 pr-14 sm:px-6 sm:py-4 sm:pr-14',
       title: 'font-semibold',
       description: 'mt-1',
       body: 'p-4 sm:p-6',
@@ -69,7 +69,7 @@ const features: MarkdownFeature[] = [
       color="neutral"
       variant="ghost"
       size="xs"
-      class="hover:bg-divider/40 hover:text-ink"
+      class="hover:bg-muted hover:text-default"
     >
       <HelpOutlineOutlined class="size-4" aria-hidden="true" />
       Markdown 语法帮助
@@ -77,7 +77,7 @@ const features: MarkdownFeature[] = [
     <template #body>
       <div>
         <div
-          class="divide-y divide-divider sm:divide-y-0 sm:overflow-hidden sm:rounded-md sm:border sm:border-border"
+          class="divide-y divide-default sm:divide-y-0 sm:overflow-hidden sm:rounded-md sm:border sm:border-default"
         >
           <div
             class="hidden grid-cols-[10.5rem_minmax(0,1fr)] bg-paper text-xs font-semibold text-muted sm:grid"
@@ -88,13 +88,13 @@ const features: MarkdownFeature[] = [
           <section
             v-for="feature in features"
             :key="feature.name"
-            class="grid gap-2 py-3 text-sm sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:items-center sm:gap-0 sm:border-t sm:border-divider sm:py-0"
+            class="grid gap-2 py-3 text-sm sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:items-center sm:gap-0 sm:border-t sm:border-default sm:py-0"
             :class="{
               'bg-paper/50': mode === 'comment' && feature.articleOnly,
             }"
           >
             <div class="sm:px-3 sm:py-2.5">
-              <h3 class="font-medium text-ink">
+              <h3 class="font-medium text-default">
                 {{ feature.name }}
               </h3>
               <span
@@ -105,7 +105,7 @@ const features: MarkdownFeature[] = [
               </span>
             </div>
             <code
-              class="block whitespace-pre-wrap rounded-sm bg-paper px-2 py-1.5 font-mono text-xs leading-5 text-ink sm:mx-3 sm:my-2"
+              class="block whitespace-pre-wrap rounded-sm bg-paper px-2 py-1.5 font-mono text-xs leading-5 text-default sm:mx-3 sm:my-2"
             >
               {{ feature.syntax }}
             </code>

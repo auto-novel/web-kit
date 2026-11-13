@@ -76,7 +76,7 @@ watch(
 </script>
 
 <template>
-  <div class="web-kit-layout flex min-h-dvh bg-body">
+  <div class="web-kit-layout flex min-h-dvh bg-default">
     <USlideover
       v-model:open="mobileMenuOpen"
       title="站点导航"
@@ -114,7 +114,7 @@ watch(
       <button
         v-if="viewportMode === 'desktop'"
         type="button"
-        class="absolute top-[80dvh] -right-3 grid size-6 cursor-pointer place-items-center rounded-full border border-border bg-surface text-muted shadow-[0_2px_4px_rgb(0_0_0_/_6%)] transition-[color,border-color] duration-150 ease-[ease] hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        class="absolute top-[80dvh] -right-3 grid size-6 cursor-pointer place-items-center rounded-full border border-default bg-surface text-muted shadow-[0_2px_4px_rgb(0_0_0_/_6%)] transition-[color,border-color] duration-150 ease-[ease] hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         :aria-label="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         :aria-expanded="!sidebarCollapsed"
@@ -132,14 +132,14 @@ watch(
       <header
         :class="[
           'sticky top-0 z-30 flex h-(--web-kit-header-height) flex-none items-center gap-3',
-          'border-b border-divider bg-surface px-2',
+          'border-b border-default bg-surface px-2',
         ]"
       >
         <button
           v-if="isMobile"
           type="button"
           :class="[
-            'grid size-9 flex-none place-items-center rounded-full text-ink',
+            'grid size-9 flex-none place-items-center rounded-full text-default',
             'transition-colors hover:bg-hover',
             'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
           ]"

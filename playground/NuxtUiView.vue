@@ -1,27 +1,5 @@
 <script setup lang="ts">
 import { XPage, useDragScroll } from '@novelia/web-kit';
-import UAlert from '@nuxt/ui/components/Alert.vue';
-import UAvatar from '@nuxt/ui/components/Avatar.vue';
-import UBadge from '@nuxt/ui/components/Badge.vue';
-import UButton from '@nuxt/ui/components/Button.vue';
-import UCard from '@nuxt/ui/components/Card.vue';
-import UCheckbox from '@nuxt/ui/components/Checkbox.vue';
-import UFormField from '@nuxt/ui/components/FormField.vue';
-import UInput from '@nuxt/ui/components/Input.vue';
-import ULink from '@nuxt/ui/components/Link.vue';
-import UModal from '@nuxt/ui/components/Modal.vue';
-import UPageHeader from '@nuxt/ui/components/PageHeader.vue';
-import UProgress from '@nuxt/ui/components/Progress.vue';
-import URadioGroup from '@nuxt/ui/components/RadioGroup.vue';
-import USelect from '@nuxt/ui/components/Select.vue';
-import UScrollArea from '@nuxt/ui/components/ScrollArea.vue';
-import USkeleton from '@nuxt/ui/components/Skeleton.vue';
-import USlider from '@nuxt/ui/components/Slider.vue';
-import USwitch from '@nuxt/ui/components/Switch.vue';
-import UTabs from '@nuxt/ui/components/Tabs.vue';
-import USlideover from '@nuxt/ui/components/Slideover.vue';
-import UTextarea from '@nuxt/ui/components/Textarea.vue';
-import UTooltip from '@nuxt/ui/components/Tooltip.vue';
 import { useToast } from '@nuxt/ui/composables';
 import { ref, useTemplateRef } from 'vue';
 
@@ -32,6 +10,7 @@ useDragScroll(() => horizontalScroll.value?.$el, {
 });
 
 const toast = useToast();
+const buttonsDisabled = ref(false);
 const text = ref('Novelia');
 const description = ref('共享主题下的 Nuxt UI 组件。');
 const selected = ref('novel');
@@ -63,7 +42,10 @@ const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 const subscribed = ref(true);
 const notifications = ref(true);
 const visibility = ref('public');
-const progress = ref(60);
+const sliderValue = ref(40);
+const sliderStepValue = ref(20);
+const sliderRange = ref([20, 80]);
+const sliderVerticalValue = ref(50);
 const visibilityOptions = [
   { label: '公开', value: 'public', description: '所有人都可以阅读' },
   { label: '私密', value: 'private', description: '仅自己可见' },
@@ -83,18 +65,19 @@ const tabs = [
       description="直接使用 Nuxt UI 组件，共享 web-kit 的语义色、字号、圆角及浅色 / 深色主题。"
     />
 
-    <div class="min-w-0 divide-y divide-divider">
+    <div class="min-w-0 divide-y divide-default">
       <section class="py-8 first:pt-0 last:pb-0">
         <h2 class="heading-bar text-lg font-medium">按钮</h2>
         <p
           id="nuxt-button-matrix-description"
           class="mt-1 mb-4 text-sm text-muted"
         >
-          Variant × Color 完整组合；可悬停、点击或使用 Tab
+          Variant × Color 完整组合；使用开关切换禁用状态。可悬停、点击或使用 Tab
           查看交互状态。窄屏下可横向滚动。
         </p>
+        <USwitch v-model="buttonsDisabled" label="禁用表格按钮" class="mb-4" />
         <div
-          class="overflow-x-auto rounded-sm border border-divider focus-visible:outline-2 focus-visible:outline-primary"
+          class="overflow-x-auto rounded-sm border border-default focus-visible:outline-2 focus-visible:outline-primary"
           role="region"
           aria-label="按钮样式对照表"
           aria-describedby="nuxt-button-matrix-description"
@@ -102,10 +85,10 @@ const tabs = [
         >
           <table class="w-full border-collapse text-sm">
             <caption class="sr-only">
-              6 种按钮 Variant 与 7 种 Color 的样式组合
+              6 种按钮 Variant 与 7 种 Color 的正常及禁用样式组合
             </caption>
             <thead>
-              <tr class="border-b border-divider bg-embedded">
+              <tr class="border-b border-default bg-embedded">
                 <th scope="col" class="p-3 text-left font-medium">
                   Variant / Color
                 </th>
@@ -123,7 +106,7 @@ const tabs = [
               <tr
                 v-for="variant in variants"
                 :key="variant"
-                class="border-b border-divider last:border-b-0"
+                class="border-b border-default last:border-b-0"
               >
                 <th scope="row" class="p-3 text-left font-medium">
                   {{ variant }}
@@ -136,6 +119,7 @@ const tabs = [
                   <UButton
                     :variant="variant"
                     :color="color"
+                    :disabled="buttonsDisabled"
                     :aria-label="`${variant} / ${color} 按钮`"
                   >
                     {{ color }}
@@ -265,28 +249,119 @@ const tabs = [
             :items="visibilityOptions"
           />
         </div>
-        <div
-          class="mt-6 grid gap-6 border-t border-divider pt-6 md:grid-cols-2"
-        >
-          <UFormField label="Slider · 阅读进度" :hint="`${progress}%`">
+        <div class="mt-6 space-y-3 border-t border-default pt-6">
+          <h3 class="text-sm font-medium">Progress · 进度条</h3>
+          <UProgress :model-value="60" :max="100" aria-label="当前进度" />
+          <UProgress color="neutral" aria-label="正在加载" />
+        </div>
+      </section>
+
+      <section class="py-8 first:pt-0 last:pb-0">
+        <h2 class="heading-bar mb-4 text-lg font-medium">滑块 · USlider</h2>
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium">尺寸 · size</h3>
+            <div
+              v-for="size in sizes"
+              :key="size"
+              class="flex items-center gap-4"
+            >
+              <span class="w-6 shrink-0 text-xs text-muted">{{ size }}</span>
+              <USlider
+                v-model="sliderValue"
+                :size="size"
+                tooltip
+                :aria-label="`${size} 尺寸滑块`"
+                class="flex-1"
+              />
+            </div>
+            <p class="text-xs text-muted">
+              当前值 {{ sliderValue }} ·
+              共用数值，对比手柄大小；当前主题固定轨道厚度。
+            </p>
+          </div>
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium">颜色 · color</h3>
+            <div
+              v-for="color in colors"
+              :key="color"
+              class="flex items-center gap-4"
+            >
+              <span class="w-16 shrink-0 text-xs text-muted">{{ color }}</span>
+              <USlider
+                :color="color"
+                :default-value="40"
+                tooltip
+                :aria-label="`${color} 颜色滑块`"
+                class="flex-1"
+              />
+            </div>
+          </div>
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium">边界与步长 · min / max / step</h3>
+            <UFormField
+              label="-50 至 50，步长 10"
+              :hint="String(sliderStepValue)"
+            >
+              <USlider
+                v-model="sliderStepValue"
+                :min="-50"
+                :max="50"
+                :step="10"
+                tooltip
+                aria-label="步长为 10 的滑块"
+                class="mt-2"
+              />
+            </UFormField>
+          </div>
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium">范围 · 数组 modelValue</h3>
+            <UFormField
+              label="双手柄，最小间隔 10"
+              :hint="sliderRange.join(' – ')"
+            >
+              <USlider
+                v-model="sliderRange"
+                :step="5"
+                :min-steps-between-thumbs="2"
+                tooltip
+                aria-label="数值范围"
+                class="mt-2"
+              />
+            </UFormField>
+          </div>
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium">方向 · orientation / inverted</h3>
+            <div class="flex items-center gap-6">
+              <USlider
+                v-model="sliderVerticalValue"
+                orientation="vertical"
+                tooltip
+                aria-label="垂直滑块"
+                class="h-28"
+              />
+              <div class="min-w-0 flex-1 space-y-3">
+                <p class="text-xs text-muted">
+                  垂直值 {{ sliderVerticalValue }}
+                </p>
+                <USlider
+                  v-model="sliderValue"
+                  inverted
+                  tooltip
+                  aria-label="反向滑块"
+                />
+                <p class="text-xs text-muted">inverted：左侧为最大值</p>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <h3 class="text-sm font-medium">禁用 · disabled</h3>
+            <USlider :model-value="40" disabled aria-label="禁用滑块" />
             <USlider
-              v-model="progress"
-              :min="0"
-              :max="100"
-              :step="5"
-              tooltip
-              aria-label="阅读进度"
-              class="mt-2"
+              :model-value="[20, 80]"
+              disabled
+              aria-label="禁用范围滑块"
             />
-          </UFormField>
-          <div class="space-y-3">
-            <h3 class="text-sm font-medium">Progress · 进度条</h3>
-            <UProgress
-              :model-value="progress"
-              :max="100"
-              aria-label="当前阅读进度"
-            />
-            <UProgress color="neutral" aria-label="正在加载" />
           </div>
         </div>
       </section>
@@ -346,7 +421,7 @@ const tabs = [
               <div>
                 <h4 class="mb-3 text-sm font-medium">样式覆盖</h4>
                 <div class="flex flex-wrap items-center gap-4">
-                  <ULink to="/nuxt-ui" class="text-ink hover:text-error">
+                  <ULink to="/nuxt-ui" class="text-default hover:text-error">
                     自定义颜色
                   </ULink>
                   <ULink to="/nuxt-ui" raw>raw · 不应用默认样式</ULink>
@@ -507,52 +582,135 @@ const tabs = [
 
       <section class="py-8 first:pt-0 last:pb-0">
         <h2 class="heading-bar mb-4 text-lg font-medium">浮层与反馈</h2>
-        <div class="flex flex-wrap gap-3">
-          <UModal
-            v-model:open="open"
-            title="Nuxt UI 弹窗"
-            description="使用共享主题的 Nuxt UI 组件。"
-            :ui="{ content: 'sm:max-w-xl' }"
+        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <section
+            id="tooltip"
+            aria-labelledby="tooltip-title"
+            class="min-w-0 scroll-mt-20"
           >
-            <UButton color="neutral" variant="outline">打开弹窗</UButton>
-            <template #body><p>共享的背景、语义色及浮层风格。</p></template>
-            <template #footer>
-              <UButton @click="open = false">关闭</UButton>
-            </template>
-          </UModal>
-          <USlideover
-            v-model:open="slideoverOpen"
-            title="Nuxt UI 侧边栏"
-            description="从右侧打开辅助面板，使用遮罩、Escape 或关闭按钮退出。"
-            side="right"
-            :ui="{ content: 'w-full max-w-sm' }"
+            <h3 id="tooltip-title" class="mb-3 text-sm font-medium">
+              文字提示 · UTooltip
+            </h3>
+            <div class="flex flex-wrap gap-3">
+              <UTooltip text="共用 web-kit 的浮层背景、圆角与阴影" arrow>
+                <UButton color="neutral" variant="outline">
+                  悬停或聚焦提示
+                </UButton>
+              </UTooltip>
+              <UTooltip
+                text="将作品加入书架"
+                :content="{ side: 'right' }"
+                arrow
+              >
+                <UButton
+                  icon="i-lucide-bookmark-plus"
+                  color="neutral"
+                  variant="soft"
+                  aria-label="加入书架"
+                />
+              </UTooltip>
+              <UTooltip
+                :text="'阅读进度会自动保存。\n登录后可在其他设备继续阅读。'"
+                arrow
+              >
+                <UButton color="neutral" variant="outline">多行提示</UButton>
+              </UTooltip>
+              <UTooltip text="此提示已禁用" disabled>
+                <UButton color="neutral" variant="ghost">禁用提示</UButton>
+              </UTooltip>
+            </div>
+          </section>
+
+          <section
+            id="popover"
+            aria-labelledby="popover-title"
+            class="min-w-0 scroll-mt-20"
           >
-            <UButton color="neutral" variant="outline">打开侧边栏</UButton>
-            <template #body>
-              <div class="space-y-4">
-                <p>正文放在 body 插槽，默认插槽按钮作为触发器。</p>
-                <UInput v-model="text" aria-label="侧边栏名称" class="w-full" />
-              </div>
-            </template>
-            <template #footer>
-              <UButton @click="slideoverOpen = false">完成并关闭</UButton>
-            </template>
-          </USlideover>
-          <UButton
-            variant="soft"
-            @click="
-              toast.add({
-                title: 'Nuxt UI 通知',
-                description: '与 web-kit 共用浮层底色和阴影',
-                color: 'success',
-              })
-            "
-          >
-            显示通知
-          </UButton>
-          <UTooltip text="共用 web-kit 的浮层背景、圆角与阴影">
-            <UButton color="neutral" variant="ghost">悬停提示</UButton>
-          </UTooltip>
+            <h3 id="popover-title" class="mb-3 text-sm font-medium">
+              气泡浮层 · UPopover
+            </h3>
+            <div class="flex flex-wrap gap-3">
+              <UPopover arrow :content="{ align: 'start' }">
+                <UButton color="neutral" variant="outline">阅读设置</UButton>
+                <template #content="{ close }">
+                  <div class="w-64 space-y-4 p-4">
+                    <h3 class="font-medium">阅读设置</h3>
+                    <USwitch v-model="notifications" label="接收更新通知" />
+                    <p class="text-sm text-muted" aria-live="polite">
+                      通知已{{ notifications ? '开启' : '关闭' }}
+                    </p>
+                    <UButton size="sm" @click="close">完成</UButton>
+                  </div>
+                </template>
+              </UPopover>
+              <UPopover mode="hover" arrow>
+                <UButton color="neutral" variant="soft">悬停查看作品</UButton>
+                <template #content>
+                  <div class="w-64 space-y-2 p-4">
+                    <h3 class="font-medium">旅途中的书店</h3>
+                    <p class="text-sm text-muted">
+                      雨后的街角，一家书店亮着灯。悬停浮层适合展示补充信息。
+                    </p>
+                    <UBadge color="success" variant="soft">连载中</UBadge>
+                  </div>
+                </template>
+              </UPopover>
+            </div>
+          </section>
+
+          <section aria-labelledby="feedback-title" class="min-w-0">
+            <h3 id="feedback-title" class="mb-3 text-sm font-medium">
+              弹窗、侧栏与通知
+            </h3>
+            <div class="flex flex-wrap gap-3">
+              <UModal
+                v-model:open="open"
+                title="Nuxt UI 弹窗"
+                description="使用共享主题的 Nuxt UI 组件。"
+                :ui="{ content: 'sm:max-w-xl' }"
+              >
+                <UButton color="neutral" variant="outline">打开弹窗</UButton>
+                <template #body><p>共享的背景、语义色及浮层风格。</p></template>
+                <template #footer>
+                  <UButton @click="open = false">关闭</UButton>
+                </template>
+              </UModal>
+              <USlideover
+                v-model:open="slideoverOpen"
+                title="Nuxt UI 侧边栏"
+                description="从右侧打开辅助面板，使用遮罩、Escape 或关闭按钮退出。"
+                side="right"
+                :ui="{ content: 'w-full max-w-sm' }"
+              >
+                <UButton color="neutral" variant="outline">打开侧边栏</UButton>
+                <template #body>
+                  <div class="space-y-4">
+                    <p>正文放在 body 插槽，默认插槽按钮作为触发器。</p>
+                    <UInput
+                      v-model="text"
+                      aria-label="侧边栏名称"
+                      class="w-full"
+                    />
+                  </div>
+                </template>
+                <template #footer>
+                  <UButton @click="slideoverOpen = false">完成并关闭</UButton>
+                </template>
+              </USlideover>
+              <UButton
+                variant="soft"
+                @click="
+                  toast.add({
+                    title: 'Nuxt UI 通知',
+                    description: '与 web-kit 共用浮层底色和阴影',
+                    color: 'success',
+                  })
+                "
+              >
+                显示通知
+              </UButton>
+            </div>
+          </section>
         </div>
       </section>
     </div>

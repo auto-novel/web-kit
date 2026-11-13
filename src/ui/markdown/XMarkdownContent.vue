@@ -53,7 +53,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 <style scoped>
 .markdown-content {
-  color: var(--color-ink);
+  color: var(--ui-text);
   font-size: var(--markdown-font-size, 0.9375rem);
   line-height: var(--markdown-line-height, 1.75rem);
   overflow-wrap: anywhere;
@@ -72,7 +72,7 @@ function handleKeydown(event: KeyboardEvent) {
 .markdown-content :deep(h3),
 .markdown-content :deep(h4) {
   margin-block: var(--markdown-heading-margin, 1.6em 0.65em);
-  color: var(--color-ink);
+  color: var(--ui-text);
   font-weight: 700;
   line-height: 1.3;
 }
@@ -129,29 +129,25 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 .markdown-content :deep(a) {
-  color: var(--color-primary);
+  color: var(--ui-primary);
   text-decoration: underline;
-  text-decoration-color: color-mix(
-    in srgb,
-    var(--color-primary) 45%,
-    transparent
-  );
+  text-decoration-color: color-mix(in srgb, var(--ui-primary) 45%, transparent);
   text-underline-offset: 0.2em;
 }
 
 .markdown-content :deep(a:hover) {
-  color: var(--color-primary-hover);
+  color: color-mix(in srgb, var(--ui-primary) 75%, transparent);
 }
 
 .markdown-content :deep(blockquote) {
-  border-left: 3px solid var(--color-primary);
+  border-left: 3px solid var(--ui-primary);
   padding: 0.25rem 0 0.25rem 1rem;
-  color: var(--color-muted);
+  color: var(--ui-text-muted);
 }
 
 .markdown-content :deep(code) {
   border-radius: 0.25rem;
-  background: var(--color-divider);
+  background: var(--ui-bg-muted);
   padding: 0.15em 0.35em;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.88em;
@@ -159,9 +155,9 @@ function handleKeydown(event: KeyboardEvent) {
 
 .markdown-content :deep(pre) {
   overflow-x: auto;
-  border: 1px solid var(--color-divider);
+  border: 1px solid var(--ui-border);
   border-radius: 0.375rem;
-  background: var(--color-divider);
+  background: var(--ui-bg-muted);
   padding: 1rem;
   line-height: 1.6;
 }
@@ -176,7 +172,7 @@ function handleKeydown(event: KeyboardEvent) {
 .markdown-content :deep(hr) {
   margin-block: 1.5rem;
   border: 0;
-  border-top: 1px solid var(--color-divider);
+  border-top: 1px solid var(--ui-border);
 }
 
 .markdown-content :deep(table) {
@@ -188,7 +184,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 .markdown-content :deep(th),
 .markdown-content :deep(td) {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--ui-border);
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
@@ -206,7 +202,7 @@ function handleKeydown(event: KeyboardEvent) {
 
 .markdown-content :deep(details) {
   margin-bottom: 1rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--ui-border);
   border-radius: 0.375rem;
   padding: 0.75rem 1rem;
 }
@@ -231,7 +227,7 @@ function handleKeydown(event: KeyboardEvent) {
   display: flex;
   width: 20px;
   height: 20px;
-  color: var(--markdown-star-color, var(--color-border));
+  color: var(--markdown-star-color, var(--ui-border));
 }
 
 .markdown-content :deep(.markdown-star:not(:first-child)) {
@@ -251,7 +247,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 .markdown-content :deep(.markdown-star--active) {
-  color: var(--markdown-star-active-color, var(--color-primary));
+  color: var(--markdown-star-active-color, var(--ui-primary));
 }
 
 .markdown-content :deep(.markdown-star__half) {
@@ -266,7 +262,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 .markdown-content :deep(.markdown-star__half--active) {
-  color: var(--markdown-star-active-color, var(--color-primary));
+  color: var(--markdown-star-active-color, var(--ui-primary));
 }
 
 .markdown-content :deep(.markdown-star__half::before) {
@@ -276,7 +272,7 @@ function handleKeydown(event: KeyboardEvent) {
 .markdown-content :deep([data-markdown-spoiler]) {
   cursor: pointer;
   border-radius: 0.2em;
-  background: var(--markdown-spoiler-background, var(--color-ink));
+  background: var(--markdown-spoiler-background, var(--ui-text));
   padding: 0.05em 0.25em;
   transition:
     background 150ms ease,
@@ -290,6 +286,6 @@ function handleKeydown(event: KeyboardEvent) {
 
 .markdown-content :deep([data-markdown-spoiler][data-hide='false']),
 .markdown-content :deep([data-markdown-spoiler][data-hide='false'] *) {
-  color: var(--markdown-spoiler-color, var(--color-body));
+  color: var(--markdown-spoiler-color, var(--ui-bg));
 }
 </style>

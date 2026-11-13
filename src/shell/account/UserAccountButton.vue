@@ -61,7 +61,7 @@ const items = computed(() => {
         type: whoami.value.isAdmin ? 'checkbox' : 'label',
         checked: whoami.value.asAdmin,
         ui: {
-          itemLabel: 'text-sm font-medium text-ink',
+          itemLabel: 'text-sm font-medium text-default',
           itemDescription: 'mt-0.5 text-xs font-normal',
           itemTrailing: 'hidden',
         },

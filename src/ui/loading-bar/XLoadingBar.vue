@@ -54,7 +54,7 @@ const view = useLoadingBar();
 .x-loading-bar__progress {
   width: 100%;
   height: 100%;
-  background: var(--color-primary, #18a058);
+  background: var(--ui-primary, #18a058);
   transition:
     max-width 4s linear,
     background-color 0.2s linear;
@@ -66,7 +66,7 @@ const view = useLoadingBar();
 }
 
 .x-loading-bar__progress[data-status='error'] {
-  background: var(--color-error, #d03050);
+  background: var(--ui-error, #d03050);
 }
 
 @media (prefers-reduced-motion: reduce) {

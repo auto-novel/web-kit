@@ -32,7 +32,7 @@ test('heading-bar 按需生成纯装饰样式，并允许工具类覆盖', async
   assert.match(heading, /inset-inline-start: 0/);
   assert.match(heading, /width: 3px/);
   assert.match(heading, /border-radius: 9999px/);
-  assert.match(heading, /background-color: var\(--color-primary\)/);
+  assert.match(heading, /background-color: var\(--ui-primary\)/);
   assert.match(heading, /content: (?:''|"")/);
   assert.doesNotMatch(heading, /font-|line-height|margin|h[23]/);
 

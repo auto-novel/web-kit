@@ -17,11 +17,6 @@ import {
   type ToastOptions,
   type XDateRange,
 } from '@novelia/web-kit';
-import UButton from '@nuxt/ui/components/Button.vue';
-import UDropdownMenu from '@nuxt/ui/components/DropdownMenu.vue';
-import UPageHeader from '@nuxt/ui/components/PageHeader.vue';
-import UScrollArea from '@nuxt/ui/components/ScrollArea.vue';
-import USwitch from '@nuxt/ui/components/Switch.vue';
 import { onBeforeUnmount, ref, shallowRef } from 'vue';
 
 const range = ref<XDateRange | null>(['2026-06-01', '2026-06-07']);
@@ -140,7 +135,7 @@ const menuItems = [
   <XPage>
     <UPageHeader title="扩展组件" />
 
-    <div class="min-w-0 divide-y divide-divider">
+    <div class="min-w-0 divide-y divide-default">
       <section
         id="date-range-picker"
         aria-labelledby="date-range-title"
@@ -195,7 +190,7 @@ const menuItems = [
         </XDropZone>
         <USwitch v-model="dropDisabled" label="禁用文件拖放" />
         <div
-          class="mt-4 border-y border-dashed border-divider py-8 text-center text-sm text-muted"
+          class="mt-4 border-y border-dashed border-default py-8 text-center text-sm text-muted"
           aria-live="polite"
         >
           <ul v-if="files.length" class="space-y-2">

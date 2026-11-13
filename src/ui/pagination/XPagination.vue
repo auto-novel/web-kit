@@ -98,9 +98,9 @@ function rootAttrs() {
 }
 
 const navButtonClass =
-  'w-8 shrink-0 justify-center px-0 text-ink hover:text-primary sm:w-auto sm:px-3';
+  'w-8 shrink-0 justify-center px-0 text-default hover:text-primary sm:w-auto sm:px-3';
 const pageItemClass =
-  'text-xs font-medium text-ink hover:text-primary data-selected:bg-primary-soft data-selected:text-primary-text data-selected:hover:bg-primary-soft-hover data-selected:hover:text-primary';
+  'text-xs font-medium text-default hover:text-primary data-selected:bg-primary/10 data-selected:text-primary data-selected:hover:bg-primary/20 data-selected:hover:text-primary';
 
 type PaginationItem = { type: 'page'; value: number } | { type: 'ellipsis' };
 
@@ -199,7 +199,7 @@ watch(
     show-edges
     :class="
       mergeClasses(
-        'flex items-center justify-between border-t border-divider px-4 py-3 text-sm sm:px-6',
+        'flex items-center justify-between border-t border-default px-4 py-3 text-sm sm:px-6',
         ui.root,
         attrs.class,
       )

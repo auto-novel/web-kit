@@ -21,7 +21,7 @@ defineProps<XMarkdownEditorToolButtonProps>();
       :icon="icon"
       :aria-label="label"
       :class="
-        mergeClasses('size-8 min-h-0 justify-center text-ink', $attrs.class)
+        mergeClasses('size-8 min-h-0 justify-center text-default', $attrs.class)
       "
       @mousedown.prevent
     >

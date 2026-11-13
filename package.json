@@ -21,25 +21,23 @@
     "./forum": "./src/forum/index.ts",
     "./package.json": "./package.json",
     "./styles.css": "./src/styles.css",
-    "./nuxt-ui": "./nuxt-ui/index.ts",
-    "./nuxt-ui.css": "./nuxt-ui/styles.css",
+    "./nuxt-ui": "./src/ui/nuxt-ui.ts",
+    "./nuxt-ui.css": "./src/styles.css",
     "./vite": {
       "types": "./src/vite.d.ts",
       "default": "./src/vite.js"
     }
   },
   "files": [
-    "src",
-    "nuxt-ui"
+    "src"
   ],
   "scripts": {
-    "build": "pnpm run typecheck",
+    "build": "pnpm run build:playground && pnpm run typecheck",
+    "build:playground": "vite build playground",
+    "typecheck": "vue-tsc -b tsconfig.json playground/tsconfig.json",
     "dev": "vite playground",
-    "build:playground": "pnpm run typecheck:playground && vite build playground",
-    "typecheck:playground": "vue-tsc -b playground/tsconfig.json",
     "preview": "vite preview playground",
-    "test": "node --test \"tests/**/*.test.mjs\"",
-    "typecheck": "vue-tsc -b"
+    "test": "node --test \"tests/**/*.test.mjs\""
   },
   "peerDependencies": {
     "@nuxt/ui": "^4.12.0",

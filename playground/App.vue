@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import UButton from '@nuxt/ui/components/Button.vue';
 import {
   WidgetsOutlined,
   HomeOutlined,

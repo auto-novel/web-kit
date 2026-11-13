@@ -88,19 +88,21 @@ onBeforeUnmount(() => requestId++);
 
     <section v-if="!whoami.isSignedIn" class="py-8 text-center">
       <div
-        class="mx-auto grid size-12 place-items-center rounded-full bg-primary-soft text-primary"
+        class="mx-auto grid size-12 place-items-center rounded-full bg-primary/10 text-primary"
         aria-hidden="true"
       >
         <GavelOutlined class="size-6" />
       </div>
-      <h2 class="mt-4 text-lg font-semibold text-ink">登录后查看处罚记录</h2>
+      <h2 class="mt-4 text-lg font-semibold text-default">
+        登录后查看处罚记录
+      </h2>
       <p class="mt-2 text-sm text-muted">
         请使用页面右上角的登录入口登录账号。
       </p>
     </section>
 
     <section v-else aria-live="polite">
-      <div v-if="loading" class="divide-y divide-divider" role="status">
+      <div v-if="loading" class="divide-y divide-default" role="status">
         <span class="sr-only">正在加载处罚记录…</span>
         <div v-for="index in 4" :key="index" class="py-5">
           <div class="flex items-center justify-between gap-4">
@@ -128,11 +130,11 @@ onBeforeUnmount(() => requestId++);
         title="暂无处罚记录"
         description="你的账号目前没有处罚记录。"
       />
-      <div v-else class="divide-y divide-divider">
+      <div v-else class="divide-y divide-default">
         <article v-for="strike in strikes" :key="strike.id" class="py-5">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
-              <h2 class="text-base font-semibold wrap-anywhere text-ink">
+              <h2 class="text-base font-semibold wrap-anywhere text-default">
                 {{ strike.reason }}
               </h2>
               <p class="mt-1 text-xs text-muted">
@@ -148,12 +150,12 @@ onBeforeUnmount(() => requestId++);
                 :class="
                   strike.revokedAt
                     ? 'bg-paper text-muted'
-                    : 'bg-error-soft text-error-text'
+                    : 'bg-error/10 text-error'
                 "
               >
                 {{ strike.revokedAt ? '已撤销' : '生效中' }}
               </span>
-              <span class="rounded-full bg-paper px-2.5 py-1 text-ink">
+              <span class="rounded-full bg-paper px-2.5 py-1 text-default">
                 {{ strike.point }} 分
               </span>
             </div>
@@ -162,7 +164,7 @@ onBeforeUnmount(() => requestId++);
           <div class="mt-4 rounded-md bg-paper px-4 py-3">
             <p class="text-xs font-medium text-muted">处罚依据</p>
             <p
-              class="mt-1 whitespace-pre-wrap text-sm leading-6 wrap-anywhere text-ink"
+              class="mt-1 whitespace-pre-wrap text-sm leading-6 wrap-anywhere text-default"
             >
               {{ strike.evidence || '未提供' }}
             </p>

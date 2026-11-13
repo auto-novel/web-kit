@@ -174,7 +174,7 @@ async function submit() {
     <template #body>
       <form class="space-y-4" @submit.prevent="submit">
         <label class="block">
-          <span class="text-sm font-medium text-ink">
+          <span class="text-sm font-medium text-default">
             {{ isStrike ? '处罚原因' : '封禁原因' }}
           </span>
           <UInputMenu
@@ -197,7 +197,7 @@ async function submit() {
         </label>
 
         <fieldset v-if="isStrike" :disabled="submitting">
-          <legend class="text-sm font-medium text-ink">处罚分值</legend>
+          <legend class="text-sm font-medium text-default">处罚分值</legend>
           <div class="mt-1.5 flex gap-2">
             <label v-for="option in pointOptions" :key="option">
               <input
@@ -208,13 +208,13 @@ async function submit() {
                 class="peer sr-only"
               />
               <span
-                class="block cursor-pointer rounded-sm border border-border bg-surface px-4 py-1.5 text-sm text-muted transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
+                class="block cursor-pointer rounded-sm border border-default bg-surface px-4 py-1.5 text-sm text-muted transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
                 :class="{
                   'hover:border-primary hover:text-primary peer-checked:border-primary peer-checked:bg-primary/10 peer-checked:text-primary peer-focus-visible:outline-primary':
                     option === 1,
-                  'hover:border-warning hover:text-warning peer-checked:border-warning peer-checked:bg-warning-soft peer-checked:text-warning peer-focus-visible:outline-warning':
+                  'hover:border-warning hover:text-warning peer-checked:border-warning peer-checked:bg-warning/10 peer-checked:text-warning peer-focus-visible:outline-warning':
                     option === 2,
-                  'hover:border-error hover:text-error peer-checked:border-error peer-checked:bg-error-soft peer-checked:text-error peer-focus-visible:outline-error':
+                  'hover:border-error hover:text-error peer-checked:border-error peer-checked:bg-error/10 peer-checked:text-error peer-focus-visible:outline-error':
                     option === 3,
                 }"
               >
@@ -226,7 +226,7 @@ async function submit() {
 
         <label
           v-else-if="deleteCommentsByAuthor"
-          class="flex cursor-pointer items-start gap-3 rounded-sm border border-border bg-paper/60 p-3"
+          class="flex cursor-pointer items-start gap-3 rounded-sm border border-default bg-paper/60 p-3"
         >
           <input
             v-model="removeComments"
@@ -235,7 +235,7 @@ async function submit() {
             :disabled="submitting"
           />
           <span>
-            <span class="block text-sm font-medium text-ink">
+            <span class="block text-sm font-medium text-default">
               删除该用户的全部评论
             </span>
             <span class="mt-1 block text-xs leading-5 text-muted">
@@ -245,7 +245,7 @@ async function submit() {
         </label>
 
         <div v-if="isStrike">
-          <p class="text-sm font-medium text-ink">处罚依据</p>
+          <p class="text-sm font-medium text-default">处罚依据</p>
           <p
             class="mt-1.5 max-h-28 overflow-y-auto whitespace-pre-wrap wrap-anywhere rounded-sm bg-paper px-3 py-2 text-xs leading-5 text-muted"
           >

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import UPageHeader from '@nuxt/ui/components/PageHeader.vue';
 import { XPage, useWebKit } from '@novelia/web-kit';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
@@ -19,7 +18,7 @@ watch([readerPreview, readerBackground], ([enabled, background]) => {
   const brightness = (rgb[0]! * 299 + rgb[1]! * 587 + rgb[2]! * 114) / 1000;
   theme.setOverride({
     preference: brightness < 120 ? 'dark' : 'light',
-    tokens: { '--color-body': background },
+    tokens: { '--ui-bg': background },
   });
 });
 onUnmounted(() => {
@@ -29,72 +28,37 @@ onUnmounted(() => {
 // 使用完整的静态类名，让 Tailwind 能扫描到每个色块的工具类。
 const colorGroups = [
   {
-    title: '背景与文字',
+    title: 'Nuxt UI 背景与文字',
     colors: [
-      { token: 'paper', class: 'bg-paper' },
-      { token: 'surface', class: 'bg-surface' },
-      { token: 'embedded', class: 'bg-embedded' },
-      { token: 'body', class: 'bg-body' },
-      { token: 'popover', class: 'bg-popover' },
-      { token: 'modal', class: 'bg-modal' },
-      { token: 'ink', class: 'bg-ink' },
-      { token: 'muted', class: 'bg-muted' },
-      { token: 'border', class: 'bg-border' },
-      { token: 'divider', class: 'bg-divider' },
-      { token: 'hover', class: 'bg-hover' },
+      { token: '--ui-bg', class: 'bg-default' },
+      { token: '--ui-bg-muted', class: 'bg-muted' },
+      { token: '--ui-bg-elevated', class: 'bg-elevated' },
+      { token: '--ui-bg-accented', class: 'bg-accented' },
+      { token: '--ui-text', class: 'bg-(--ui-text)' },
+      { token: '--ui-text-muted', class: 'bg-(--ui-text-muted)' },
+      { token: '--ui-text-inverted', class: 'bg-(--ui-text-inverted)' },
+      { token: '--ui-border', class: 'bg-(--ui-border)' },
     ],
   },
   {
-    title: '主色',
+    title: 'Nuxt UI 语义色',
     colors: [
-      { token: 'primary', class: 'bg-primary' },
-      { token: 'primary-hover', class: 'bg-primary-hover' },
-      { token: 'primary-soft', class: 'bg-primary-soft' },
-      { token: 'primary-soft-hover', class: 'bg-primary-soft-hover' },
-      { token: 'primary-text', class: 'bg-primary-text' },
-      { token: 'on-primary', class: 'bg-on-primary' },
+      { token: '--ui-primary', class: 'bg-primary' },
+      { token: '--ui-success', class: 'bg-success' },
+      { token: '--ui-info', class: 'bg-info' },
+      { token: '--ui-warning', class: 'bg-warning' },
+      { token: '--ui-error', class: 'bg-error' },
     ],
   },
   {
-    title: '成功',
+    title: '项目专属背景',
     colors: [
-      { token: 'success', class: 'bg-success' },
-      { token: 'success-soft', class: 'bg-success-soft' },
-      { token: 'success-text', class: 'bg-success-text' },
-    ],
-  },
-  {
-    title: '信息',
-    colors: [
-      { token: 'info', class: 'bg-info' },
-      { token: 'info-soft', class: 'bg-info-soft' },
-      { token: 'info-text', class: 'bg-info-text' },
-    ],
-  },
-  {
-    title: '警告',
-    colors: [
-      { token: 'warning', class: 'bg-warning' },
-      { token: 'warning-soft', class: 'bg-warning-soft' },
-      { token: 'warning-text', class: 'bg-warning-text' },
-    ],
-  },
-  {
-    title: '错误',
-    colors: [
-      { token: 'error', class: 'bg-error' },
-      { token: 'error-hover', class: 'bg-error-hover' },
-      { token: 'error-soft', class: 'bg-error-soft' },
-      { token: 'error-text', class: 'bg-error-text' },
-      { token: 'on-error', class: 'bg-on-error' },
-    ],
-  },
-  {
-    title: '中性',
-    colors: [
-      { token: 'neutral', class: 'bg-neutral' },
-      { token: 'neutral-soft', class: 'bg-neutral-soft' },
-      { token: 'neutral-text', class: 'bg-neutral-text' },
+      { token: '--color-paper', class: 'bg-paper' },
+      { token: '--color-surface', class: 'bg-surface' },
+      { token: '--color-embedded', class: 'bg-embedded' },
+      { token: '--color-popover', class: 'bg-popover' },
+      { token: '--color-modal', class: 'bg-modal' },
+      { token: '--color-hover', class: 'bg-hover' },
     ],
   },
 ];
@@ -102,21 +66,21 @@ const colorGroups = [
 const statuses = [
   {
     label: '成功',
-    class: 'bg-success-soft text-success-text',
+    class: 'bg-success/10 text-success',
     token: 'success',
   },
-  { label: '信息', class: 'bg-info-soft text-info-text', token: 'info' },
+  { label: '信息', class: 'bg-info/10 text-info', token: 'info' },
   {
     label: '警告',
-    class: 'bg-warning-soft text-warning-text',
+    class: 'bg-warning/10 text-warning',
     token: 'warning',
   },
-  { label: '错误', class: 'bg-error-soft text-error-text', token: 'error' },
+  { label: '错误', class: 'bg-error/10 text-error', token: 'error' },
 ];
 const surfaces = [
   { label: 'paper', class: 'bg-paper' },
   { label: 'surface', class: 'bg-surface' },
-  { label: 'body', class: 'bg-body' },
+  { label: 'default', class: 'bg-default' },
   { label: 'popover', class: 'bg-popover' },
   { label: 'modal', class: 'bg-modal' },
 ];
@@ -126,7 +90,7 @@ function readThemeValues() {
     colorGroups.flatMap((group) =>
       group.colors.map(({ token }) => [
         token,
-        style.getPropertyValue(`--color-${token}`).trim(),
+        style.getPropertyValue(token).trim(),
       ]),
     ),
   );
@@ -140,7 +104,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
   <XPage>
     <UPageHeader
       title="主题测试"
-      description="使用 web-kit 的真实主题变量和 Tailwind 工具类，不另设展示配色。"
+      description="使用 Nuxt UI 原生语义变量、工具类与项目专属背景。"
     />
     <div class="flex flex-col gap-8">
       <p class="text-sm text-muted">
@@ -176,7 +140,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
           </span>
         </div>
         <div
-          class="rounded-md border border-border bg-body p-6"
+          class="rounded-md border border-default bg-default p-6"
           :style="{ color: readerPreview ? readerFont : undefined }"
         >
           这是阅读正文。修改背景时，页面背景和明暗基底同步更新；正文色不会影响菜单和按钮。
@@ -185,12 +149,12 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
 
       <section aria-labelledby="theme-palette">
         <h2 id="theme-palette" class="heading-bar mb-2 font-medium">
-          颜色 token
+          Nuxt UI 语义变量与项目背景
         </h2>
         <p class="mb-4 text-sm text-muted">
-          色块使用 bg-*，下方显示根元素上的实际变量值。半透明色叠加在 surface
-          背景上。每种语义色提供相同的状态、浅底、文字及反色角色。语义浅底默认浅色为
-          10%、深色为 15%，中性浅底为 5% / 8%；交互状态逐级增强。
+          通用颜色直接使用 Nuxt UI 的 --ui-* 变量。背景、文字、边框分别使用
+          bg-default、text-default、border-default；控件通过 color / variant
+          配置语义和状态。只有项目专属背景保留 --color-* 变量。
         </p>
         <div
           v-for="group in colorGroups"
@@ -202,16 +166,16 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
             <div
               v-for="color in group.colors"
               :key="color.token"
-              class="overflow-hidden rounded-sm border border-border bg-surface"
+              class="overflow-hidden rounded-sm border border-default bg-surface"
             >
               <div
-                class="h-16 border-b border-divider"
+                class="h-16 border-b border-default"
                 :class="color.class"
                 aria-hidden="true"
               />
               <div class="p-3">
-                <code class="block break-all text-xs text-ink">
-                  --color-{{ color.token }}
+                <code class="block break-all text-xs text-default">
+                  {{ color.token }}
                 </code>
                 <code class="mt-1 block break-all text-xs text-muted">
                   {{ values[color.token] || '—' }}
@@ -224,7 +188,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
 
       <section
         aria-labelledby="theme-surfaces"
-        class="border-t border-divider pt-6"
+        class="border-t border-default pt-6"
       >
         <h2 id="theme-surfaces" class="heading-bar mb-4 font-medium">
           背景层级与文字
@@ -233,33 +197,37 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
           <article
             v-for="surface in surfaces"
             :key="surface.label"
-            class="rounded-sm border border-border p-4"
+            class="rounded-sm border border-default p-4"
             :class="surface.class"
           >
-            <h3 class="mb-3 font-medium text-ink">bg-{{ surface.label }}</h3>
-            <p class="text-sm text-ink">正文 / text-ink：中文 Aa 0123456789</p>
+            <h3 class="mb-3 font-medium text-default">
+              bg-{{ surface.label }}
+            </h3>
+            <p class="text-sm text-default">
+              正文 / text-default：中文 Aa 0123456789
+            </p>
             <p class="mt-2 text-sm text-muted">
               次要文字 / text-muted：辅助说明
             </p>
             <p class="mt-2 text-xs text-muted">
               小号文字：用于检查低对比度背景的可读性
             </p>
-            <div class="my-3 border-t border-divider" />
+            <div class="my-3 border-t border-default" />
             <a
               href="#/theme"
-              class="text-sm text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary-hover focus-visible:outline-2 focus-visible:outline-primary"
+              class="text-sm text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/75 focus-visible:outline-2 focus-visible:outline-primary"
             >
               主题链接 / text-primary
             </a>
             <div
-              class="mt-3 rounded-floating bg-embedded px-4 py-3 text-sm text-ink"
+              class="mt-3 rounded-floating bg-embedded px-4 py-3 text-sm text-default"
             >
               嵌入内容 / bg-embedded
               <p class="mt-1 text-xs text-muted">
                 静态辅助信息；深色时叠加在当前父背景上，不作为悬停状态。
               </p>
             </div>
-            <div class="mt-3 rounded-sm bg-hover p-2 text-xs text-ink">
+            <div class="mt-3 rounded-sm bg-hover p-2 text-xs text-default">
               悬停底色 / bg-hover
             </div>
           </article>
@@ -268,7 +236,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
 
       <section
         aria-labelledby="theme-status"
-        class="border-t border-divider pt-6"
+        class="border-t border-default pt-6"
       >
         <h2 id="theme-status" class="heading-bar mb-4 font-medium">
           语义状态与浅色背景
@@ -290,41 +258,33 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
           </article>
         </div>
         <div
-          class="mt-4 rounded-sm border border-error/30 bg-surface p-4 text-sm text-error-text"
-          style="
-            background-image: linear-gradient(
-              var(--color-error-soft),
-              var(--color-error-soft)
-            );
-          "
+          class="mt-4 rounded-sm border border-error/30 bg-error/10 p-4 text-sm text-error"
         >
-          错误提示：error/30 边框 + error-soft 叠加背景 + error-text 文字。
+          错误提示：border-error/30 边框 + bg-error/10 浅底 + text-error 文字。
         </div>
       </section>
 
       <section
         aria-labelledby="theme-accent"
-        class="border-t border-divider pt-6"
+        class="border-t border-default pt-6"
       >
         <h2 id="theme-accent" class="heading-bar mb-4 font-medium">
           主色与危险色对比
         </h2>
         <div class="mt-4 flex flex-wrap gap-3">
-          <div class="rounded-sm bg-primary px-4 py-3 text-sm text-on-primary">
-            bg-primary + text-on-primary
-          </div>
           <div
-            class="rounded-sm bg-primary-hover px-4 py-3 text-sm text-on-primary"
+            class="rounded-sm bg-primary px-4 py-3 text-sm text-inverted hover:bg-primary/75"
           >
-            bg-primary-hover + text-on-primary
+            bg-primary + text-inverted · hover:bg-primary/75
           </div>
-          <div class="rounded-sm bg-error px-4 py-3 text-sm text-on-error">
-            bg-error + text-on-error
+          <div class="rounded-sm bg-primary/10 px-4 py-3 text-sm text-primary">
+            bg-primary/10 + text-primary
           </div>
-          <div
-            class="rounded-sm bg-error-hover px-4 py-3 text-sm text-on-error"
-          >
-            bg-error-hover + text-on-error
+          <div class="rounded-sm bg-error px-4 py-3 text-sm text-inverted">
+            bg-error + text-inverted
+          </div>
+          <div class="rounded-sm bg-error/75 px-4 py-3 text-sm text-inverted">
+            bg-error/75 + text-inverted
           </div>
         </div>
       </section>

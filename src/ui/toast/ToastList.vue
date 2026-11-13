@@ -52,11 +52,11 @@ const { toasts } = useToastManager();
       aria-hidden="true"
     />
     <ToastDescription
-      class="min-w-0 flex-1 text-sm font-normal whitespace-pre-wrap wrap-anywhere text-ink"
+      class="min-w-0 flex-1 text-sm font-normal whitespace-pre-wrap wrap-anywhere text-default"
     />
     <ToastClose
       aria-label="关闭通知"
-      class="flex size-6 flex-none cursor-pointer items-center justify-center rounded text-muted hover:bg-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info"
+      class="flex size-6 flex-none cursor-pointer items-center justify-center rounded text-muted hover:bg-hover hover:text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info"
     >
       <CloseOutlined class="size-4" aria-hidden="true" />
     </ToastClose>

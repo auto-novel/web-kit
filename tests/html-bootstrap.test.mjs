@@ -71,6 +71,42 @@ test('生产构建始终压缩脚本，开发环境保留原文', async () => {
   );
 });
 
+test('主题预启动使用原生类名，存储优先并支持系统回退', async () => {
+  for (const command of ['serve', 'build']) {
+    const injected = await tags(undefined, { command, isProduction: true });
+    for (const [stored, systemDark, expected] of [
+      ['"dark"', false, 'dark'],
+      ['"light"', true, 'light'],
+      ['"system"', true, 'dark'],
+      ['invalid json', false, 'light'],
+    ]) {
+      const dom = new JSDOM(
+        '<!doctype html><html class="host light dark"></html>',
+        {
+          url: 'https://example.com',
+          runScripts: 'outside-only',
+        },
+      );
+      try {
+        const { window } = dom;
+        window.localStorage.setItem('web-kit:theme:v1', stored);
+        window.matchMedia = () => ({ matches: systemDark });
+        window.eval(injected[1].children);
+        const root = window.document.documentElement;
+        assert.ok(root.classList.contains(expected));
+        assert.equal(
+          root.classList.contains(expected === 'dark' ? 'light' : 'dark'),
+          false,
+        );
+        assert.ok(root.classList.contains('host'));
+        assert.equal(root.hasAttribute('data-theme'), false);
+      } finally {
+        dom.window.close();
+      }
+    }
+  }
+});
+
 test('统计脚本异步加载，初始化 dataLayer 和站点 ID', async () => {
   const injected = await tags({ analytics: 'G-TEST123' });
   const dom = await browser();

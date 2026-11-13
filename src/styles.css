@@ -1,12 +1,9 @@
 @import '@nuxt/ui';
 @import './shell/sidebar/sidebar.css';
 
-@import './styles/theme.css';
 @import './styles/base.css';
 @import './styles/utilities.css';
 @import './shell/motion.css';
-@import '../nuxt-ui/theme.css';
 
+/* 已发布依赖不会被 Tailwind 自动扫描，显式包含组件和主题预设的类名。 */
 @source './';
-/* 已发布依赖不会被 Tailwind 自动扫描，显式包含根目录主题预设的类名。 */
-@source '../nuxt-ui';

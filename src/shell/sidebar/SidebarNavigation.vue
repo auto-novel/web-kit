@@ -95,7 +95,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
     <template v-for="option in options" :key="option.key">
       <div
         v-if="option.type === 'divider'"
-        class="my-2 border-t border-divider"
+        class="my-2 border-t border-default"
         role="separator"
       />
       <!-- 保持标题按钮稳定：侧栏折叠只关闭内联内容，不替换分组 DOM。 -->
@@ -112,7 +112,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
           <PopoverTrigger as-child>
             <button
               type="button"
-              class="web-kit-sidebar-item text-ink hover:bg-hover"
+              class="web-kit-sidebar-item text-default hover:bg-hover"
               :aria-label="option.label"
               :title="collapsed ? option.label : undefined"
               :aria-haspopup="collapsed ? 'dialog' : undefined"
@@ -173,7 +173,7 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
       <a
         v-else-if="option.type === 'external'"
         v-bind="externalLinkAttrs(option)"
-        class="web-kit-sidebar-item text-ink hover:bg-hover"
+        class="web-kit-sidebar-item text-default hover:bg-hover"
         :title="collapsed ? option.label : undefined"
       >
         <MenuIcon :icon="option.icon" size="md" />
@@ -195,8 +195,8 @@ async function navigate(event: MouseEvent, option: WebKitMenuOption) {
           class="web-kit-sidebar-item"
           :class="
             selected === option.key
-              ? 'bg-primary-soft text-primary'
-              : 'text-ink hover:bg-hover'
+              ? 'bg-primary/10 text-primary'
+              : 'text-default hover:bg-hover'
           "
           :aria-label="collapsed ? option.label : undefined"
           :title="collapsed ? option.label : undefined"

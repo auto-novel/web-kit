@@ -22,7 +22,7 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
       />
       <span class="flex-none">构建于</span>
       <XTime
-        class="truncate text-ink"
+        class="truncate text-default"
         :time="buildTime"
         preset="datetime-numeric"
       />
@@ -35,7 +35,7 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
       <span class="flex-none">Commit</span>
       <a
         v-if="commitUrl"
-        class="truncate text-primary hover:text-primary-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+        class="truncate text-primary hover:text-primary/75 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
         :href="commitUrl"
         :title="commitSha"
         target="_blank"

@@ -32,36 +32,6 @@ test('Time merges caller classes without changing its native time element or emp
   assert.doesNotMatch(await renderToString(h(Time, { time: null })), /<time\b/);
 });
 
-test('PageHeader keeps actions beside the title at every screen width', async () => {
-  const { default: PageHeader } = await server.ssrLoadModule(
-    '@nuxt/ui/components/PageHeader.vue',
-  );
-  const html = await renderToString(
-    h(
-      PageHeader,
-      { title: '页面标题', description: '页面说明' },
-      {
-        links: () => h('button', '新增'),
-      },
-    ),
-  );
-  const document = new JSDOM(html).window.document;
-  const wrapper = document.querySelector('[data-slot="wrapper"]');
-  const title = document.querySelector('[data-slot="title"]');
-  const links = document.querySelector('[data-slot="links"]');
-  assert.ok(wrapper.classList.contains('flex-row'));
-  assert.equal(wrapper.classList.contains('flex-col'), false);
-  assert.ok(wrapper.classList.contains('items-center'));
-  assert.equal(title.parentElement, wrapper);
-  assert.equal(links.previousElementSibling, title);
-  assert.ok(title.classList.contains('min-w-0'));
-  assert.ok(links.classList.contains('shrink-0'));
-  assert.equal(
-    document.querySelector('[data-slot="description"]').textContent,
-    '页面说明',
-  );
-});
-
 test('Pagination maps navigation and page regions without leaking ui to the DOM', async () => {
   const Pagination = await component('pagination/XPagination');
   const html = await renderToString(

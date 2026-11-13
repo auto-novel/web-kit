@@ -38,7 +38,7 @@ const items = computed(() =>
   <UDropdownMenu :items="items" :external-icon="false" :content="menuContent">
     <button
       type="button"
-      class="group flex min-h-9 items-center gap-1 rounded-sm px-3 text-sm text-ink transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      class="group flex min-h-9 items-center gap-1 rounded-sm px-3 text-sm text-default transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       :aria-label="`切换管理后台，当前 ${currentLabel}`"
     >
       <span>{{ currentLabel }}</span>

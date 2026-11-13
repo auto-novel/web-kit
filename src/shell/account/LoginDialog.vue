@@ -109,7 +109,7 @@ async function login() {
               :aria-label="passwordVisible ? '隐藏密码' : '显示密码'"
               :aria-pressed="passwordVisible"
               :disabled="submitting"
-              class="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed"
+              class="inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed"
               @mousedown.prevent
               @click="passwordVisible = !passwordVisible"
             >
@@ -123,7 +123,7 @@ async function login() {
             </button>
           </template>
         </UInput>
-        <p v-if="error" class="text-sm text-error-text" role="alert">
+        <p v-if="error" class="text-sm text-error" role="alert">
           {{ error }}
         </p>
         <UButton

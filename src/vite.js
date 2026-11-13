@@ -41,7 +41,8 @@ const themeBootstrapScript = `(function () {
       : 'light';
   }
 
-  document.documentElement.dataset.theme = theme;
+  document.documentElement.classList.remove('light', 'dark');
+  document.documentElement.classList.add(theme);
 })();`;
 
 const analyticsScript = (id) => `(function () {

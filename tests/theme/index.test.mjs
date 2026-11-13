@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import '../helpers/register-source.mjs';
 import test from 'node:test';
+import { JSDOM } from 'jsdom';
 
 const { createWebTheme } = await import('../../src/theme/index.ts');
 
@@ -48,11 +49,9 @@ function makeMediaQueryList(initial) {
 
 function useBrowser(t, { storage, prefersDark = false } = {}) {
   const meta = { content: '' };
-  const root = {
-    dataset: {},
-    offsetWidth: 0,
-    classList: { add: () => {}, remove: () => {} },
-  };
+  const dom = new JSDOM('<!doctype html><html></html>');
+  t.after(() => dom.window.close());
+  const root = dom.window.document.documentElement;
   const document = {
     documentElement: root,
     querySelector: (selector) =>
@@ -94,6 +93,15 @@ function useBrowser(t, { storage, prefersDark = false } = {}) {
   return { media, meta, root, windowEvents };
 }
 
+function assertThemeClass(root, theme) {
+  assert.equal(root.classList.contains(theme), true);
+  assert.equal(
+    root.classList.contains(theme === 'dark' ? 'light' : 'dark'),
+    false,
+  );
+  assert.equal(root.hasAttribute('data-theme'), false);
+}
+
 function storageEvent(area, key) {
   const event = new Event('storage');
   Object.defineProperties(event, {
@@ -111,7 +119,7 @@ test('主题优先用存储值，无效值退回系统偏好并删除该键', (t
   const theme = createWebTheme();
   assert.equal(theme.theme.value, 'light');
   assert.equal(theme.preference.value, 'light');
-  assert.equal(root.dataset.theme, 'light');
+  assertThemeClass(root, 'light');
   assert.equal(meta.content, '#ffffff');
   assert.equal(stored.calls.writes, 0);
 
@@ -121,7 +129,7 @@ test('主题优先用存储值，无效值退回系统偏好并删除该键', (t
   assert.equal(fallback.preference.value, 'system');
   assert.equal(fallback.theme.value, 'dark');
   assert.equal(fallback.isDark.value, true);
-  assert.equal(root.dataset.theme, 'dark');
+  assertThemeClass(root, 'dark');
   assert.equal(meta.content, '#101014');
   assert.equal(invalid.values.has(THEME_KEY), false);
 });
@@ -136,19 +144,19 @@ test('无存储值时默认跟随系统，系统偏好变化实时生效且不�
 
   assert.equal(theme.preference.value, 'system');
   assert.equal(theme.theme.value, 'light');
-  assert.equal(root.dataset.theme, 'light');
+  assertThemeClass(root, 'light');
   assert.equal(area.calls.writes, 0);
 
   media.setMatches(true);
   assert.equal(theme.theme.value, 'dark');
   assert.equal(theme.isDark.value, true);
-  assert.equal(root.dataset.theme, 'dark');
+  assertThemeClass(root, 'dark');
   assert.equal(meta.content, '#101014');
   assert.equal(area.values.has(THEME_KEY), false);
 
   media.setMatches(false);
   assert.equal(theme.theme.value, 'light');
-  assert.equal(root.dataset.theme, 'light');
+  assertThemeClass(root, 'light');
   assert.equal(meta.content, '#ffffff');
   assert.equal(area.calls.writes, 0);
 });
@@ -167,7 +175,7 @@ test('setPreference 固定具体外观并落盘，之后系统变化不再影响
   media.setMatches(false);
   media.setMatches(true);
   assert.equal(theme.theme.value, 'dark');
-  assert.equal(root.dataset.theme, 'dark');
+  assertThemeClass(root, 'dark');
   assert.equal(area.calls.writes, 1);
 
   theme.setPreference('system');
@@ -180,16 +188,89 @@ test('setPreference 固定具体外观并落盘，之后系统变化不再影响
 test('toggleTheme 落盘一次并切换根元素主题', (t) => {
   const area = makeArea([[THEME_KEY, JSON.stringify('light')]]);
   const { meta, root } = useBrowser(t, { storage: area });
+  root.classList.add('host-class', 'dark');
   const theme = createWebTheme();
+  assertThemeClass(root, 'light');
 
   theme.toggleTheme();
+  assert.equal(root.classList.contains('host-class'), true);
   assert.equal(theme.theme.value, 'dark');
   assert.equal(theme.preference.value, 'dark');
   assert.equal(theme.isDark.value, true);
   assert.equal(area.values.get(THEME_KEY), JSON.stringify('dark'));
   assert.equal(area.calls.writes, 1);
-  assert.equal(root.dataset.theme, 'dark');
+  assertThemeClass(root, 'dark');
   assert.equal(meta.content, '#101014');
+});
+
+test('临时主题覆盖切换类名，清除后恢复偏好且不落盘', (t) => {
+  const area = makeArea([[THEME_KEY, JSON.stringify('light')]]);
+  const { root, meta } = useBrowser(t, { storage: area });
+  const theme = createWebTheme();
+
+  theme.setOverride({
+    preference: 'dark',
+    tokens: { '--ui-bg': '#123456' },
+  });
+  assertThemeClass(root, 'dark');
+  assert.equal(theme.preference.value, 'light');
+  assert.equal(root.style.getPropertyValue('--ui-bg'), '#123456');
+  assert.equal(meta.content, '#123456');
+
+  theme.clearOverride();
+  assertThemeClass(root, 'light');
+  assert.equal(root.style.getPropertyValue('--ui-bg'), '');
+  assert.equal(meta.content, '#ffffff');
+  assert.equal(area.calls.writes, 0);
+});
+
+test('替换和清除原生 token 覆盖时恢复原内联值与优先级', (t) => {
+  const { root } = useBrowser(t, { storage: makeArea() });
+  root.style.setProperty('--ui-primary', '#abcdef');
+  // jsdom 不保留自定义属性的 !important，单独模拟读取并验证恢复参数。
+  t.mock.method(root.style, 'getPropertyPriority', () => 'important');
+  const setProperty = t.mock.method(root.style, 'setProperty');
+  const theme = createWebTheme();
+  const tokens = { '--ui-primary': '#123456', '--reader-font': 'serif' };
+  theme.setOverride({ tokens });
+  tokens['--ui-primary'] = '#654321';
+  assert.equal(root.style.getPropertyValue('--ui-primary'), '#123456');
+  assert.equal(root.style.getPropertyValue('--reader-font'), 'serif');
+  assert.equal(theme.override.value.tokens['--ui-primary'], '#123456');
+
+  theme.setOverride({ tokens: { '--ui-bg': '#222222' } });
+  assert.equal(root.style.getPropertyValue('--ui-primary'), '#abcdef');
+  assert.equal(root.style.getPropertyValue('--reader-font'), '');
+  assert.equal(root.style.getPropertyValue('--ui-bg'), '#222222');
+  assert.ok(
+    setProperty.mock.calls.some(
+      ({ arguments: args }) =>
+        args[0] === '--ui-primary' &&
+        args[1] === '#abcdef' &&
+        args[2] === 'important',
+    ),
+  );
+
+  theme.clearOverride();
+  assert.equal(root.style.getPropertyValue('--ui-primary'), '#abcdef');
+  assert.equal(root.style.getPropertyValue('--ui-bg'), '');
+});
+
+test('浏览器主题色依次使用显式 themeColor、原生背景和默认值', (t) => {
+  const { meta } = useBrowser(t, { storage: makeArea() });
+  const theme = createWebTheme();
+  const tokens = { '--ui-bg': '#112233' };
+  theme.setOverride({ tokens });
+  assert.equal(meta.content, '#112233');
+  theme.setOverride({ tokens, themeColor: '#778899' });
+  assert.equal(meta.content, '#778899');
+  theme.setOverride({
+    preference: 'dark',
+    tokens: { '--ui-primary': '#123456' },
+  });
+  assert.equal(meta.content, '#101014');
+  theme.clearOverride();
+  assert.equal(meta.content, '#ffffff');
 });
 
 test('跟随系统时 toggleTheme 写入取反后的具体偏好', (t) => {
@@ -224,7 +305,7 @@ test('其他标签页切换主题时同步且不回写', (t) => {
   assert.equal(theme.theme.value, 'dark');
   assert.equal(theme.preference.value, 'dark');
   assert.equal(theme.isDark.value, true);
-  assert.equal(root.dataset.theme, 'dark');
+  assertThemeClass(root, 'dark');
   assert.equal(meta.content, '#101014');
   assert.equal(area.calls.writes, 0);
 });
@@ -244,6 +325,6 @@ test("其他标签页切回 'system' 时立即采用当前系统偏好", (t) => 
 
   assert.equal(theme.preference.value, 'system');
   assert.equal(theme.theme.value, 'dark');
-  assert.equal(root.dataset.theme, 'dark');
+  assertThemeClass(root, 'dark');
   assert.equal(area.calls.writes, 0);
 });

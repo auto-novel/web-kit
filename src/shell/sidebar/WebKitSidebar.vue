@@ -33,7 +33,7 @@ const showMascot = ref(false);
 <template>
   <aside
     v-bind="$attrs"
-    class="web-kit-sidebar flex h-full flex-col overflow-hidden border-r border-divider"
+    class="web-kit-sidebar flex h-full flex-col overflow-hidden border-r border-default"
     :class="[
       panel === 'modal' ? 'bg-modal' : 'bg-surface',
       fullWidth ? 'w-full' : collapsed ? 'w-16' : 'w-60',
@@ -66,7 +66,7 @@ const showMascot = ref(false);
       >
         <span class="brand-logo" aria-hidden="true" />
       </button>
-      <span class="brand-title text-ink" :aria-hidden="collapsed">
+      <span class="brand-title text-default" :aria-hidden="collapsed">
         {{ kitOptions.brand }}
       </span>
     </div>
@@ -85,7 +85,7 @@ const showMascot = ref(false);
 
       <button
         type="button"
-        class="web-kit-sidebar-item text-ink hover:bg-hover"
+        class="web-kit-sidebar-item text-default hover:bg-hover"
         :aria-label="isDark ? '切换到浅色主题' : '切换到深色主题'"
         :title="isDark ? '切换到浅色主题' : '切换到深色主题'"
         @click="toggleTheme"
@@ -143,7 +143,7 @@ const showMascot = ref(false);
   width: 36px;
   height: 36px;
   flex: 0 0 36px;
-  background-color: var(--color-primary);
+  background-color: var(--ui-primary);
   -webkit-mask: url('../../assets/robot.svg') center / 32px 32px no-repeat;
   mask: url('../../assets/robot.svg') center / 32px 32px no-repeat;
 }

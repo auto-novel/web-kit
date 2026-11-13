@@ -45,7 +45,7 @@ const range = ref<XDateRange | null>(null);
 const text = ref('');
 const editorUi = {
   textarea: 'px-4 py-4 leading-7',
-  preview: ['p-4', { 'bg-primary-soft': true }],
+  preview: ['p-4', { 'bg-primary/10': true }],
 } satisfies XMarkdownEditorUi;
 </script>
 

@@ -9,12 +9,21 @@ defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<XDropZoneProps>(), {
   disabled: false,
+  directories: false,
   ui: () => ({}),
 });
-const emit = defineEmits<{ drop: [files: File[], event: DragEvent] }>();
+const emit = defineEmits<{
+  drop: [files: File[], event: DragEvent];
+  error: [error: unknown, event: DragEvent];
+}>();
 const { active } = useFileDrop(
   () => props.disabled,
   (files, event) => emit('drop', files, event),
+  undefined,
+  {
+    directories: () => props.directories,
+    onError: (error, event) => emit('error', error, event),
+  },
 );
 </script>
 

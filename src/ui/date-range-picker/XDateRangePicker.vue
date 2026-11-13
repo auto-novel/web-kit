@@ -101,10 +101,10 @@ function clear() {
       :style="$attrs.style"
       :class="
         mergeClasses(
-          'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-sm border bg-transparent px-3 text-sm text-ink transition-colors',
+          'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-sm border bg-transparent px-3 text-sm text-default transition-colors',
           invalid
             ? 'border-error focus-within:ring-2 focus-within:ring-error/15'
-            : 'border-border',
+            : 'border-default',
           disabled
             ? 'cursor-not-allowed opacity-50'
             : !invalid &&
@@ -141,7 +141,7 @@ function clear() {
         aria-label="清空日期区间"
         :class="
           mergeClasses(
-            'inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+            'inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
             ui.clear,
           )
         "
@@ -156,7 +156,7 @@ function clear() {
         align="start"
         :class="
           mergeClasses(
-            'floating-panel max-w-[calc(100vw-1rem)] p-3 text-sm text-ink',
+            'floating-panel max-w-[calc(100vw-1rem)] p-3 text-sm text-default',
             ui.content,
           )
         "
@@ -227,7 +227,7 @@ function clear() {
                     :month="month.value"
                     :class="
                       mergeClasses(
-                        'inline-flex size-9 items-center justify-center rounded-sm outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-primary data-[outside-view]:text-muted data-[highlighted]:bg-primary-soft data-[selected]:bg-primary-soft data-[selection-start]:bg-primary data-[selection-start]:text-on-primary data-[selection-end]:bg-primary data-[selection-end]:text-on-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[unavailable]:line-through',
+                        'inline-flex size-9 items-center justify-center rounded-sm outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-primary data-[outside-view]:text-muted data-[highlighted]:bg-primary/10 data-[selected]:bg-primary/10 data-[selection-start]:bg-primary data-[selection-start]:text-inverted data-[selection-end]:bg-primary data-[selection-end]:text-inverted data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[unavailable]:line-through',
                         ui.day,
                       )
                     "

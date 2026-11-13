@@ -199,7 +199,7 @@ for (const admin of [false, true]) {
     const summary = menu.querySelector('[data-slot="group"]').firstElementChild;
     const role = summary.querySelector('[data-slot="itemLabel"]');
     const registered = summary.querySelector('[data-slot="itemDescription"]');
-    for (const name of ['text-sm', 'font-medium', 'text-ink']) {
+    for (const name of ['text-sm', 'font-medium', 'text-default']) {
       assert.ok(role.classList.contains(name), `role includes ${name}`);
     }
     for (const name of ['text-xs', 'font-normal', 'text-muted']) {

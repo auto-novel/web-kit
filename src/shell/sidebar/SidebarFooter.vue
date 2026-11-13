@@ -29,7 +29,7 @@ const commitUrl = computed(() =>
   <footer
     class="sidebar-footer mt-auto flex flex-none flex-col gap-1 overflow-hidden text-xs leading-4 whitespace-nowrap text-muted"
     :class="{
-      'sidebar-footer--collapsed h-14 items-center justify-center border-t border-divider':
+      'sidebar-footer--collapsed h-14 items-center justify-center border-t border-default':
         collapsed,
     }"
     aria-label="构建信息"
@@ -37,7 +37,7 @@ const commitUrl = computed(() =>
     <UTooltip v-if="collapsed" :content="{ side: 'right' }">
       <component
         :is="commitUrl ? 'a' : 'button'"
-        class="flex cursor-pointer items-center justify-center rounded-sm p-2 text-ink hover:bg-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+        class="flex cursor-pointer items-center justify-center rounded-sm p-2 text-default hover:bg-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
         :href="commitUrl"
         :type="commitUrl ? undefined : 'button'"
         :target="commitUrl ? '_blank' : undefined"
@@ -51,7 +51,7 @@ const commitUrl = computed(() =>
       </template>
     </UTooltip>
     <template v-else>
-      <div class="mb-1.5 border-t border-divider" />
+      <div class="mb-1.5 border-t border-default" />
       <div class="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-1">
         <SidebarBuildInfo
           :build-time="buildTime"
@@ -65,7 +65,7 @@ const commitUrl = computed(() =>
         >
           <a
             :href="isAdminPage ? '/' : '/admin/'"
-            class="grid w-8 place-items-center rounded-sm hover:bg-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-primary"
+            class="grid w-8 place-items-center rounded-sm hover:bg-hover hover:text-default focus-visible:outline-2 focus-visible:outline-primary"
             :aria-label="isAdminPage ? '返回主页' : '管理后台'"
           >
             <AdminPanelSettingsOutlined class="size-4" aria-hidden="true" />

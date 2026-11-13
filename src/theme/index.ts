@@ -19,7 +19,7 @@ export type ThemePreference = Theme | 'system';
 export interface ThemeOverride {
   readonly preference?: ThemePreference;
   readonly tokens?: Readonly<Record<`--${string}`, string>>;
-  /** 浏览器主题色；默认取覆盖的 --color-body，否则使用明暗基底默认值。 */
+  /** 浏览器主题色；默认取覆盖的 --ui-bg，否则使用明暗基底默认值。 */
   readonly themeColor?: string;
 }
 
@@ -79,11 +79,10 @@ export function createWebTheme() {
   const override = shallowRef<ThemeOverride>();
   const originalTokens = new Map<string, { value: string; priority: string }>();
 
-  function applyTokens(tokens: ThemeOverride['tokens']) {
+  function applyTokens(tokens: ThemeOverride['tokens'] = {}) {
     const style = document.documentElement.style;
     for (const [name, original] of originalTokens) {
-      if (tokens && Object.prototype.hasOwnProperty.call(tokens, name))
-        continue;
+      if (Object.prototype.hasOwnProperty.call(tokens, name)) continue;
       if (original.value) {
         style.setProperty(name, original.value, original.priority);
       } else {
@@ -91,7 +90,7 @@ export function createWebTheme() {
       }
       originalTokens.delete(name);
     }
-    for (const [name, value] of Object.entries(tokens ?? {})) {
+    for (const [name, value] of Object.entries(tokens)) {
       if (!originalTokens.has(name)) {
         originalTokens.set(name, {
           value: style.getPropertyValue(name),
@@ -119,14 +118,15 @@ export function createWebTheme() {
       void root.offsetWidth;
     }
 
-    root.dataset.theme = theme;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
     applyTokens(override.value?.tokens);
     document
       .querySelector<HTMLMetaElement>('meta[name="theme-color"]')
       ?.setAttribute(
         'content',
         override.value?.themeColor ??
-          override.value?.tokens?.['--color-body'] ??
+          override.value?.tokens?.['--ui-bg'] ??
           THEME_COLORS[theme],
       );
 

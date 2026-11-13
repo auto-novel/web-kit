@@ -31,7 +31,7 @@ withDefaults(defineProps<XPageProps>(), {
             'sticky top-(--web-kit-header-height) self-start',
             'flex flex-col',
             'h-[calc(100dvh-var(--web-kit-header-height))] w-80 shrink-0',
-            'border-s border-divider ps-5',
+            'border-s border-default ps-5',
             ui.aside,
           )
         "
