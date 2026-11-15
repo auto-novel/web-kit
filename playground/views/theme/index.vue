@@ -57,7 +57,7 @@ const colorGroups = [
       { token: '--color-surface', class: 'bg-surface' },
       { token: '--color-embedded', class: 'bg-embedded' },
       { token: '--color-popover', class: 'bg-popover' },
-      { token: '--color-modal', class: 'bg-modal' },
+      { token: '--color-dialog', class: 'bg-dialog' },
       { token: '--color-hover', class: 'bg-hover' },
     ],
   },
@@ -82,7 +82,7 @@ const surfaces = [
   { label: 'surface', class: 'bg-surface' },
   { label: 'default', class: 'bg-default' },
   { label: 'popover', class: 'bg-popover' },
-  { label: 'modal', class: 'bg-modal' },
+  { label: 'dialog', class: 'bg-dialog' },
 ];
 function readThemeValues() {
   const style = getComputedStyle(document.documentElement);
@@ -220,7 +220,7 @@ watch([theme.theme, theme.override], readThemeValues, { flush: 'post' });
               主题链接 / text-primary
             </a>
             <div
-              class="mt-3 rounded-floating bg-embedded px-4 py-3 text-sm text-default"
+              class="mt-3 rounded-none bg-embedded px-4 py-3 text-sm text-default"
             >
               嵌入内容 / bg-embedded
               <p class="mt-1 text-xs text-muted">

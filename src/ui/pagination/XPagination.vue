@@ -2,13 +2,6 @@
 import { ChevronLeftOutlined, ChevronRightOutlined } from '@vicons/material';
 import { useEventListener } from '@vueuse/core';
 import {
-  PaginationList,
-  PaginationListItem,
-  PaginationNext,
-  PaginationPrev,
-  PaginationRoot,
-} from 'reka-ui';
-import {
   computed,
   nextTick,
   onActivated,
@@ -21,6 +14,7 @@ import {
 } from 'vue';
 
 import UButton from '@nuxt/ui/components/Button.vue';
+import UPagination from '@nuxt/ui/components/Pagination.vue';
 import { mergeClasses } from '../classes';
 import {
   hasPaginationOverlay,
@@ -49,7 +43,7 @@ const emit = defineEmits<{
   'update:page': [page: number];
 }>();
 
-const root = useTemplateRef<{ $el: HTMLElement }>('root');
+const root = useTemplateRef<HTMLElement>('root');
 const attrs = useAttrs();
 
 const active = ref(true);
@@ -72,7 +66,7 @@ const keyboardTarget = computed<EventTarget | null>(() => {
 
 useEventListener<KeyboardEvent>(keyboardTarget, 'keydown', handleKeydown);
 
-// Reka 根组件的内部 props 与已移除的旧键盘入口不作为透传属性。
+// 底层分页组件的内部 props 与已移除的旧键盘入口不作为透传属性。
 const reservedAttrs = new Set([
   'as',
   'aschild',
@@ -102,14 +96,8 @@ const navButtonClass =
 const pageItemClass =
   'text-xs font-medium text-default hover:text-primary data-selected:bg-primary/10 data-selected:text-primary data-selected:hover:bg-primary/20 data-selected:hover:text-primary';
 
-type PaginationItem = { type: 'page'; value: number } | { type: 'ellipsis' };
-
-function itemKey(item: PaginationItem, index: number) {
-  return item.type === 'page' ? `page-${item.value}` : `ellipsis-${index}`;
-}
-
 function rootElement() {
-  return root.value?.$el ?? null;
+  return root.value ?? null;
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -188,15 +176,10 @@ watch(
 </script>
 
 <template>
-  <PaginationRoot
+  <nav
     ref="root"
     aria-label="分页"
     v-bind="rootAttrs()"
-    :page="page"
-    :total="totalPages"
-    :items-per-page="1"
-    :sibling-count="1"
-    show-edges
     :class="
       mergeClasses(
         'flex items-center justify-between border-t border-default px-4 py-3 text-sm sm:px-6',
@@ -204,87 +187,95 @@ watch(
         attrs.class,
       )
     "
-    @update:page="$emit('update:page', $event)"
   >
-    <PaginationPrev as-child>
-      <UButton
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        aria-label="上一页"
-        :class="mergeClasses(navButtonClass, ui.prev)"
-      >
-        <ChevronLeftOutlined
-          class="size-5 sm:hidden rtl:rotate-180"
-          aria-hidden="true"
-        />
-        <span class="hidden sm:inline">上一页</span>
-      </UButton>
-    </PaginationPrev>
-
-    <PaginationList
-      v-slot="{ items }"
-      :class="mergeClasses('flex items-center gap-1', ui.list)"
+    <UButton
+      color="neutral"
+      variant="ghost"
+      size="sm"
+      aria-label="上一页"
+      :disabled="page <= 1"
+      :class="mergeClasses(navButtonClass, ui.prev)"
+      @click="$emit('update:page', page - 1)"
     >
-      <template v-for="(item, index) in items" :key="itemKey(item, index)">
-        <PaginationListItem
-          v-if="item.type === 'page'"
-          :value="item.value"
-          as-child
-        >
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            square
-            class="size-8 min-h-0 shrink-0 justify-center p-0"
-            :class="mergeClasses(pageItemClass, ui.item)"
-          >
-            {{ item.value }}
-          </UButton>
-        </PaginationListItem>
-        <PageJump
-          v-else
-          :page="page"
-          :total-pages="totalPages"
-          :ui="{
-            content: ui.jumpContent,
-            label: ui.jumpLabel,
-            input: ui.jumpInput,
-            button: ui.jumpButton,
-          }"
-          @change="$emit('update:page', $event)"
-        >
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            square
-            class="size-8 min-h-0 shrink-0 justify-center p-0"
-            :class="mergeClasses('text-xs text-muted', ui.ellipsis)"
-            aria-label="跳转到指定页"
-            title="跳转到指定页"
-          >
-            …
-          </UButton>
-        </PageJump>
-      </template>
-    </PaginationList>
+      <ChevronLeftOutlined
+        class="size-5 sm:hidden rtl:rotate-180"
+        aria-hidden="true"
+      />
+      <span class="hidden sm:inline">上一页</span>
+    </UButton>
 
-    <PaginationNext as-child>
-      <UButton
-        color="neutral"
-        variant="ghost"
-        size="sm"
-        aria-label="下一页"
-        :class="mergeClasses(navButtonClass, ui.next)"
-      >
-        <ChevronRightOutlined
-          class="size-5 sm:hidden rtl:rotate-180"
-          aria-hidden="true"
-        />
-        <span class="hidden sm:inline">下一页</span>
-      </UButton>
-    </PaginationNext>
-  </PaginationRoot>
+    <UPagination
+      as="div"
+      :page="page"
+      :total="totalPages"
+      :items-per-page="1"
+      :sibling-count="1"
+      :show-controls="false"
+      show-edges
+      :ui="{
+        list: mergeClasses('flex items-center gap-1', ui.list),
+        // 默认省略号仅作展示；这里承载跳页按钮，需要恢复指针交互。
+        ellipsis: 'pointer-events-auto',
+      }"
+      @update:page="$emit('update:page', $event)"
+    >
+      <template #item="{ item }">
+        <UButton
+          v-if="item.type === 'page'"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          square
+          class="size-8 min-h-0 shrink-0 justify-center p-0"
+          :class="mergeClasses(pageItemClass, ui.item)"
+        >
+          {{ item.value }}
+        </UButton>
+      </template>
+      <template #ellipsis>
+        <span class="contents">
+          <PageJump
+            :page="page"
+            :total-pages="totalPages"
+            :ui="{
+              content: ui.jumpContent,
+              label: ui.jumpLabel,
+              input: ui.jumpInput,
+              button: ui.jumpButton,
+            }"
+            @change="$emit('update:page', $event)"
+          >
+            <UButton
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              square
+              class="size-8 min-h-0 shrink-0 justify-center p-0"
+              :class="mergeClasses('text-xs text-muted', ui.ellipsis)"
+              aria-label="跳转到指定页"
+              title="跳转到指定页"
+            >
+              …
+            </UButton>
+          </PageJump>
+        </span>
+      </template>
+    </UPagination>
+
+    <UButton
+      color="neutral"
+      variant="ghost"
+      size="sm"
+      aria-label="下一页"
+      :disabled="page >= totalPages"
+      :class="mergeClasses(navButtonClass, ui.next)"
+      @click="$emit('update:page', page + 1)"
+    >
+      <ChevronRightOutlined
+        class="size-5 sm:hidden rtl:rotate-180"
+        aria-hidden="true"
+      />
+      <span class="hidden sm:inline">下一页</span>
+    </UButton>
+  </nav>
 </template>

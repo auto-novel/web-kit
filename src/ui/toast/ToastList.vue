@@ -24,7 +24,7 @@ const { toasts } = useToastManager();
     v-for="notification in toasts"
     :key="notification.id"
     :toast="notification"
-    class="web-kit-toast-notification floating-panel pointer-events-auto flex max-w-full items-center gap-2.5 px-5 py-2.5 outline-none"
+    class="web-kit-toast-notification rounded-none bg-popover shadow-lg pointer-events-auto flex max-w-full items-center gap-2.5 px-5 py-2.5 outline-none"
   >
     <LoopOutlined
       v-if="notification.status === 'loading'"

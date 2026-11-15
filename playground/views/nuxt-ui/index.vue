@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { XPage, useDragScroll } from '@novelia/web-kit';
 import { useToast } from '@nuxt/ui/composables';
-import { ref, useTemplateRef } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
+import ExampleControls from '../../components/ExampleControls.vue';
 
 const horizontalScroll = useTemplateRef('horizontalScroll');
 useDragScroll(() => horizontalScroll.value?.$el, {
@@ -42,6 +43,9 @@ const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 const subscribed = ref(true);
 const notifications = ref(true);
 const visibility = ref('public');
+const sliderSize = ref<(typeof sizes)[number]>('md');
+const sliderColor = ref<(typeof colors)[number]>('primary');
+const sliderDisabled = ref(false);
 const sliderValue = ref(40);
 const sliderStepValue = ref(20);
 const sliderRange = ref([20, 80]);
@@ -50,6 +54,45 @@ const visibilityOptions = [
   { label: '公开', value: 'public', description: '所有人都可以阅读' },
   { label: '私密', value: 'private', description: '仅自己可见' },
 ];
+const groupOptions = [
+  { label: '小说', value: 'novel' },
+  { label: '论坛', value: 'forum' },
+  { label: '账号', value: 'account', disabled: true },
+];
+const groupExamples = [
+  {
+    id: 'list',
+    title: '列表 · list',
+    variant: 'list',
+    indicator: 'start',
+  },
+  {
+    id: 'card',
+    title: '卡片 · card',
+    variant: 'card',
+    indicator: 'end',
+  },
+  {
+    id: 'table',
+    title: '表格 · table',
+    variant: 'table',
+    indicator: 'start',
+  },
+] as const;
+const selectionSize = ref<(typeof sizes)[number]>('md');
+const selectionColor = ref<(typeof colors)[number]>('primary');
+const selectionOptions = ref<string[]>([]);
+const selectionHidden = computed(() =>
+  selectionOptions.value.includes('hidden'),
+);
+const selectionDisabled = ref(false);
+const groupSelections = ref(
+  groupExamples.map((example) => ({
+    ...example,
+    radio: 'novel',
+    checkbox: ['novel'],
+  })),
+);
 const tabs = [
   { label: '概览', content: '查看作品简介、更新状态和阅读进度。' },
   { label: '章节', content: '章节列表会展示在这里，可继续阅读最新章节。' },
@@ -67,15 +110,12 @@ const tabs = [
 
     <div class="min-w-0 divide-y divide-default">
       <section class="py-8 first:pt-0 last:pb-0">
-        <h2 class="heading-bar text-lg font-medium">按钮</h2>
-        <p
-          id="nuxt-button-matrix-description"
-          class="mt-1 mb-4 text-sm text-muted"
-        >
-          Variant × Color 完整组合；使用开关切换禁用状态。可悬停、点击或使用 Tab
-          查看交互状态。窄屏下可横向滚动。
-        </p>
-        <USwitch v-model="buttonsDisabled" label="禁用表格按钮" class="mb-4" />
+        <h2 class="heading-bar text-lg mb-4 font-medium">按钮</h2>
+        <ExampleControls
+          v-model:disabled="buttonsDisabled"
+          :controls="['disabled']"
+          class="mb-4"
+        />
         <div
           class="overflow-x-auto rounded-sm border border-default focus-visible:outline-2 focus-visible:outline-primary"
           role="region"
@@ -84,7 +124,7 @@ const tabs = [
           tabindex="0"
         >
           <table class="w-full border-collapse text-sm">
-            <caption class="sr-only">
+            <caption id="nuxt-button-matrix-description" class="sr-only">
               6 种按钮 Variant 与 7 种 Color 的正常及禁用样式组合
             </caption>
             <thead>
@@ -131,7 +171,7 @@ const tabs = [
         </div>
         <div class="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
-            <h3 class="mb-3 text-sm font-medium">尺寸 · Size</h3>
+            <h3 class="mb-3 text-sm font-medium">尺寸</h3>
             <div class="flex flex-wrap items-end gap-4">
               <div
                 v-for="size in sizes"
@@ -224,79 +264,175 @@ const tabs = [
 
       <section class="py-8 first:pt-0 last:pb-0">
         <h2 class="heading-bar mb-4 text-lg font-medium">选择控件</h2>
+        <ExampleControls
+          v-model:size="selectionSize"
+          v-model:color="selectionColor"
+          v-model:disabled="selectionDisabled"
+          v-model:options="selectionOptions"
+          :controls="['color', 'size', 'disabled']"
+          :extra-options="[{ label: '隐藏指示器', value: 'hidden' }]"
+          class="mb-6"
+        />
         <div class="grid gap-6 md:grid-cols-3">
           <div class="space-y-3">
-            <h3 class="text-sm font-medium">Checkbox · 复选框</h3>
+            <h3 class="text-sm font-medium">复选框 · UCheckbox</h3>
             <UCheckbox
               v-model="subscribed"
+              :disabled="selectionDisabled"
+              :size="selectionSize"
+              :color="selectionColor"
+              :indicator="selectionHidden ? 'hidden' : 'start'"
               label="订阅作品更新"
               description="有新章节时通知我"
             />
-            <UCheckbox :model-value="'indeterminate'" label="部分选中" />
-            <UCheckbox disabled label="不可选" />
+            <UCheckbox
+              :model-value="'indeterminate'"
+              :disabled="selectionDisabled"
+              :size="selectionSize"
+              :color="selectionColor"
+              :indicator="selectionHidden ? 'hidden' : 'start'"
+              label="部分选中"
+            />
+            <UCheckbox
+              disabled
+              :size="selectionSize"
+              :color="selectionColor"
+              :indicator="selectionHidden ? 'hidden' : 'start'"
+              label="不可选"
+            />
           </div>
           <div class="space-y-3">
-            <h3 class="text-sm font-medium">Switch · 开关</h3>
-            <USwitch v-model="notifications" label="接收通知" />
-            <p class="text-xs text-muted" aria-live="polite">
-              通知已{{ notifications ? '开启' : '关闭' }}
-            </p>
-            <USwitch disabled label="不可切换" />
+            <h3 class="text-sm font-medium">开关 · USwitch</h3>
+            <USwitch
+              v-model="notifications"
+              :size="selectionSize"
+              :color="selectionColor"
+              :disabled="selectionDisabled"
+              label="接收通知"
+            />
+            <USwitch
+              :size="selectionSize"
+              :color="selectionColor"
+              disabled
+              label="不可切换"
+            />
           </div>
-          <URadioGroup
-            v-model="visibility"
-            legend="RadioGroup · 可见范围"
-            :items="visibilityOptions"
-          />
+          <div class="space-y-3">
+            <h3 class="text-sm font-medium">单选 · URadioGroup</h3>
+            <URadioGroup
+              v-model="visibility"
+              :size="selectionSize"
+              :color="selectionColor"
+              :disabled="selectionDisabled"
+              :indicator="selectionHidden ? 'hidden' : 'start'"
+              orientation="horizontal"
+              aria-label="可见范围"
+              :items="visibilityOptions"
+              :ui="{ fieldset: 'flex-wrap' }"
+            />
+          </div>
         </div>
-        <div class="mt-6 space-y-3 border-t border-default pt-6">
-          <h3 class="text-sm font-medium">Progress · 进度条</h3>
-          <UProgress :model-value="60" :max="100" aria-label="当前进度" />
-          <UProgress color="neutral" aria-label="正在加载" />
+        <div id="radio-group" class="mt-6 scroll-mt-20">
+          <h3 id="radio-group-title" class="mb-3 text-sm font-medium">
+            单选组 · URadioGroup
+          </h3>
+          <div class="grid gap-6 md:grid-cols-3">
+            <div
+              v-for="example in groupSelections"
+              :key="example.id"
+              class="min-w-0 space-y-3"
+            >
+              <h4 class="text-sm font-medium">{{ example.title }}</h4>
+              <URadioGroup
+                v-model="example.radio"
+                :aria-label="`${example.title} · 应用`"
+                :items="groupOptions"
+                :size="selectionSize"
+                :color="selectionColor"
+                :variant="example.variant"
+                orientation="horizontal"
+                :indicator="selectionHidden ? 'hidden' : example.indicator"
+                :highlight="example.id === 'card'"
+                :disabled="selectionDisabled"
+                :ui="{ fieldset: 'flex-wrap' }"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div id="checkbox-group" class="mt-6 scroll-mt-20">
+          <h3 id="checkbox-group-title" class="mb-3 text-sm font-medium">
+            复选组 · UCheckboxGroup
+          </h3>
+          <div class="grid gap-6 md:grid-cols-3">
+            <div
+              v-for="example in groupSelections"
+              :key="example.id"
+              class="min-w-0 space-y-3"
+            >
+              <h4 class="text-sm font-medium">{{ example.title }}</h4>
+              <UCheckboxGroup
+                v-model="example.checkbox"
+                :aria-label="`${example.title} · 订阅应用`"
+                :items="groupOptions"
+                :size="selectionSize"
+                :color="selectionColor"
+                :variant="example.variant"
+                orientation="horizontal"
+                :indicator="selectionHidden ? 'hidden' : example.indicator"
+                :highlight="example.id === 'card'"
+                :disabled="selectionDisabled"
+                :ui="{ fieldset: 'flex-wrap' }"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
       <section class="py-8 first:pt-0 last:pb-0">
-        <h2 class="heading-bar mb-4 text-lg font-medium">滑块 · USlider</h2>
-        <div class="grid gap-6 md:grid-cols-2">
-          <div class="space-y-4">
-            <h3 class="text-sm font-medium">尺寸 · size</h3>
-            <div
-              v-for="size in sizes"
-              :key="size"
-              class="flex items-center gap-4"
-            >
-              <span class="w-6 shrink-0 text-xs text-muted">{{ size }}</span>
+        <h2 class="heading-bar mb-4 text-lg font-medium">滑块与进度条</h2>
+        <div class="mb-6">
+          <ExampleControls
+            v-model:size="sliderSize"
+            v-model:color="sliderColor"
+            v-model:disabled="sliderDisabled"
+            :controls="['color', 'size', 'disabled']"
+            class="mb-6"
+          />
+          <div class="grid gap-8 md:grid-cols-2">
+            <div class="space-y-4">
+              <h3 class="text-sm font-medium">滑块 · USlider</h3>
               <USlider
                 v-model="sliderValue"
-                :size="size"
+                :disabled="sliderDisabled"
+                :size="sliderSize"
+                :color="sliderColor"
                 tooltip
-                :aria-label="`${size} 尺寸滑块`"
-                class="flex-1"
+                aria-label="进度滑块"
               />
+              <p class="text-xs text-muted">
+                当前值 {{ sliderValue }} · 拖动滑块同步更新进度。
+              </p>
             </div>
-            <p class="text-xs text-muted">
-              当前值 {{ sliderValue }} ·
-              共用数值，对比手柄大小；当前主题固定轨道厚度。
-            </p>
-          </div>
-          <div class="space-y-4">
-            <h3 class="text-sm font-medium">颜色 · color</h3>
-            <div
-              v-for="color in colors"
-              :key="color"
-              class="flex items-center gap-4"
-            >
-              <span class="w-16 shrink-0 text-xs text-muted">{{ color }}</span>
-              <USlider
-                :color="color"
-                :default-value="40"
-                tooltip
-                :aria-label="`${color} 颜色滑块`"
-                class="flex-1"
+            <div class="space-y-4">
+              <h3 class="text-sm font-medium">进度条 · UProgress</h3>
+              <UProgress
+                :size="sliderSize"
+                :color="sliderColor"
+                :model-value="sliderValue"
+                :max="100"
+                aria-label="当前进度"
               />
+              <UProgress
+                :size="sliderSize"
+                :color="sliderColor"
+                aria-label="正在加载"
+              />
+              <p class="text-xs text-muted">确定进度与不定进度加载状态。</p>
             </div>
           </div>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2">
           <div class="space-y-4">
             <h3 class="text-sm font-medium">边界与步长 · min / max / step</h3>
             <UFormField
@@ -305,6 +441,7 @@ const tabs = [
             >
               <USlider
                 v-model="sliderStepValue"
+                :disabled="sliderDisabled"
                 :min="-50"
                 :max="50"
                 :step="10"
@@ -322,6 +459,7 @@ const tabs = [
             >
               <USlider
                 v-model="sliderRange"
+                :disabled="sliderDisabled"
                 :step="5"
                 :min-steps-between-thumbs="2"
                 tooltip
@@ -335,6 +473,7 @@ const tabs = [
             <div class="flex items-center gap-6">
               <USlider
                 v-model="sliderVerticalValue"
+                :disabled="sliderDisabled"
                 orientation="vertical"
                 tooltip
                 aria-label="垂直滑块"
@@ -346,6 +485,7 @@ const tabs = [
                 </p>
                 <USlider
                   v-model="sliderValue"
+                  :disabled="sliderDisabled"
                   inverted
                   tooltip
                   aria-label="反向滑块"

@@ -1,30 +1,11 @@
 <script setup lang="ts">
 import { parseDate } from '@internationalized/date';
-import {
-  CalendarMonthOutlined,
-  ChevronLeftOutlined,
-  ChevronRightOutlined,
-  CloseOutlined,
-} from '@vicons/material';
-import {
-  PopoverRoot,
-  PopoverTrigger,
-  PopoverPortal,
-  PopoverContent,
-  RangeCalendarRoot,
-  RangeCalendarHeader,
-  RangeCalendarHeading,
-  RangeCalendarPrev,
-  RangeCalendarNext,
-  RangeCalendarGrid,
-  RangeCalendarGridHead,
-  RangeCalendarGridBody,
-  RangeCalendarGridRow,
-  RangeCalendarHeadCell,
-  RangeCalendarCell,
-  RangeCalendarCellTrigger,
-  type DateRange,
-} from 'reka-ui';
+import { CalendarMonthOutlined, CloseOutlined } from '@vicons/material';
+import UButton from '@nuxt/ui/components/Button.vue';
+import UCalendar, {
+  type CalendarProps,
+} from '@nuxt/ui/components/Calendar.vue';
+import UPopover from '@nuxt/ui/components/Popover.vue';
 import {
   computed,
   nextTick,
@@ -33,10 +14,13 @@ import {
   useAttrs,
   useTemplateRef,
   watch,
+  type AriaAttributes,
 } from 'vue';
 
 import { mergeClasses } from '../classes';
 import type { XDateRangePickerProps } from './types';
+
+type DateRange = NonNullable<CalendarProps<true>['modelValue']>;
 
 defineOptions({ inheritAttrs: false });
 const props = withDefaults(
@@ -53,16 +37,27 @@ const model = defineModel<XDateRangePickerProps['modelValue']>({
 const attrs = useAttrs();
 const open = ref(false);
 const draft = shallowRef<DateRange>({ start: undefined, end: undefined });
-const trigger = useTemplateRef<{ $el?: HTMLElement }>('trigger');
+const trigger = useTemplateRef<HTMLButtonElement>('trigger');
 const minValue = computed(() => (props.min ? parseDate(props.min) : undefined));
 const maxValue = computed(() => (props.max ? parseDate(props.max) : undefined));
-// Reka 的日历默认使用英文名称；没有独立标签时沿用触发器的 aria-label。
+const ariaInvalid = computed(
+  () =>
+    (props.invalid ||
+      attrs['aria-invalid'] ||
+      undefined) as AriaAttributes['aria-invalid'],
+);
+const prevMonth = computed(() => ({
+  'aria-label': '上个月',
+  class: mergeClasses(props.ui.navigation),
+}));
+const nextMonth = computed(() => ({
+  'aria-label': '下个月',
+  class: mergeClasses(props.ui.navigation),
+}));
 const calendarLabel = computed(() => {
   const label = attrs['aria-label'];
   return typeof label === 'string' && label.trim() ? label : '日期区间';
 });
-const navigationClass =
-  'inline-flex size-8 items-center justify-center rounded-sm hover:bg-hover focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-40';
 
 // 中间选择只留在日历内，不触发消费者的筛选请求。
 function resetDraft() {
@@ -78,10 +73,10 @@ watch(
     if (blocked) open.value = false;
   },
 );
-function updateRange(value: DateRange) {
+function updateRange(value: CalendarProps<true>['modelValue']) {
   if (props.disabled || props.readonly) return;
-  draft.value = value;
-  if (!value.start || !value.end) return;
+  draft.value = value ?? { start: undefined, end: undefined };
+  if (!value?.start || !value.end) return;
   model.value = [value.start.toString(), value.end.toString()];
   open.value = false;
 }
@@ -91,35 +86,44 @@ function clear() {
   resetDraft();
   open.value = false;
   // 清空按钮随模型消失，把焦点交还触发器。
-  void nextTick(() => trigger.value?.$el?.focus());
+  void nextTick(() => trigger.value?.focus());
 }
 </script>
 
 <template>
-  <PopoverRoot v-model:open="open">
-    <div
-      :style="$attrs.style"
-      :class="
-        mergeClasses(
-          'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-sm border bg-transparent px-3 text-sm text-default transition-colors',
-          invalid
-            ? 'border-error focus-within:ring-2 focus-within:ring-error/15'
-            : 'border-default',
-          disabled
-            ? 'cursor-not-allowed opacity-50'
-            : !invalid &&
-                'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15',
-          ui.root,
-          $attrs.class,
-        )
-      "
+  <div
+    :style="$attrs.style"
+    :class="
+      mergeClasses(
+        'flex min-h-10 w-full min-w-0 items-center gap-2 rounded-sm border bg-transparent px-3 text-sm text-default transition-colors',
+        invalid
+          ? 'border-error focus-within:ring-2 focus-within:ring-error/15'
+          : 'border-default',
+        disabled
+          ? 'cursor-not-allowed opacity-50'
+          : !invalid &&
+              'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15',
+        ui.root,
+        $attrs.class,
+      )
+    "
+  >
+    <UPopover
+      v-model:open="open"
+      :content="{ sideOffset: 6, align: 'start' }"
+      :ui="{
+        content: mergeClasses(
+          'max-w-[calc(100vw-1rem)] p-3 text-sm',
+          ui.content,
+        ),
+      }"
     >
-      <PopoverTrigger
+      <button
         ref="trigger"
         v-bind="{ ...$attrs, class: undefined, style: undefined }"
         type="button"
         :disabled="disabled"
-        :aria-invalid="invalid || $attrs['aria-invalid'] || undefined"
+        :aria-invalid="ariaInvalid"
         :class="
           mergeClasses(
             'flex min-w-0 flex-1 items-center gap-2 self-stretch text-left outline-none',
@@ -134,35 +138,11 @@ function clear() {
           class="size-4 shrink-0 text-muted"
           aria-hidden="true"
         />
-      </PopoverTrigger>
-      <button
-        v-if="clearable && model && !disabled && !readonly"
-        type="button"
-        aria-label="清空日期区间"
-        :class="
-          mergeClasses(
-            'inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm text-muted hover:text-default focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-            ui.clear,
-          )
-        "
-        @click="clear"
-      >
-        <CloseOutlined class="size-4" aria-hidden="true" />
       </button>
-    </div>
-    <PopoverPortal>
-      <PopoverContent
-        :side-offset="6"
-        align="start"
-        :class="
-          mergeClasses(
-            'floating-panel max-w-[calc(100vw-1rem)] p-3 text-sm text-default',
-            ui.content,
-          )
-        "
-      >
-        <RangeCalendarRoot
-          v-slot="{ grid, weekDays }"
+      <template #content>
+        <UCalendar
+          range
+          variant="soft"
           :model-value="draft"
           :locale="locale"
           :calendar-label="calendarLabel"
@@ -170,74 +150,31 @@ function clear() {
           :max-value="maxValue"
           :disabled="disabled"
           :readonly="readonly"
+          :year-controls="false"
+          :view-control="false"
+          :prev-month="prevMonth"
+          :next-month="nextMonth"
+          :ui="{
+            header: mergeClasses(ui.header),
+            cellTrigger: mergeClasses(ui.day),
+          }"
           fixed-weeks
           @update:model-value="updateRange"
-        >
-          <RangeCalendarHeader
-            :class="
-              mergeClasses(
-                'mb-2 flex items-center justify-between gap-2',
-                ui.header,
-              )
-            "
-          >
-            <RangeCalendarPrev
-              :class="mergeClasses(navigationClass, ui.navigation)"
-              aria-label="上个月"
-            >
-              <ChevronLeftOutlined class="size-5" aria-hidden="true" />
-            </RangeCalendarPrev>
-            <RangeCalendarHeading class="font-medium" />
-            <RangeCalendarNext
-              :class="mergeClasses(navigationClass, ui.navigation)"
-              aria-label="下个月"
-            >
-              <ChevronRightOutlined class="size-5" aria-hidden="true" />
-            </RangeCalendarNext>
-          </RangeCalendarHeader>
-          <RangeCalendarGrid
-            v-for="month in grid"
-            :key="month.value.toString()"
-            class="w-full select-none"
-          >
-            <RangeCalendarGridHead>
-              <RangeCalendarGridRow>
-                <RangeCalendarHeadCell
-                  v-for="day in weekDays"
-                  :key="day"
-                  class="size-9 text-center font-normal text-muted"
-                >
-                  {{ day }}
-                </RangeCalendarHeadCell>
-              </RangeCalendarGridRow>
-            </RangeCalendarGridHead>
-            <RangeCalendarGridBody>
-              <RangeCalendarGridRow
-                v-for="(week, index) in month.rows"
-                :key="index"
-              >
-                <RangeCalendarCell
-                  v-for="date in week"
-                  :key="date.toString()"
-                  :date="date"
-                  class="p-0 text-center"
-                >
-                  <RangeCalendarCellTrigger
-                    :day="date"
-                    :month="month.value"
-                    :class="
-                      mergeClasses(
-                        'inline-flex size-9 items-center justify-center rounded-sm outline-none hover:bg-hover focus-visible:ring-2 focus-visible:ring-primary data-[outside-view]:text-muted data-[highlighted]:bg-primary/10 data-[selected]:bg-primary/10 data-[selection-start]:bg-primary data-[selection-start]:text-inverted data-[selection-end]:bg-primary data-[selection-end]:text-inverted data-[disabled]:pointer-events-none data-[disabled]:opacity-40 data-[unavailable]:line-through',
-                        ui.day,
-                      )
-                    "
-                  />
-                </RangeCalendarCell>
-              </RangeCalendarGridRow>
-            </RangeCalendarGridBody>
-          </RangeCalendarGrid>
-        </RangeCalendarRoot>
-      </PopoverContent>
-    </PopoverPortal>
-  </PopoverRoot>
+        />
+      </template>
+    </UPopover>
+    <UButton
+      v-if="clearable && model && !disabled && !readonly"
+      type="button"
+      color="neutral"
+      variant="link"
+      size="xs"
+      square
+      aria-label="清空日期区间"
+      :class="mergeClasses('size-5 shrink-0 justify-center p-0', ui.clear)"
+      @click="clear"
+    >
+      <CloseOutlined class="size-4" aria-hidden="true" />
+    </UButton>
+  </div>
 </template>

@@ -2,35 +2,24 @@ import type { NuxtUIOptions } from '@nuxt/ui/vite';
 
 // 通用控件直接使用 Nuxt UI；此处仅维护 Novelia 的统一外观。
 // 宿主使用 ui(webKitNuxtUiOptions)，并在 Tailwind 之后导入 styles.css。
-const fieldTheme = {
-  slots: {
-    base: 'rounded-sm font-normal disabled:opacity-50 placeholder:text-muted',
-  },
-  variants: {
-    variant: {
-      outline: 'border border-default bg-transparent ring-0',
-    },
-  },
-  compoundVariants: [
-    {
-      color: 'primary' as const,
-      variant: 'outline' as const,
-      class:
-        'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15',
-    },
-    {
-      color: 'error' as const,
-      variant: 'outline' as const,
-      class:
-        'border-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/15',
-    },
-  ],
+// 横向短选项使用更紧凑的内边距；list 保留 Nuxt UI 默认间距。
+const selectionGroupTheme = {
+  compoundVariants: (
+    [
+      { size: 'xs', padding: 'px-2 py-1' },
+      { size: 'sm', padding: 'px-2.5 py-1.5' },
+      { size: 'md', padding: 'px-3 py-2' },
+      { size: 'lg', padding: 'px-3.5 py-2.5' },
+      { size: 'xl', padding: 'px-4 py-3' },
+    ] as const
+  ).map(({ size, padding }) => ({
+    size,
+    variant: ['card', 'table'] as ('card' | 'table')[],
+    class: { item: padding },
+  })),
 };
 
-const floatingContent =
-  'rounded-floating bg-popover text-default shadow-floating ring-0';
-const menuItem =
-  'rounded-floating text-default before:rounded-floating data-highlighted:not-data-disabled:before:bg-hover';
+const menuItem = 'data-highlighted:not-data-disabled:before:bg-hover';
 
 /**
  * Vue/Vite 的共享接入预设。禁用第二套主题状态和隐式自动导入；
@@ -45,19 +34,15 @@ export const webKitNuxtUiOptions = {
   scanPackages: ['@novelia/web-kit'],
   ui: {
     colors: {
-      primary: 'green',
       secondary: 'teal',
-      success: 'green',
-      info: 'blue',
       warning: 'amber',
       error: 'rose',
       neutral: 'zinc',
     },
     link: {
-      base: 'rounded-sm transition-colors outline-primary focus-visible:outline-2 focus-visible:outline-offset-2',
+      base: 'transition-colors outline-primary focus-visible:outline-2 focus-visible:outline-offset-2',
       variants: {
         active: {
-          true: 'text-primary',
           false: 'text-primary',
         },
       },
@@ -65,9 +50,11 @@ export const webKitNuxtUiOptions = {
     },
     button: {
       slots: {
-        base: 'cursor-pointer rounded-sm font-normal disabled:opacity-40 aria-disabled:opacity-40 disabled:cursor-not-allowed aria-disabled:cursor-not-allowed',
+        base: 'cursor-pointer font-normal',
       },
     },
+    radioGroup: selectionGroupTheme,
+    checkboxGroup: selectionGroupTheme,
     slider: {
       slots: {
         thumb: 'bg-white border-0 ring-0 shadow-sm',
@@ -75,41 +62,32 @@ export const webKitNuxtUiOptions = {
     },
     switch: {
       slots: {
-        thumb: 'bg-white border-0 ring-0 shadow-sm',
+        thumb: 'bg-white border-0 shadow-sm',
       },
     },
     select: {
-      ...fieldTheme,
       slots: {
-        ...fieldTheme.slots,
-        content: floatingContent,
+        content: 'bg-popover',
         item: menuItem,
-        itemTrailingIcon: 'text-primary',
-      },
-      variants: {
-        variant: {
-          outline: `${fieldTheme.variants.variant.outline} hover:bg-transparent disabled:bg-transparent`,
-        },
       },
     },
     selectMenu: {
-      ...fieldTheme,
       slots: {
-        ...fieldTheme.slots,
-        content: floatingContent,
+        content: 'bg-popover',
         item: menuItem,
       },
     },
     inputMenu: {
-      ...fieldTheme,
       slots: {
-        ...fieldTheme.slots,
-        content: floatingContent,
+        content: 'bg-popover',
         item: menuItem,
       },
     },
     dropdownMenu: {
-      slots: { content: floatingContent, item: menuItem },
+      slots: { content: 'bg-popover', item: menuItem },
+    },
+    popover: {
+      slots: { content: 'bg-popover' },
     },
     tooltip: {
       slots: {
@@ -120,33 +98,29 @@ export const webKitNuxtUiOptions = {
     pageHeader: {
       slots: {
         root: 'mb-6 border-b-0 py-0',
-        wrapper:
-          'min-w-0 flex-row flex-nowrap items-center justify-between gap-4',
+        wrapper: 'min-w-0 flex-row flex-nowrap items-center justify-between',
         title:
           'min-w-0 flex-1 truncate text-2xl leading-tight font-medium text-nowrap text-default sm:text-3xl',
-        description: 'mt-2 text-sm text-muted',
+        description: 'mt-2 text-sm',
         links: 'shrink-0 flex-nowrap gap-2',
       },
     },
     modal: {
-      slots: {
-        content: 'bg-modal text-default divide-default',
-        header: 'min-h-0 gap-3 px-6 pt-6 pb-4',
-        title: 'text-lg font-medium text-default',
-        body: 'px-6 py-4',
-        footer: 'justify-end gap-3 px-6 py-4',
-      },
+      slots: { content: 'bg-dialog' },
       variants: {
-        fullscreen: {
-          false: { content: 'rounded-floating shadow-floating ring-0' },
-        },
         overlay: { true: { overlay: 'bg-black/45' } },
       },
     },
     slideover: {
       slots: {
         overlay: 'bg-black/45',
-        content: 'bg-modal text-default divide-default shadow-floating',
+        content: 'bg-dialog',
+      },
+    },
+    drawer: {
+      slots: {
+        overlay: 'bg-black/45',
+        content: 'bg-dialog',
       },
     },
   },

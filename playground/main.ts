@@ -5,7 +5,7 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 
 import App from './App.vue';
 import { componentPages } from './componentPages';
-import HomeView from './HomeView.vue';
+import HomeView from './views/home/index.vue';
 import './style.css';
 
 const webKit = createWebKit({
@@ -31,17 +31,17 @@ const router = createRouter({
     {
       path: '/theme',
       name: 'theme',
-      component: () => import('./ThemeView.vue'),
+      component: () => import('./views/theme/index.vue'),
     },
     {
       path: '/nuxt-ui',
       name: 'nuxt-ui',
-      component: () => import('./NuxtUiView.vue'),
+      component: () => import('./views/nuxt-ui/index.vue'),
     },
     {
       path: '/components',
       name: 'components',
-      component: () => import('./ComponentsView.vue'),
+      component: () => import('./views/components/index.vue'),
     },
     ...componentPages.map(({ slug, anchor, path = '/components' }) => ({
       path: `/components/${slug}`,

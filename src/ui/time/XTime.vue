@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UTooltip from '@nuxt/ui/components/Tooltip.vue';
 import { formatISO } from 'date-fns';
 import { computed } from 'vue';
 
@@ -37,13 +38,13 @@ const title = computed(
 </script>
 
 <template>
-  <time
-    v-if="date"
-    :datetime="machineTime"
-    :title="title"
-    v-bind="{ ...$attrs, class: undefined }"
-    :class="mergeClasses($attrs.class)"
-  >
-    {{ text }}
-  </time>
+  <UTooltip v-if="date" :text="title">
+    <time
+      :datetime="machineTime"
+      v-bind="{ ...$attrs, class: undefined }"
+      :class="mergeClasses($attrs.class)"
+    >
+      {{ text }}
+    </time>
+  </UTooltip>
 </template>

@@ -1,9 +1,108 @@
 @import '@nuxt/ui';
 @import './shell/sidebar/sidebar.css';
 
-@import './styles/base.css';
-@import './styles/utilities.css';
 @import './shell/motion.css';
 
 /* 已发布依赖不会被 Tailwind 自动扫描，显式包含组件和主题预设的类名。 */
 @source './';
+
+/* 仅维护项目专属 token；通用颜色使用 Nuxt UI 的 --ui-*。 */
+@theme {
+  --color-paper: #f7f7f8;
+  --color-surface: #ffffff;
+  /* 嵌入式静态内容背景，与交互悬停底色区分。 */
+  --color-embedded: #fafafc;
+  --color-popover: #ffffff;
+  --color-dialog: #ffffff;
+  --color-hover: rgb(0 0 0 / 4%);
+  --font-sans:
+    v-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+
+@layer base {
+  :root {
+    --web-kit-header-height: 0px;
+    /* 使用 Nuxt UI 原生变量，控件和业务内容共享同一套语义色。 */
+    --ui-primary: #18a058;
+    --ui-success: #18a058;
+    --ui-info: #1d4ed8;
+    --ui-warning: #f0a020;
+    --ui-error: #d03050;
+    --ui-text: #1f2225;
+    --ui-text-muted: #767c82;
+    --ui-border: #e0e0e6;
+    --ui-bg: #ffffff;
+    --ui-header-height: 50px;
+    --ui-radius: 0.125rem;
+
+    color-scheme: light;
+    color: var(--ui-text);
+    background: var(--ui-bg);
+  }
+
+  :root.dark {
+    color-scheme: dark;
+    --color-paper: #101014;
+    --color-surface: #18181c;
+    --color-embedded: rgb(255 255 255 / 6%);
+    --ui-bg: #101014;
+    --color-popover: #48484e;
+    --color-dialog: #2c2c32;
+    --ui-primary: #63e2b7;
+    --ui-success: #63e2b7;
+    --ui-info: #93c5fd;
+    --ui-error: #e88080;
+    --ui-warning: #f2c97d;
+    --ui-text: #f2f2f5;
+    --ui-text-muted: #a3a3aa;
+    --ui-border: #3b3b40;
+    --color-hover: rgb(255 255 255 / 9%);
+  }
+
+  :root.theme-transition,
+  :root.theme-transition *,
+  :root.theme-transition *::before,
+  :root.theme-transition *::after {
+    transition-property:
+      color, background-color, border-color, text-decoration-color, fill,
+      stroke, box-shadow !important;
+    transition-duration: var(
+      --web-kit-theme-transition-duration,
+      200ms
+    ) !important;
+    transition-timing-function: ease !important;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100dvh;
+    background: var(--ui-bg);
+    /* Match Naive UI's global typography without changing rem-based sizing.
+       Keep native font synthesis so CJK fonts without bold faces can be bold. */
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Keep anchors and scrollIntoView targets clear of the sticky header. */
+  :root:has(.web-kit-layout) {
+    --web-kit-header-height: var(--ui-header-height);
+    scroll-padding-top: var(--web-kit-header-height);
+  }
+}
+
+/* Decoration only; compose typography and spacing at the call site. */
+@utility heading-bar {
+  position: relative;
+  padding-inline-start: 12px;
+
+  &::before {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: 9999px;
+    background-color: var(--ui-primary);
+    content: '';
+  }
+}

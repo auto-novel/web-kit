@@ -124,7 +124,6 @@ function restoreAccountFocus(event: Event) {
           ref="accountTrigger"
           color="neutral"
           variant="ghost"
-          class="font-normal"
           :aria-label="accountLabel"
         >
           <span class="max-w-24 truncate sm:max-w-48">
@@ -172,13 +171,7 @@ function restoreAccountFocus(event: Event) {
         </span>
       </template>
     </UDropdownMenu>
-    <UButton
-      v-else
-      color="neutral"
-      variant="ghost"
-      class="font-normal"
-      @click="loginOpen = true"
-    >
+    <UButton v-else color="neutral" variant="ghost" @click="loginOpen = true">
       登录/注册
     </UButton>
   </div>

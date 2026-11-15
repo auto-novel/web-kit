@@ -1,61 +1,14 @@
 import assert from 'node:assert/strict';
-import test, { after } from 'node:test';
-import { JSDOM } from 'jsdom';
-import { compileComponent } from '../helpers/compile-component.mjs';
+import test from 'node:test';
+import { dom } from '../helpers/dom.mjs';
 
-// 用真实 Reka、Portal 和 DOM 事件验证选择流程，而非手动发送组件事件。
-const dom = new JSDOM('<!doctype html><html><body></body></html>', {
-  pretendToBeVisual: true,
-});
-for (const key of [
-  'window',
-  'document',
-  'Element',
-  'HTMLElement',
-  'SVGElement',
-  'Node',
-  'NodeFilter',
-  'MutationObserver',
-  'CustomEvent',
-  'Event',
-  'HTMLInputElement',
-])
-  globalThis[key] = key === 'window' ? dom.window : dom.window[key];
-globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
-globalThis.requestAnimationFrame = dom.window.requestAnimationFrame.bind(
-  dom.window,
-);
-globalThis.cancelAnimationFrame = dom.window.cancelAnimationFrame.bind(
-  dom.window,
-);
-globalThis.ResizeObserver = class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
-globalThis.PointerEvent = dom.window.PointerEvent ?? dom.window.MouseEvent;
-dom.window.PointerEvent = globalThis.PointerEvent;
-after(() => dom.window.close());
-
+// 使用真实 Nuxt UI 日历、Popover 和 DOM 事件验证完整选择流程。
 const Vue = await import('vue');
-const icon = () => Vue.h('svg');
-const XDateRangePicker = compileComponent(
-  new URL(
-    '../../src/ui/date-range-picker/XDateRangePicker.vue',
-    import.meta.url,
-  ),
-  {
-    vue: Vue,
-    'reka-ui': await import('reka-ui'),
-    '@internationalized/date': await import('@internationalized/date'),
-    '@vicons/material': {
-      CalendarMonthOutlined: icon,
-      ChevronLeftOutlined: icon,
-      ChevronRightOutlined: icon,
-      CloseOutlined: icon,
-    },
-    '../classes': await import('../../src/ui/classes.ts'),
-  },
+const { createComponentServer, installTestRouter } =
+  await import('../helpers/component-server.mjs');
+const server = await createComponentServer({ dom: true });
+const { default: XDateRangePicker } = await server.ssrLoadModule(
+  '/src/ui/date-range-picker/XDateRangePicker.vue',
 );
 
 async function settle() {
@@ -81,6 +34,7 @@ function mount(t, initial = {}) {
         },
       }),
   });
+  installTestRouter(app);
   app.mount(host);
   t.after(async () => {
     app.unmount();
@@ -118,6 +72,7 @@ test('DateRangePicker 真实点击两天只提交完整 ISO 区间，完成后�
   const { host, trigger, content, clickDay, open, events, props } = mount(t, {
     modelValue: ['2026-10-01', '2026-10-03'],
     clearable: true,
+    ui: { clear: 'custom-clear' },
   });
   await open();
   clickDay('2026-10-20');
@@ -130,8 +85,14 @@ test('DateRangePicker 真实点击两天只提交完整 ISO 区间，完成后�
   assert.deepEqual(props.modelValue, ['2026-10-20', '2026-10-23']);
   assert.equal(content(), null);
   assert.match(trigger.textContent, /2026-10-20 至 2026-10-23/);
-  host.querySelector('[aria-label="清空日期区间"]').click();
+  const clear = host.querySelector('button[aria-label="清空日期区间"]');
+  assert.ok(clear.classList.contains('custom-clear'));
+  assert.equal(clear.type, 'button');
+  clear.focus();
+  clear.click();
   await settle();
+  assert.equal(document.activeElement, trigger);
+  assert.equal(host.querySelector('[aria-label="清空日期区间"]'), null);
   assert.deepEqual(events, [['2026-10-20', '2026-10-23'], null]);
   assert.equal(props.modelValue, null);
   assert.match(trigger.textContent, /选择日期区间/);

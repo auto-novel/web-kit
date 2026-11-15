@@ -2,6 +2,7 @@
 import { CheckOutlined, KeyboardArrowDownOutlined } from '@vicons/material';
 import { computed } from 'vue';
 
+import UButton from '@nuxt/ui/components/Button.vue';
 import UDropdownMenu from '@nuxt/ui/components/DropdownMenu.vue';
 
 const props = defineProps<{
@@ -36,9 +37,12 @@ const items = computed(() =>
 
 <template>
   <UDropdownMenu :items="items" :external-icon="false" :content="menuContent">
-    <button
+    <UButton
       type="button"
-      class="group flex min-h-9 items-center gap-1 rounded-sm px-3 text-sm text-default transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      color="neutral"
+      variant="ghost"
+      size="md"
+      class="group min-h-9 gap-1 px-3"
       :aria-label="`切换管理后台，当前 ${currentLabel}`"
     >
       <span>{{ currentLabel }}</span>
@@ -46,7 +50,7 @@ const items = computed(() =>
         class="size-4 flex-none transition-transform group-data-[state=open]:rotate-180 motion-reduce:transition-none"
         aria-hidden="true"
       />
-    </button>
+    </UButton>
     <template #item-trailing="{ item }">
       <CheckOutlined
         v-if="item.key === props.current"

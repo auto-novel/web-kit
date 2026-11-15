@@ -136,6 +136,120 @@ test('Pagination 的 keyboard 联合类型扩展到容器或页面', async (t) =
   assert.equal(global.props.page, 3);
 });
 
+test('Pagination 键盘翻到边界后将焦点从禁用按钮恢复到当前页', async (t) => {
+  const { host, props } = await mount(t, {
+    page: 2,
+    totalPages: 5,
+    keyboard: true,
+  });
+  const previous = host.querySelector('button[aria-label="上一页"]');
+  const rects = dom.window.HTMLElement.prototype.getClientRects;
+  dom.window.HTMLElement.prototype.getClientRects = () => [
+    { width: 32, height: 32 },
+  ];
+  t.after(() => {
+    dom.window.HTMLElement.prototype.getClientRects = rects;
+  });
+
+  previous.focus();
+  press(previous, 'ArrowLeft');
+  await Vue.nextTick();
+  assert.equal(props.page, 1);
+  assert.equal(previous.disabled, true);
+  assert.equal(
+    document.activeElement,
+    host.querySelector('[aria-current="page"]'),
+  );
+});
+
+test('Pagination 拒绝无效跳页，Escape 关闭浮层并恢复焦点', async (t) => {
+  const { host, props, events } = await mount(t);
+  const trigger = host.querySelector('button[aria-label="跳转到指定页"]');
+  trigger.focus();
+  trigger.click();
+  await settle();
+
+  const dialog = document.querySelector('[role="dialog"]');
+  assert.equal(dialog.getAttribute('aria-label'), '跳转到指定页');
+  const input = dialog.querySelector('input[aria-label="跳转页码"]');
+  const submit = dialog.querySelector('button');
+  assert.equal(document.activeElement, input);
+  assert.equal(input.getAttribute('role'), 'spinbutton');
+  assert.equal(input.getAttribute('aria-valuemin'), '1');
+  assert.equal(input.getAttribute('aria-valuemax'), '20');
+  for (const value of ['0', '21', '1.5', '3.0001', '2', '', 'abc']) {
+    input.value = value;
+    input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    await Vue.nextTick();
+    assert.equal(submit.disabled, true);
+    press(input, 'Enter');
+    assert.equal(props.page, 2);
+    assert.deepEqual(events, []);
+  }
+  press(input, 'Escape');
+  await settle();
+  assert.equal(document.querySelector('[role="dialog"]'), null);
+  assert.equal(document.activeElement, trigger);
+});
+
+test('Pagination 数值跳页支持方向键、禁用滚轮，点击提交未失焦的最新草稿', async (t) => {
+  const { host, props, events } = await mount(t, {
+    totalPages: 2000,
+  });
+  const trigger = host.querySelector('button[aria-label="跳转到指定页"]');
+  trigger.click();
+  await settle();
+  const dialog = document.querySelector('[role="dialog"]');
+  const input = dialog.querySelector('input[aria-label="跳转页码"]');
+  const submit = dialog.querySelector('button');
+  assert.equal(submit.disabled, true, '当前页不能跳转');
+
+  press(input, 'ArrowUp');
+  await Vue.nextTick();
+  assert.equal(input.value, '3');
+  assert.equal(submit.disabled, false);
+  assert.deepEqual(events, [], '方向键只改变待跳转页码');
+  input.dispatchEvent(
+    new dom.window.WheelEvent('wheel', {
+      deltaY: -100,
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+  await Vue.nextTick();
+  assert.equal(input.value, '3');
+
+  for (const value of ['', '2001', '4.5']) {
+    input.value = value;
+    input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    await Vue.nextTick();
+    assert.equal(submit.disabled, true, '新草稿无效时不能提交旧模型');
+    input.blur();
+    await Vue.nextTick();
+    assert.equal(submit.disabled, true, '失焦不能把非法值修正后提交');
+    input.focus();
+  }
+
+  input.value = '1234';
+  input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+  await Vue.nextTick();
+  assert.equal(submit.disabled, false);
+  assert.equal(input.value, '1234', '页码不使用千位分隔');
+  // 程序化点击不会触发 blur，确保不依赖失焦提交模型。
+  submit.click();
+  assert.equal(props.page, 1234);
+  await settle();
+  assert.equal(document.querySelector('[role="dialog"]'), null);
+
+  trigger.click();
+  await settle();
+  assert.equal(
+    document.querySelector('input[aria-label="跳转页码"]').value,
+    '1234',
+  );
+  assert.equal(document.querySelector('[role="dialog"] button').disabled, true);
+});
+
 test('Pagination 跳页浮层让出快捷键并在跳转后关闭', async (t) => {
   const { host, props } = await mount(t, {
     page: 2,
@@ -155,13 +269,8 @@ test('Pagination 跳页浮层让出快捷键并在跳转后关闭', async (t) =>
   const input = dialog.querySelector('input[aria-label="跳转页码"]');
   input.value = '7';
   input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
-  input.dispatchEvent(
-    new dom.window.KeyboardEvent('keydown', {
-      key: 'Enter',
-      bubbles: true,
-      cancelable: true,
-    }),
-  );
+  // 不等待失焦或下一次渲染，Enter 也必须提交当前输入而非旧模型。
+  press(input, 'Enter');
   assert.equal(props.page, 7);
   await settle();
   assert.equal(document.querySelector('[role="dialog"]'), null);

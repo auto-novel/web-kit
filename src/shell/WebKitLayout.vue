@@ -89,9 +89,7 @@ watch(
           :options="navigationOptions"
           :expanded="expanded"
           :selected="selectedNavigationKey"
-          full-width
-          mobile-header
-          panel="modal"
+          presentation="mobile"
           @select="selectNavigation"
         />
       </template>

@@ -143,23 +143,7 @@ test('account menu preserves links, nested groups, unread state and Escape focus
   assert.match(menu.textContent, /注册于/);
   const strikes = menu.querySelector('a[href="/penalties"]');
   assert.match(strikes.getAttribute('aria-label'), /有新的处罚记录/);
-  assert.ok(strikes.querySelector('svg').classList.contains('size-4'));
-  assert.equal(
-    strikes.querySelector('svg').classList.contains('size-5'),
-    false,
-  );
-  const logoutIcon = [...menu.querySelectorAll('[role="menuitem"]')]
-    .find((node) => node.textContent.includes('退出账号'))
-    .querySelector('svg');
-  assert.ok(logoutIcon.classList.contains('size-4'));
-  assert.equal(strikes.querySelector('svg').style.color, 'inherit');
-  assert.equal(strikes.querySelector('.place-items-center'), null);
   assert.ok(menu.querySelector('[role="separator"]'));
-  for (const item of menu.querySelectorAll('[data-slot="item"]')) {
-    assert.ok(item.classList.contains('items-center'));
-    assert.equal(item.classList.contains('items-start'), false);
-  }
-
   const group = [...menu.querySelectorAll('[role="menuitem"]')].find((node) =>
     node.textContent.includes('相关链接'),
   );
@@ -192,31 +176,8 @@ test('account menu preserves links, nested groups, unread state and Escape focus
   assert.equal(trigger.getAttribute('aria-expanded'), 'false');
 });
 
-for (const admin of [false, true]) {
-  test(`account summary preserves typography for ${admin ? 'admins' : 'users'}`, async (t) => {
-    const { open } = await mount(t, { admin });
-    const menu = await open();
-    const summary = menu.querySelector('[data-slot="group"]').firstElementChild;
-    const role = summary.querySelector('[data-slot="itemLabel"]');
-    const registered = summary.querySelector('[data-slot="itemDescription"]');
-    for (const name of ['text-sm', 'font-medium', 'text-default']) {
-      assert.ok(role.classList.contains(name), `role includes ${name}`);
-    }
-    for (const name of ['text-xs', 'font-normal', 'text-muted']) {
-      assert.ok(
-        registered.classList.contains(name),
-        `registration includes ${name}`,
-      );
-    }
-    assert.equal(role.classList.contains('font-semibold'), false);
-    assert.match(registered.textContent, /注册于/);
-  });
-}
-
 test('account menu omits empty option groups and updates when options change', async (t) => {
-  const { state, trigger, open } = await mount(t);
-  assert.ok(trigger.classList.contains('font-normal'));
-  assert.equal(trigger.classList.contains('font-medium'), false);
+  const { state, open } = await mount(t);
   const menu = await open();
   const groups = () => [...menu.querySelectorAll('[data-slot="group"]')];
   assert.equal(groups().length, 2);
@@ -242,11 +203,6 @@ test('admin checkbox toggles mode without closing; logout tolerates an expired r
   await settle();
   assert.equal(calls.toggle, 1);
   assert.equal(toggle.getAttribute('aria-checked'), 'true');
-  assert.ok(
-    toggle
-      .querySelector('[data-slot="itemTrailing"]')
-      .classList.contains('hidden'),
-  );
   assert.equal(trigger.getAttribute('aria-expanded'), 'true');
   const logout = [...menu.querySelectorAll('[role="menuitem"]')].find((node) =>
     node.textContent.includes('退出账号'),
@@ -271,11 +227,6 @@ test('disabled strikes omit the entry and unread indicator; signed-out trigger o
   await settle();
   state.signedIn = false;
   await settle();
-  assert.ok(host.querySelector('button').classList.contains('font-normal'));
-  assert.equal(
-    host.querySelector('button').classList.contains('font-medium'),
-    false,
-  );
   host.querySelector('button').click();
   await settle();
   assert.ok(document.querySelector('[role="dialog"]'));

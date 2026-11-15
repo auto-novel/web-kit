@@ -8,7 +8,7 @@ import {
   type Ref,
 } from 'vue';
 
-import { useLocalStorage } from '../utils/storage';
+import { useLocalStorage } from './utils/storage';
 
 /** 实际生效的外观。 */
 export type Theme = 'light' | 'dark';
@@ -46,32 +46,6 @@ const THEME_COLORS: Record<Theme, string> = {
 
 function isThemePreference(value: unknown): value is ThemePreference {
   return value === 'light' || value === 'dark' || value === 'system';
-}
-
-/** 取系统偏好；非浏览器环境退化为浅色。 */
-function systemTheme(): Theme {
-  if (
-    typeof window === 'undefined' ||
-    typeof window.matchMedia !== 'function'
-  ) {
-    return 'light';
-  }
-  return window.matchMedia(SYSTEM_THEME_QUERY).matches ? 'dark' : 'light';
-}
-
-/** 订阅系统偏好变化；不支持监听的环境静默跳过。 */
-function watchSystemTheme(onChange: (theme: Theme) => void) {
-  if (
-    typeof window === 'undefined' ||
-    typeof window.matchMedia !== 'function'
-  ) {
-    return;
-  }
-  const query = window.matchMedia(SYSTEM_THEME_QUERY);
-  if (typeof query.addEventListener !== 'function') return;
-  query.addEventListener('change', (event) => {
-    onChange(event.matches ? 'dark' : 'light');
-  });
 }
 
 export function createWebTheme() {
@@ -138,9 +112,14 @@ export function createWebTheme() {
     }
   }
 
+  const systemQuery =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia(SYSTEM_THEME_QUERY)
+      : undefined;
+  const systemTheme = (): Theme => (systemQuery?.matches ? 'dark' : 'light');
   const system = ref(systemTheme());
-  watchSystemTheme((theme) => {
-    system.value = theme;
+  systemQuery?.addEventListener?.('change', (event) => {
+    system.value = event.matches ? 'dark' : 'light';
   });
 
   const preference = useLocalStorage<ThemePreference>(THEME_STORAGE_KEY, {
@@ -202,7 +181,7 @@ export function createWebTheme() {
   }
 
   const context: WebTheme = Object.freeze({
-    theme: readonly(currentTheme),
+    theme: currentTheme,
     preference: readonly(preference),
     override: readonly(override),
     setOverride,

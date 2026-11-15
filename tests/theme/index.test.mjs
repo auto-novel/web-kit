@@ -3,7 +3,7 @@ import '../helpers/register-source.mjs';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
 
-const { createWebTheme } = await import('../../src/theme/index.ts');
+const { createWebTheme } = await import('../../src/theme.ts');
 
 const THEME_KEY = 'web-kit:theme:v1';
 

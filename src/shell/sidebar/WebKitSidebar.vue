@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { DarkModeOutlined, LightModeOutlined } from '@vicons/material';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useWebKit, useWebKitInternals } from '../../context';
 import type { WebKitMenuOption } from '../../types';
@@ -10,15 +10,17 @@ import SidebarNavigation from './SidebarNavigation.vue';
 
 defineOptions({ inheritAttrs: false });
 
-defineProps<{
-  options: WebKitMenuOption[];
-  expanded: Set<string>;
-  selected?: string;
-  collapsed?: boolean;
-  fullWidth?: boolean;
-  mobileHeader?: boolean;
-  panel?: 'surface' | 'modal';
-}>();
+const props = withDefaults(
+  defineProps<{
+    options: WebKitMenuOption[];
+    expanded: Set<string>;
+    selected?: string;
+    collapsed?: boolean;
+    presentation?: 'desktop' | 'mobile';
+  }>(),
+  { presentation: 'desktop' },
+);
+const isMobilePanel = computed(() => props.presentation === 'mobile');
 
 const emit = defineEmits<{
   select: [samePath: boolean];
@@ -35,14 +37,14 @@ const showMascot = ref(false);
     v-bind="$attrs"
     class="web-kit-sidebar flex h-full flex-col overflow-hidden border-r border-default"
     :class="[
-      panel === 'modal' ? 'bg-modal' : 'bg-surface',
-      fullWidth ? 'w-full' : collapsed ? 'w-16' : 'w-60',
+      isMobilePanel ? 'bg-dialog' : 'bg-surface',
+      isMobilePanel ? 'w-full' : collapsed ? 'w-16' : 'w-60',
       { 'is-collapsed': collapsed },
     ]"
     aria-label="站点导航"
   >
     <div
-      v-if="mobileHeader"
+      v-if="isMobilePanel"
       class="relative h-[100px] flex-none bg-primary"
       aria-hidden="true"
     >
@@ -73,7 +75,7 @@ const showMascot = ref(false);
 
     <div
       class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-2 py-1"
-      :class="{ 'mt-9': mobileHeader }"
+      :class="{ 'mt-9': isMobilePanel }"
     >
       <SidebarNavigation
         :options="options"
@@ -110,7 +112,7 @@ const showMascot = ref(false);
 
   <Teleport to="body">
     <img
-      v-if="showMascot && !mobileHeader"
+      v-if="showMascot && !isMobilePanel"
       src="../../assets/mascot.webp"
       alt=""
       aria-hidden="true"

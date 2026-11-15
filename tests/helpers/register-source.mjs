@@ -10,10 +10,7 @@ registerHooks({
       !/\.[a-z]+$/i.test(specifier) &&
       context.parentURL?.startsWith(sourceRoot)
     ) {
-      return nextResolve(
-        specifier === './theme' ? `${specifier}/index.ts` : `${specifier}.ts`,
-        context,
-      );
+      return nextResolve(`${specifier}.ts`, context);
     }
     return nextResolve(specifier, context);
   },

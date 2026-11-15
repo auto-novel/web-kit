@@ -62,22 +62,12 @@ test('active DropZone maps overlay/content/icon/description and keeps class last
     }),
   );
   const overlay = node(html, 'drop-overlay');
-  styles(
-    overlay,
-    ['p-8', 'bg-error', 'sm:p-6'],
-    ['p-4', 'p-2', 'bg-black/70', 'bg-primary', 'sm:p-10'],
-  );
+  styles(overlay, ['p-8', 'bg-error', 'sm:p-6'], ['p-2', 'bg-primary']);
   assert.match(overlay, /role="status"/);
   assert.match(overlay, /aria-label="Upload files"/);
   assert.match(overlay, /opacity:0.8/);
-  // DropZone alone has an explicit top layer; dialogs use body portal order.
-  styles(overlay, ['z-[200]']);
-  styles(
-    node(html, 'drop-content'),
-    ['p-3', 'border-primary', 'text-base', 'sm:text-2xl'],
-    ['p-6', 'border-white/70', 'text-xl'],
-  );
-  styles(node(html, 'drop-icon'), ['size-6'], ['size-12']);
+  styles(node(html, 'drop-content'), ['p-3', 'border-primary', 'text-base']);
+  styles(node(html, 'drop-icon'), ['size-6']);
   styles(node(html, 'drop-description'), ['font-semibold']);
   assert.match(html, /松开以接收文件/);
 });

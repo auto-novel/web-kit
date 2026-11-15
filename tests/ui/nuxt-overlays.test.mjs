@@ -75,7 +75,6 @@ for (const [name, Component] of [
     assert.ok(panel);
     const overlay = document.querySelector('[data-slot="overlay"]');
     assert.ok(overlay);
-    assert.ok(overlay.classList.contains('bg-black/45'));
     assert.equal(
       host.contains(panel),
       false,

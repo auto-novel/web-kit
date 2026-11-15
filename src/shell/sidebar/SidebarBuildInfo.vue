@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ULink from '@nuxt/ui/components/Link.vue';
 import { AccessTimeOutlined, CommitOutlined } from '@vicons/material';
 import { computed } from 'vue';
 
@@ -33,9 +34,9 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
         aria-hidden="true"
       />
       <span class="flex-none">Commit</span>
-      <a
+      <ULink
         v-if="commitUrl"
-        class="truncate text-primary hover:text-primary/75 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
+        class="truncate focus-visible:-outline-offset-2"
         :href="commitUrl"
         :title="commitSha"
         target="_blank"
@@ -44,7 +45,7 @@ const shortCommit = computed(() => props.commitSha.slice(0, 12) || 'unknown');
         <code class="block text-xs">
           {{ shortCommit }}
         </code>
-      </a>
+      </ULink>
       <code v-else class="text-xs">
         {{ shortCommit }}
       </code>
