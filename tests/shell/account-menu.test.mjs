@@ -3,6 +3,7 @@ import test from 'node:test';
 import { dom } from '../helpers/dom.mjs';
 
 const Vue = await import('vue');
+const { TooltipProvider } = await import('reka-ui');
 const { createMemoryHistory, createRouter } = await import('vue-router');
 const { createComponentServer } =
   await import('../helpers/component-server.mjs');
@@ -61,7 +62,10 @@ async function mount(t, initial = {}) {
   const host = document.createElement('div');
   document.body.append(host);
   const app = Vue.createApp({
-    render: () => Vue.h(AccountButton, { options: state.options }),
+    render: () =>
+      Vue.h(TooltipProvider, null, {
+        default: () => Vue.h(AccountButton, { options: state.options }),
+      }),
   });
   app.use(router);
   app.provide(webKitKey, {

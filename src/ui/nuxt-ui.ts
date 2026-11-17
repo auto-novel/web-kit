@@ -4,9 +4,6 @@ import type { NuxtUIOptions } from '@nuxt/ui/vite';
 // 宿主使用 ui(webKitNuxtUiOptions)，并在 Tailwind 之后导入 styles.css。
 // 横向短选项使用更紧凑的内边距；list 保留 Nuxt UI 默认间距。
 const selectionGroupTheme = {
-  slots: {
-    label: 'font-normal',
-  },
   compoundVariants: (
     [
       { size: 'xs', padding: 'px-2 py-1' },
@@ -56,7 +53,12 @@ export const webKitNuxtUiOptions = {
         base: 'cursor-pointer font-normal',
       },
     },
-    radioGroup: selectionGroupTheme,
+    radioGroup: {
+      ...selectionGroupTheme,
+      slots: {
+        label: 'font-normal',
+      },
+    },
     checkboxGroup: selectionGroupTheme,
     checkbox: {
       slots: {
