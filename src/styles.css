@@ -10,7 +10,6 @@
 @theme {
   --color-paper: #f7f7f8;
   --color-surface: #ffffff;
-  /* 嵌入式静态内容背景，与交互悬停底色区分。 */
   --color-embedded: #fafafc;
   --color-popover: #ffffff;
   --color-dialog: #ffffff;
@@ -23,7 +22,7 @@
 @layer base {
   :root {
     --web-kit-header-height: 0px;
-    /* 使用 Nuxt UI 原生变量，控件和业务内容共享同一套语义色。 */
+    --web-kit-scrollbar-thumb: var(--ui-text-dimmed);
     --ui-primary: #18a058;
     --ui-success: #18a058;
     --ui-info: #1d4ed8;
@@ -60,6 +59,25 @@
     --color-hover: rgb(255 255 255 / 9%);
   }
 
+  @media not (forced-colors: active) {
+    @supports selector(::-webkit-scrollbar) {
+      ::-webkit-scrollbar-track,
+      ::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--web-kit-scrollbar-thumb);
+      }
+    }
+
+    @supports not selector(::-webkit-scrollbar) {
+      * {
+        scrollbar-color: var(--web-kit-scrollbar-thumb) transparent;
+      }
+    }
+  }
+
   :root.theme-transition,
   :root.theme-transition *,
   :root.theme-transition *::before,
@@ -78,8 +96,6 @@
     min-width: 320px;
     min-height: 100dvh;
     background: var(--ui-bg);
-    /* Match Naive UI's global typography without changing rem-based sizing.
-       Keep native font synthesis so CJK fonts without bold faces can be bold. */
     font-size: 14px;
     line-height: 1.6;
   }
