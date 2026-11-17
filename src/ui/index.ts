@@ -1,3 +1,19 @@
+export { default as XImage } from './image/XImage.vue';
+export { default as XImageGroup } from './image/XImageGroup.vue';
+export type { XImageProps, XImageUi } from './image/types';
+export { default as XImageCompare } from './image-compare/XImageCompare.vue';
+export type {
+  XImageCompareProps,
+  XImageCompareUi,
+} from './image-compare/types';
+export { default as XProgressCircle } from './progress-circle/XProgressCircle.vue';
+export type {
+  XProgressCircleProps,
+  XProgressCircleUi,
+  XProgressCircleColor,
+  XProgressCircleSize,
+  XProgressCircleSegment,
+} from './progress-circle/types';
 export { default as XPage } from './page/XPage.vue';
 export type { XPageProps, XPageUi } from './page/types';
 export { mergeClasses } from './classes';

@@ -148,6 +148,7 @@ test('只响应主键鼠标，避让交互元素及显式忽略区域', async (t
   }
   for (const html of [
     '<button><span>按钮</span></button>',
+    '<div role="button"><span>预览按钮</span></div>',
     '<a href="#"><span>链接</span></a>',
     '<input>',
     '<div contenteditable="true"><span>编辑</span></div>',
@@ -161,6 +162,20 @@ test('只响应主键鼠标，避让交互元素及显式忽略区域', async (t
     assert.equal(dragging.value, false, html);
   }
   assert.equal(viewport.scrollTop, 100);
+});
+
+test('图片预览按钮可显式允许拖动滚动，拖动后抑制点击', async (t) => {
+  const { viewport, pointer, dragging } = await setup(t, {
+    orientation: 'horizontal',
+  });
+  viewport.innerHTML = '<div role="button" data-drag-scroll-allow><img></div>';
+  const image = viewport.querySelector('img');
+  pointer('pointerdown', 50, 50, { on: image });
+  pointer('pointermove', 10, 50);
+  assert.equal(dragging.value, true);
+  assert.equal(viewport.scrollLeft, 140);
+  pointer('pointerup', 10, 50);
+  assert.equal(pointer('click', 10, 50, { on: image }).defaultPrevented, true);
 });
 
 test('惯性逐渐衰减，不同帧率位移一致且最终停止', async (t) => {

@@ -20,11 +20,12 @@ export interface UseDragScrollOptions {
 
 type Sample = { time: number; left: number; top: number };
 const interactiveSelector =
-  'a, button, input, textarea, select, label, [role="button"], [role="slider"], [role="scrollbar"], [role="combobox"], [role="listbox"], [role="option"], [role="menuitem"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [contenteditable]:not([contenteditable="false"]), [draggable="true"], [data-drag-scroll-ignore]';
+  'a, button, input, textarea, select, label, [role="button"]:not([data-drag-scroll-allow]), [role="slider"], [role="scrollbar"], [role="combobox"], [role="listbox"], [role="option"], [role="menuitem"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [contenteditable]:not([contenteditable="false"]), [draggable="true"], [data-drag-scroll-ignore]';
 
 /**
  * 给实际滚动元素增加鼠标按住内容拖动能力，可用于原生 div 或 UScrollArea.$el。
  * 自动绑定/清理事件，不接管触屏、滚轮或键盘滚动，也不包装滚动组件。
+ * role="button" 默认避让；图片预览等可用 data-drag-scroll-allow 显式允许拖动。
  */
 export function useDragScroll(
   target: MaybeRefOrGetter<HTMLElement | null | undefined>,

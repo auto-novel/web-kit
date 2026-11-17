@@ -16,6 +16,8 @@ import {
 import { onBeforeUnmount, ref, shallowRef } from 'vue';
 import ExampleControls from '../../components/ExampleControls.vue';
 import MarkdownExample from './MarkdownExample.vue';
+import MediaExample from './MediaExample.vue';
+import ProgressCircleExample from './ProgressCircleExample.vue';
 
 const range = ref<XDateRange | null>(['2026-06-01', '2026-06-07']);
 const exampleRange: XDateRange = ['2026-06-01', '2026-06-07'];
@@ -125,6 +127,7 @@ const menuItems = [
     />
 
     <div class="min-w-0 divide-y divide-default">
+      <MediaExample />
       <section aria-labelledby="input-files-title" class="py-8 first:pt-0">
         <h2 id="input-files-title" class="heading-bar mb-4 text-lg font-medium">
           输入与文件
@@ -280,6 +283,7 @@ const menuItems = [
             <XTime :time="sampleTime" preset="relative" :to="relativeBase" />
           </dd>
         </dl>
+        <ProgressCircleExample class="mt-8" />
       </section>
 
       <section aria-labelledby="actions-feedback-title" class="py-8">
