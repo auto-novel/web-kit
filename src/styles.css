@@ -61,18 +61,31 @@
 
   @media not (forced-colors: active) {
     @supports selector(::-webkit-scrollbar) {
-      ::-webkit-scrollbar-track,
-      ::-webkit-scrollbar-corner {
+      body *::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      body *::-webkit-scrollbar,
+      body *::-webkit-scrollbar-track,
+      body *::-webkit-scrollbar-corner {
         background: transparent;
       }
 
-      ::-webkit-scrollbar-thumb {
+      body *::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 999px;
         background: var(--web-kit-scrollbar-thumb);
+        background-clip: padding-box;
+      }
+
+      body *::-webkit-scrollbar-thumb:hover {
+        border-width: 0;
       }
     }
 
     @supports not selector(::-webkit-scrollbar) {
-      * {
+      body * {
         scrollbar-color: var(--web-kit-scrollbar-thumb) transparent;
       }
     }
